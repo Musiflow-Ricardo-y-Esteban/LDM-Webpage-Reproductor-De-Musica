@@ -1,0 +1,456 @@
+/* ----- BASE Y GENERALES ----- */
+/* Estos son los estilos base que afectan a toda la página */
+
+body {
+    background-color: var(--oscuro-primario);
+    color: var(--texto-primario);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    animation: cambioArcoiris 60s infinite linear;
+}
+
+/* Títulos de sección */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 3rem;
+    position: relative;
+    display: inline-block;
+}
+
+/* Línea de color debajo de los títulos */
+.section-title::after {
+    content: '';
+    position: absolute;
+    width: 50%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--arcoiris-1), var(--arcoiris-5));
+    bottom: -10px;
+    left: 0;
+    border-radius: 5px;
+}
+
+/* ----- SECCIÓN DE CARACTERÍSTICAS ----- */
+/* Esta sección muestra las características de la app con iconos */
+
+.features {
+    background-color: var(--oscuro-secundario);
+    padding: 5rem 0;
+    position: relative;
+}
+
+/* Tarjetas de características */
+.feature-card {
+    background-color: rgba(30, 30, 30, 0.6);
+    border-radius: 10px;
+    padding: 2rem;
+    height: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Línea animada en la parte inferior de las tarjetas */
+.feature-card::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 5px;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, transparent, var(--acento-actual), transparent);
+    transform: translateX(-100%);
+    transition: all 0.8s ease;
+}
+
+.feature-card:hover::before {
+    transform: translateX(100%);
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background-color: rgba(40, 40, 40, 0.8);
+}
+
+/* Iconos con degradado */
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ----- SECCIÓN DE ÁLBUMES DESTACADOS ----- */
+/* Esta sección muestra álbumes en un carrusel */
+
+.top-albums {
+    padding: 5rem 0;
+    background-color: var(--oscuro-primario);
+    position: relative;
+}
+
+.album-carousel {
+    position: relative;
+    padding: 2rem 0;
+}
+
+/* Tarjetas de álbumes */
+.album-card {
+    background-color: rgba(30, 30, 30, 0.4);
+    border-radius: 10px;
+    padding: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.album-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background-color: rgba(40, 40, 40, 0.8);
+}
+
+/* Imágenes de portada */
+.album-cover {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.album-cover img {
+    width: 100%;
+    transition: transform 0.5s ease;
+}
+
+.album-card:hover .album-cover img {
+    transform: scale(1.05);
+}
+
+/* Overlay y botón de play */
+.album-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.album-card:hover .album-overlay {
+    opacity: 1;
+}
+
+.btn-play {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--acento-actual);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-play:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 20, 147, 0.8);
+}
+
+/* Títulos y artistas */
+.album-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: var(--texto-primario);
+}
+
+.album-artist {
+    font-size: 0.9rem;
+    color: var(--texto-secundario);
+}
+
+/* Controles del carrusel */
+.carousel-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.carousel-control {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--texto-primario);
+    font-size: 1rem;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.carousel-control:hover {
+    background: var(--acento-actual);
+    transform: scale(1.1);
+}
+
+/* ----- SECCIÓN DE ESTADÍSTICAS ----- */
+/* Estadísticas con números grandes y animados */
+
+.stats {
+    padding: 5rem 0;
+    background-color: var(--oscuro-primario);
+    position: relative;
+}
+
+/* Fondos con gradientes sutiles */
+.stats::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 80% 30%, rgba(255, 0, 102, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 20% 70%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+    z-index: 0;
+}
+
+/* Tarjetas de estadísticas */
+.stat-card {
+    background-color: rgba(30, 30, 30, 0.4);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Números grandes con degradado */
+.stat-number {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-text {
+    color: var(--texto-secundario);
+    font-size: 1.1rem;
+}
+
+/* ----- SECCIÓN DE TESTIMONIOS ----- */
+/* Carrusel de testimonios de usuarios */
+
+.testimonials {
+    padding: 5rem 0;
+    background-color: var(--oscuro-secundario);
+    position: relative;
+}
+
+.testimonial-carousel {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 0;
+}
+
+/* Items del carrusel */
+.testimonial-item {
+    display: none;
+    transition: opacity 0.5s ease;
+}
+
+.testimonial-item.active {
+    display: block;
+    animation: aparecer 0.5s forwards;
+}
+
+/* Tarjetas de testimonios */
+.testimonial-content {
+    background-color: rgba(20, 20, 20, 0.7);
+    border-radius: 15px;
+    padding: 2rem;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Comillas decorativas */
+.testimonial-quote {
+    font-size: 2rem;
+    color: var(--acento-actual);
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.testimonial-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: var(--texto-secundario);
+}
+
+/* Info del autor */
+.testimonial-author {
+    display: flex;
+    align-items: center;
+}
+
+.author-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 1rem;
+    border: 2px solid var(--acento-actual);
+}
+
+.author-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.author-title {
+    font-size: 0.9rem;
+    color: var(--texto-secundario);
+}
+
+/* Controles del carrusel */
+.testimonial-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.testimonial-dots {
+    display: flex;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background-color: var(--acento-actual);
+    transform: scale(1.2);
+}
+
+.testimonial-arrows {
+    display: flex;
+}
+
+.arrow-prev, .arrow-next {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--texto-primario);
+    font-size: 1rem;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.arrow-prev:hover, .arrow-next:hover {
+    background: var(--acento-actual);
+}
+
+/* ----- SECCIÓN CTA (CALL TO ACTION) ----- */
+/* La sección que invita a registrarse */
+
+.cta {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto de fondo giratorio */
+.cta::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(circle at center, rgba(255, 0, 102, 0.1) 0%, transparent 60%);
+    animation: girar 30s linear infinite;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.cta-text {
+    font-size: 1.2rem;
+    color: var(--texto-secundario);
+    margin-bottom: 2rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ----- PARTÍCULAS FLOTANTES ----- */
+/* Contenedor para las partículas en la sección CTA */
+
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--acento-actual);
+    pointer-events: none;
+    opacity: 0.6;
+    filter: blur(2px);
+    animation: flotarParticula 15s linear infinite;
+}

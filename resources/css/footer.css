@@ -1,0 +1,89 @@
+/* ----- FOOTER Y SECCIÓN FINAL ----- */
+/* Estilos para el pie de pag */
+
+.footer {
+    background-color: #0a0a0a;
+    padding: 3rem 0 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Titulos de categorías */
+.footer-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--texto-primario);
+}
+
+/* Listas de enlaces */
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-links a {
+    color: var(--texto-secundario);
+    text-decoration: none;
+    transition: var(--velocidad-transicion);
+    position: relative;
+    padding-left: 0.5rem;
+}
+
+/* Animación del indicador de flecha */
+.footer-links a::before {
+    content: '›';
+    position: absolute;
+    left: -5px;
+    transition: var(--velocidad-transicion);
+    opacity: 0;
+}
+
+.footer-links a:hover {
+    color: var(--texto-primario);
+    padding-left: 1rem;
+}
+
+.footer-links a:hover::before {
+    left: 0;
+    opacity: 1;
+}
+
+/* Iconos sociales */
+.social-links {
+    margin-bottom: 2rem;
+}
+
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--texto-secundario);
+    margin-right: 0.8rem;
+    transition: var(--velocidad-transicion);
+}
+
+.social-icon:hover {
+    background-color: var(--acento-actual);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+}
+
+/* Copyright */
+
+.copyright {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--texto-secundario);
+    font-size: 0.9rem;
+}

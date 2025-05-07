@@ -1,0 +1,231 @@
+/* ----- SECCIÓN VISUALIZADOR DE AUDIO ----- */
+/* Este es el visualizador que aparece en la parte inferior del hero */
+
+.visualizer-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0 5%;
+    z-index: 0;
+}
+
+/* Barras individuales del visualizador */
+.visualizer-bar {
+    width: 18px;
+    background: linear-gradient(to top, transparent, var(--acento-actual));
+    margin: 0 8px;
+    border-radius: 10px 10px 0 0;
+    transition: height 0.5s ease-in-out;
+    box-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+}
+
+/* ----- SECCIÓN REPRODUCTOR ----- */
+/* Esta sección muestra el mockup del reproductor de música */
+
+.player-preview {
+    padding: 5rem 0;
+    background-color: var(--oscuro-secundario);
+    position: relative;
+}
+
+/* Diseño del reproductor */
+.player-mockup {
+    background-color: rgba(20, 20, 20, 0.8);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.player-interface {
+    position: relative;
+}
+
+/* Cabecera del reproductor */
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Info de la canción actual */
+.now-playing-info {
+    display: flex;
+    align-items: center;
+}
+
+.song-thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-right: 1rem;
+}
+
+.song-details {
+    line-height: 1.2;
+}
+
+.song-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: var(--texto-primario);
+}
+
+.song-artist {
+    font-size: 0.9rem;
+    color: var(--texto-secundario);
+}
+
+/* Botones de control de reproducción */
+.player-controls {
+    display: flex;
+    align-items: center;
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--texto-primario);
+    font-size: 1rem;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Botón de play/pause destacado */
+.play-btn {
+    width: 50px;
+    height: 50px;
+    background: var(--acento-actual);
+    font-size: 1.2rem;
+}
+
+.play-btn:hover {
+    background: var(--arcoiris-1);
+    transform: scale(1.1);
+}
+
+/* Control de volumen */
+.volume-control {
+    display: flex;
+    align-items: center;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin-left: 0.5rem;
+    position: relative;
+}
+
+.volume-progress {
+    width: 70%;
+    height: 100%;
+    background: var(--acento-actual);
+    border-radius: 5px;
+}
+
+/* Barra de progreso de la canción */
+.progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.current-time, .total-time {
+    font-size: 0.8rem;
+    color: var(--texto-secundario);
+    width: 40px;
+}
+
+.song-progress {
+    flex-grow: 1;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin: 0 0.5rem;
+    position: relative;
+}
+
+.progress-bar {
+    width: 40%;
+    height: 100%;
+    background: var(--acento-actual);
+    border-radius: 5px;
+    position: relative;
+}
+
+/* Bolita en la barra de progreso */
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--texto-primario);
+    border-radius: 50%;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Visualizador dentro del reproductor */
+.player-visualizer {
+    height: 120px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    margin-top: 1.5rem;
+}
+
+.player-spectrum {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 1rem;
+}
+
+/* Lista de características del reproductor */
+.player-features {
+    padding-left: 2rem;
+}
+
+.player-feature {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: var(--acento-actual);
+}
+
+.feature-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-content p {
+    color: var(--texto-secundario);
+}

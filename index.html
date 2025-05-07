@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusiFlow - Reproductor de Música</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    
+    <!-- CSS personalizado - Enfoque modular -->
+    <link href="resources/css/header.css" rel="stylesheet">
+    <link href="resources/css/main.css" rel="stylesheet">
+    <link href="resources/css/reproductor.css" rel="stylesheet">
+    <link href="resources/css/animaciones.css" rel="stylesheet">
+    <link href="resources/css/footer.css" rel="stylesheet">
+    <link href="resources/css/misc.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Efecto de cursor brillante -->
+    <div class="glowing-cursor"></div>
+    
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">MusiFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-compass"></i> Explorar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-book"></i> Biblioteca</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-crown"></i> Premium</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Notas musicales flotantes -->
+    <div class="notes-container"></div>
+    
+    <!-- Sección Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-delay="200">
+                    <h1 class="hero-title flotante">Tu música, tu estilo.</h1>
+                    <p class="hero-subtitle">Una experiencia de audio inmersiva con millones de canciones y podcasts.</p>
+                    <button class="btn btn-primary btn-lg me-3 mb-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="fas fa-play me-2"></i> Comenzar ahora
+                    </button>
+                    <button class="btn btn-outline-light btn-lg mb-3">Descubrir más</button>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left" data-aos-delay="400">
+                    <div class="login-form shadow">
+                        <h3 class="mb-4">Inicia sesión</h3>
+                        <form>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Correo electrónico</label>
+                                <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" placeholder="Tu contraseña">
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Recordarme</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                            <div class="mt-3 text-center">
+                                <a href="#" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                            </div>
+                            <hr>
+                            <p class="text-center mb-0">¿No tienes cuenta?</p>
+                            <button type="button" class="btn btn-outline-light w-100 mt-2">Crear cuenta</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visualizador de audio -->
+        <div class="visualizer-container">
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+        </div>
+    </section>
+    
+    <!-- Sección de Características -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Características</h2>
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <h3>Música sin límites</h3>
+                        <p>Accede a millones de canciones en alta definición, sin anuncios y con posibilidad de descarga para escuchar sin conexión.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-podcast"></i>
+                        </div>
+                        <h3>Podcasts exclusivos</h3>
+                        <p>Disfruta de podcasts originales y exclusivos sobre temas que te interesan, con episodios nuevos cada semana.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>Recomendaciones personalizadas</h3>
+                        <p>Nuestro algoritmo aprende de tus gustos para ofrecerte recomendaciones que realmente te encantarán.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Comunidad musical</h3>
+                        <p>Comparte tus listas de reproducción, comenta tus canciones favoritas y conecta con otros amantes de la música.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <h3>Multi-dispositivo</h3>
+                        <p>Reproduce tu música en cualquier dispositivo: móvil, tablet, ordenador, altavoces inteligentes y más.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3>Ecualización avanzada</h3>
+                        <p>Ajusta el sonido a tu gusto con nuestro ecualizador avanzado y preajustes para diferentes géneros musicales.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sección de Álbumes Destacados -->
+    <section class="top-albums">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Álbumes Destacados</h2>
+            <div class="album-carousel" data-aos="fade-up">
+                <div class="row g-4">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="album-card efecto-brillo">
+                            <div class="album-cover">
+                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <div class="album-overlay">
+                                    <button class="btn-play"><i class="fas fa-play"></i></button>
+                                </div>
+                            </div>
+                            <h4 class="album-title">Synthwave Dreams</h4>
+                            <p class="album-artist">Neon Riders</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="album-card efecto-brillo">
+                            <div class="album-cover">
+                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <div class="album-overlay">
+                                    <button class="btn-play"><i class="fas fa-play"></i></button>
+                                </div>
+                            </div>
+                            <h4 class="album-title">Midnight Echo</h4>
+                            <p class="album-artist">Lunar Collective</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="album-card efecto-brillo">
+                            <div class="album-cover">
+                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <div class="album-overlay">
+                                    <button class="btn-play"><i class="fas fa-play"></i></button>
+                                </div>
+                            </div>
+                            <h4 class="album-title">Electric Horizon</h4>
+                            <p class="album-artist">Quantum Pulse</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="album-card efecto-brillo">
+                            <div class="album-cover">
+                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <div class="album-overlay">
+                                    <button class="btn-play"><i class="fas fa-play"></i></button>
+                                </div>
+                            </div>
+                            <h4 class="album-title">Astral Journey</h4>
+                            <p class="album-artist">Cosmic Voyagers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-control prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="carousel-control next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Sección del Reproductor -->
+    <section class="player-preview">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Nuestro Reproductor</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="player-mockup borde-arcoiris">
+                        <div class="player-interface">
+                            <div class="player-header">
+                                <div class="now-playing-info">
+                                    <div class="song-thumbnail">
+                                        <img src="/api/placeholder/80/80" alt="Reproduciendo" class="img-fluid">
+                                    </div>
+                                    <div class="song-details">
+                                        <h5 class="song-title">Electric Dreams</h5>
+                                        <p class="song-artist">Neon Riders</p>
+                                    </div>
+                                </div>
+                                <div class="player-controls">
+                                    <button class="control-btn"><i class="fas fa-step-backward"></i></button>
+                                    <button class="control-btn play-btn brillante"><i class="fas fa-play"></i></button>
+                                    <button class="control-btn"><i class="fas fa-step-forward"></i></button>
+                                </div>
+                                <div class="volume-control">
+                                    <i class="fas fa-volume-up"></i>
+                                    <div class="volume-slider">
+                                        <div class="volume-progress"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <span class="current-time">1:45</span>
+                                <div class="song-progress">
+                                    <div class="progress-bar"></div>
+                                </div>
+                                <span class="total-time">4:30</span>
+                            </div>
+                            <div class="player-visualizer">
+                                <div class="player-spectrum">
+                                    <!-- Las barras del espectro se generan con JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="player-features">
+                        <div class="player-feature">
+                            <div class="feature-icon">
+                                <i class="fas fa-wave-square"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Visualizador Avanzado</h4>
+                                <p>Disfruta de una experiencia visual que se sincroniza con tu música favorita.</p>
+                            </div>
+                        </div>
+                        <div class="player-feature">
+                            <div class="feature-icon">
+                                <i class="fas fa-sliders-h"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Ecualización Personalizada</h4>
+                                <p>Ajusta cada frecuencia para obtener el sonido perfecto para tu música y tus oídos.</p>
+                            </div>
+                        </div>
+                        <div class="player-feature">
+                            <div class="feature-icon">
+                                <i class="fas fa-compact-disc"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Calidad de Audio HD</h4>
+                                <p>Disfruta de audio sin pérdidas con nuestra reproducción en alta definición.</p>
+                            </div>
+                        </div>
+                        <div class="player-feature">
+                            <div class="feature-icon">
+                                <i class="fas fa-headphones"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Modos de Audio 3D</h4>
+                                <p>Sumérgete en el sonido con nuestros modos espaciales y envolventes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sección de Estadísticas -->
+    <section class="stats">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">¿Por qué nos eligen?</h2>
+            <div class="row g-4">
+                <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-card">
+                        <div class="stat-number" data-counter="50">50M+</div>
+                        <div class="stat-text">Canciones disponibles</div>
+                    </div>
+                </div>
+                <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-card">
+                        <div class="stat-number" data-counter="10">10M+</div>
+                        <div class="stat-text">Usuarios activos</div>
+                    </div>
+                </div>
+                <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-card">
+                        <div class="stat-number" data-counter="190">190+</div>
+                        <div class="stat-text">Países</div>
+                    </div>
+                </div>
+                <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stat-card">
+                        <div class="stat-number" data-counter="4.8">4.8</div>
+                        <div class="stat-text">Calificación promedio</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sección de Testimonios -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Lo que dicen nuestros usuarios</h2>
+            <div class="testimonial-carousel" data-aos="fade-up">
+                <div class="testimonial-item active">
+                    <div class="testimonial-content">
+                        <div class="testimonial-quote">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">MusiFlow ha transformado completamente mi experiencia musical. La calidad de sonido es impresionante y las recomendaciones siempre dan en el clavo.</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                            </div>
+                            <div class="author-info">
+                                <h5 class="author-name">Carlos Martínez</h5>
+                                <p class="author-title">DJ profesional</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        <div class="testimonial-quote">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">No puedo creer que viví tanto tiempo sin MusiFlow. El visualizador y las funciones de ecualización son exactamente lo que necesitaba para mi estudio.</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                            </div>
+                            <div class="author-info">
+                                <h5 class="author-name">Laura González</h5>
+                                <p class="author-title">Productora musical</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        <div class="testimonial-quote">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">La interfaz es increíblemente intuitiva y el sonido es cristalino. He descubierto tantos artistas nuevos gracias a sus recomendaciones personalizadas.</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                            </div>
+                            <div class="author-info">
+                                <h5 class="author-name">Miguel Ruiz</h5>
+                                <p class="author-title">Entusiasta de la música</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-controls">
+                    <div class="testimonial-dots">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="testimonial-arrows">
+                        <button class="arrow-prev"><i class="fas fa-chevron-left"></i></button>
+                        <button class="arrow-next"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sección CTA (Call to Action) -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content" data-aos="zoom-in">
+                <h2 class="cta-title flotante">¿Listo para empezar?</h2>
+                <p class="cta-text">Únete a millones de personas que ya están disfrutando de la mejor experiencia musical. Prueba MusiFlow gratis durante 30 días, sin compromiso.</p>
+                <button class="btn btn-primary btn-lg me-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <i class="fas fa-headphones me-2"></i> Probar gratis
+                </button>
+                <button class="btn btn-outline-light btn-lg">Ver planes</button>
+            </div>
+        </div>
+        
+        <!-- Partículas flotantes -->
+        <div class="particles-container"></div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-title">MusiFlow</h5>
+                    <p>La mejor plataforma para descubrir, compartir y disfrutar de música en alta calidad con una experiencia única y personalizada.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Compañía</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Acerca de</a></li>
+                        <li><a href="#">Empleos</a></li>
+                        <li><a href="#">Prensa</a></li>
+                        <li><a href="#">Noticias</a></li>
+                        <li><a href="#">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Comunidad</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Artistas</a></li>
+                        <li><a href="#">Desarrolladores</a></li>
+                        <li><a href="#">Publicidad</a></li>
+                        <li><a href="#">Inversores</a></li>
+                        <li><a href="#">Proveedores</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Enlaces</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Soporte</a></li>
+                        <li><a href="#">App móvil</a></li>
+                        <li><a href="#">Reproductor web</a></li>
+                        <li><a href="#">Música gratis</a></li>
+                        <li><a href="#">Última versión</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Legal</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacidad</a></li>
+                        <li><a href="#">Términos</a></li>
+                        <li><a href="#">Cookies</a></li>
+                        <li><a href="#">Licencias</a></li>
+                        <li><a href="#">Información legal</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 MusiFlow. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modal de Inicio de Sesión -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="loginModalLabel">Inicia sesión en MusiFlow</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="modalEmail" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="modalEmail" placeholder="nombre@ejemplo.com">
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalPassword" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="modalPassword" placeholder="Tu contraseña">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="modalRememberMe">
+                            <label class="form-check-label" for="modalRememberMe">Recordarme</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <a href="#" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="text-center mb-2">O inicia sesión con</p>
+                        <div class="d-flex justify-content-center">
+                            <button class="btn btn-outline-light me-2"><i class="fab fa-google"></i> Google</button>
+                            <button class="btn btn-outline-light me-2"><i class="fab fa-facebook-f"></i> Facebook</button>
+                            <button class="btn btn-outline-light"><i class="fab fa-apple"></i> Apple</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <p class="mb-0">¿No tienes cuenta? <a href="#" class="text-decoration-none">Regístrate</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle con Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Biblioteca de animaciones AOS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- JS -->
+    <script src="resources/js/index.js"></script>
+</body>
+</html>

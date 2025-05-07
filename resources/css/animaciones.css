@@ -1,0 +1,271 @@
+/* ----- ANIMACIONES BÁSICAS ----- */
+/* Aquí van todas las animaciones que se usan en la web */
+
+/* Cambio de colores arcoíris para los accentsss */
+@keyframes cambioArcoiris {
+    0% { --acento-actual: var(--arcoiris-1); }
+    14% { --acento-actual: var(--arcoiris-2); }
+    28% { --acento-actual: var(--arcoiris-3); }
+    42% { --acento-actual: var(--arcoiris-4); }
+    56% { --acento-actual: var(--arcoiris-5); }
+    70% { --acento-actual: var(--arcoiris-6); }
+    84% { --acento-actual: var(--arcoiris-7); }
+    100% { --acento-actual: var(--arcoiris-1); }
+}
+
+/* Animación de brillo para el texto del hero */
+@keyframes brilloTexto {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(255, 0, 102, 0.5);
+        color: #fff;
+    }
+    20% {
+        text-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+        color: #f5f5f5;
+    }
+    40% {
+        text-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+        color: #fff;
+    }
+    60% {
+        text-shadow: 0 0 15px rgba(51, 204, 51, 0.5);
+        color: #f5f5f5;
+    }
+    80% {
+        text-shadow: 0 0 10px rgba(0, 153, 255, 0.5);
+        color: #fff;
+    }
+}
+
+/* Animación de rotación para fondos y elementos */
+@keyframes girar {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animación para las notas musicales que flotan */
+@keyframes flotarNota {
+    0% {
+        transform: translateY(100vh) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.4;
+    }
+    90% {
+        opacity: 0.4;
+    }
+    100% {
+        transform: translateY(-100px) translateX(100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Animación para las partículas flotantes */
+@keyframes flotarParticula {
+    0% {
+        transform: translate(0, 100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translate(100px, -100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Animación para hacer aparecer elementos con fade */
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ----- ANIMACIONES EXTRA CHULAS ----- */
+/* Estas son animaciones más avanzadas para elementos destacados */
+
+/* Efecto flotante suave para elementos */
+@keyframes flotar {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Efecto de brillo para botones y bordes */
+@keyframes brillar {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--acento-actual);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--acento-actual);
+    }
+}
+
+/* Animación para los bordes de color */
+@keyframes flujoBorde {
+    0% {
+        border-color: var(--arcoiris-1);
+    }
+    14% {
+        border-color: var(--arcoiris-2);
+    }
+    28% {
+        border-color: var(--arcoiris-3);
+    }
+    42% {
+        border-color: var(--arcoiris-4);
+    }
+    56% {
+        border-color: var(--arcoiris-5);
+    }
+    70% {
+        border-color: var(--arcoiris-6);
+    }
+    84% {
+        border-color: var(--arcoiris-7);
+    }
+    100% {
+        border-color: var(--arcoiris-1);
+    }
+}
+
+/* Efecto de brillo deslizante para fondos */
+@keyframes brilloDesplazado {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Efecto de type de texto */
+@keyframes escribir {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes parpadear {
+    50% {
+        border-color: transparent;
+    }
+}
+
+/* Efecto de rebote para elementos destacados */
+@keyframes rebotar {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-20px);
+    }
+    60% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Efecto de escala pulsante */
+@keyframes escalar {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Efecto de órbita alrededor de un elemento */
+@keyframes orbitar {
+    from {
+        transform: rotate(0deg) translateX(50px) rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg) translateX(50px) rotate(-360deg);
+    }
+}
+
+/* Efecto de ondas para botones (ripple) */
+@keyframes onda {
+    0% { 
+        transform: scale(0); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: scale(4); 
+        opacity: 0; 
+    }
+}
+
+/* ----- CLASES DE ANIMACIÓN ----- */
+/* Clases para aplicar fácilmente las animaciones a elementos */
+
+.borde-arcoiris {
+    position: relative;
+    border: 2px solid var(--acento-actual);
+    animation: flujoBorde 10s infinite;
+}
+
+.flotante {
+    animation: flotar 3s ease-in-out infinite;
+}
+
+.brillante {
+    animation: brillar 2s infinite;
+}
+
+.giratorio {
+    animation: girar 10s linear infinite;
+}
+
+.texto-tipeo {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid var(--acento-actual);
+    animation: escribir 3.5s steps(40, end), parpadear 0.75s step-end infinite;
+}
+
+.efecto-rebote {
+    animation: rebotar 2s infinite;
+}
+
+.escalar {
+    animation: escalar 2s infinite;
+}
+
+.orbitar {
+    position: absolute;
+    animation: orbitar 10s linear infinite;
+}
+
+/* Efecto de brillo deslizante para fondos */
+.efecto-brillo {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: brilloDesplazado 3s infinite;
+}
