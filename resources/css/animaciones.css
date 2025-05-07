@@ -205,7 +205,7 @@
     }
 }
 
-/* Efecto de ondas para botones (ripple) */
+/* Efecto de ondas para botones */
 @keyframes onda {
     0% { 
         transform: scale(0); 

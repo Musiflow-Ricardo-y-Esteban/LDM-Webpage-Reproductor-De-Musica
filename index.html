@@ -19,6 +19,7 @@
     <link href="resources/css/animaciones.css" rel="stylesheet">
     <link href="resources/css/footer.css" rel="stylesheet">
     <link href="resources/css/misc.css" rel="stylesheet">
+    <link href="resources/css/asistente.css" rel="stylesheet">
 </head>
 <body>
     <!-- Efecto de cursor brillante -->
@@ -62,7 +63,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-delay="200">
                     <h1 class="hero-title flotante">Tu música, tu estilo.</h1>
-                    <p class="hero-subtitle">Una experiencia de audio inmersiva con millones de canciones y podcasts.</p>
+                    <p class="hero-subtitle">Una experiencia de audio inmersiva con canciones de alta calidad.</p>
                     <button class="btn btn-primary btn-lg me-3 mb-3" data-bs-toggle="modal" data-bs-target="#loginModal">
                         <i class="fas fa-play me-2"></i> Comenzar ahora
                     </button>
@@ -451,6 +452,53 @@
         <div class="particles-container"></div>
     </section>
     
+         <!-- Floating chat button -->
+         <div class="music-assistant-button" id="musicAssistantButton">
+            <i>🎵</i>
+        </div>
+    
+        <!-- Chat modal -->
+        <div class="music-assistant-modal" id="musicAssistantModal">
+            <!-- Decorative elements -->
+            <div class="neon-decoration"></div>
+            <div class="neon-decoration"></div>
+            <div class="neon-decoration"></div>
+            <div class="sparkle-effect"></div>
+            
+            <!-- Modal header -->
+            <div class="assistant-header">
+                <h1 class="assistant-title">MusicGPT</h1>
+                <p class="assistant-description">Tu asistente musical inteligente</p>
+                <button class="close-button" id="closeButton">×</button>
+            </div>
+            
+            <!-- Chat container -->
+            <div class="assistant-chat-container">
+                <div class="assistant-chat-messages" id="chatMessages">
+                    <!-- Messages will be added here dynamically -->
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-indicator-content">
+                        <span>MusicGPT está escribiendo</span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input area -->
+            <div class="assistant-input-area">
+                <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
+                <button class="assistant-send-button" id="sendButton">
+                    <i>➤</i>
+                </button>
+            </div>
+        </div>
+    
+
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -555,7 +603,9 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Asistente IA -->
+    <script src = resources/js/asistente.js></script>
     <!-- Bootstrap JS Bundle con Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <!-- Biblioteca de animaciones AOS -->

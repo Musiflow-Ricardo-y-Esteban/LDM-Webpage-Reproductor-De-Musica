@@ -244,7 +244,7 @@ body {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Números grandes con degradado */
+/* Numeros grandes con degradado */
 .stat-number {
     font-size: 3rem;
     font-weight: 700;
@@ -296,7 +296,7 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* Comillas decorativas */
+/* quotes decorativas */
 .testimonial-quote {
     font-size: 2rem;
     color: var(--acento-actual);
