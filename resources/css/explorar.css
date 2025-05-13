@@ -1,0 +1,506 @@
+/* explorar.css - Estilos adicionales para la página de exploración */
+
+/* ===== HEADER DE EXPLORACIÓN ===== */
+.explore-header {
+    background: linear-gradient(135deg, #121212 0%, #2a2a2a 100%);
+    padding: 100px 0 50px;
+    position: relative;
+    overflow: hidden;
+}
+
+.explore-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 0, 102, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 30%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+    z-index: 0;
+}
+
+.explore-header .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== BARRA DE BÚSQUEDA ===== */
+.search-section {
+    padding: 60px 0;
+    background-color: var(--oscuro-secundario);
+}
+
+.search-box {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    font-size: 1.1rem;
+    border: 2px solid transparent;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input:focus {
+    border-color: var(--acento-actual);
+    background: rgba(255, 255, 255, 0.15);
+    outline: none;
+    box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
+    transform: scale(1.02);
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-1));
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+}
+
+/* ===== TARJETAS DE GÉNEROS ===== */
+.genres-section {
+    padding: 60px 0;
+    background-color: var(--oscuro-primario);
+}
+
+.genre-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.genre-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, var(--acento-actual) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.genre-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    border-color: var(--acento-actual);
+}
+
+.genre-card:hover::before {
+    opacity: 0.1;
+}
+
+.genre-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--acento-actual);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.genre-card:hover .genre-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px var(--acento-actual));
+}
+
+.genre-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+/* ===== RESULTADOS DE BÚSQUEDA ===== */
+.results-section {
+    padding: 40px 0;
+    background-color: var(--oscuro-secundario);
+    min-height: 400px;
+}
+
+.track-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.track-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--acento-actual);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.track-item:hover::before {
+    opacity: 1;
+}
+
+.track-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.track-item:hover .track-image {
+    transform: scale(1.05);
+}
+
+.track-info {
+    flex-grow: 1;
+}
+
+.track-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.track-artist {
+    color: var(--texto-secundario);
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.track-item:hover .track-name {
+    color: var(--acento-actual);
+}
+
+.track-item:hover .track-artist {
+    color: var(--texto-primario);
+}
+
+.play-btn-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-1));
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.play-btn-small::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.play-btn-small:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+}
+
+.play-btn-small:hover::before {
+    left: 100%;
+}
+
+/* ===== PLAYER FIJO ===== */
+.current-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(18, 18, 18, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 15px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.current-track-info {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+}
+
+.current-track-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.current-track-details {
+    min-width: 0;
+}
+
+.current-track-details h5 {
+    margin: 0;
+    font-size: 1rem;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-track-details p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--texto-secundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-controls-current {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-btn-current {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.control-btn-current:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--acento-actual);
+    transform: scale(1.1);
+}
+
+.play-btn-current {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-1));
+    border: none;
+    font-size: 1.2rem;
+}
+
+.play-btn-current:hover {
+    background: linear-gradient(45deg, var(--arcoiris-1), var(--acento-actual));
+    box-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+}
+
+.volume-current {
+    width: 100px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.volume-progress-current {
+    height: 100%;
+    background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-1));
+    border-radius: 5px;
+    width: 50%;
+    transition: width 0.3s ease;
+}
+
+/* ===== LOADING SPINNER ===== */
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner-border.text-primary {
+    color: var(--acento-actual) !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .genre-card {
+        margin-bottom: 20px;
+        height: 150px;
+        padding: 20px;
+    }
+    
+    .genre-icon {
+        font-size: 2.5rem;
+    }
+    
+    .genre-name {
+        font-size: 1.2rem;
+    }
+    
+    .track-item {
+        padding: 10px;
+    }
+    
+    .current-player {
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+    
+    .current-track-info {
+        order: 1;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .player-controls-current {
+        order: 2;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .search-input {
+        padding: 12px 45px 12px 15px;
+    }
+    
+    .search-btn {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 576px) {
+    .explore-header {
+        padding: 80px 0 30px;
+    }
+    
+    .search-section {
+        padding: 40px 0;
+    }
+    
+    .genres-section {
+        padding: 40px 0;
+    }
+    
+    .results-section {
+        padding: 30px 0;
+    }
+}
+
+/* ===== ANIMACIONES ADICIONALES ===== */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    left: 50%;
+    top: 50%;
+    margin-left: -50px;
+    margin-top: -50px;
+    z-index: 1;
+}
+
+/* ===== EFECTOS DE HOVER MEJORADOS ===== */
+.genre-card,
+.track-item,
+.play-btn-small,
+.control-btn-current {
+    position: relative;
+    overflow: hidden;
+}
+
+.genre-card::after,
+.track-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.genre-card:hover::after,
+.track-item:hover::after {
+    left: 100%;
+}

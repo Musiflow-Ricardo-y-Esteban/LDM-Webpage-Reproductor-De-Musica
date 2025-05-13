@@ -135,7 +135,7 @@ IMPORTANTE: Mantén tus respuestas cortas pero útiles, máximo 3-4 frases en to
           // Get the messages for context (limit to last 6 messages for simplicity)
           const contextMessages = conversationHistory.slice(-6);
           
-          // Make the API call
+          // Make the API call.
           const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
               method: 'POST',
               headers: {

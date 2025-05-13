@@ -612,5 +612,135 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <!-- JS -->
     <script src="resources/js/index.js"></script>
+
+    <script>
+// Integrar el sistema de login en login.html
+document.addEventListener('DOMContentLoaded', () => {
+    // Si el usuario ya está logueado, redirigir
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (isLoggedIn) {
+        const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
+        localStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectTo;
+        return;
+    }
+
+    // Manejar el formulario de login
+    const loginForm = document.querySelector('.login-page-section form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = loginForm.querySelector('#email').value;
+            const password = loginForm.querySelector('#password').value;
+            const rememberMe = loginForm.querySelector('#rememberMe').checked;
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            
+            // Mostrar estado de carga
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
+            submitBtn.disabled = true;
+            
+            // Simular delay de API
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Validar credenciales
+            if (email === 'admin@gmail.com' && password === 'admin') {
+                // Login exitoso
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userEmail', email);
+                
+                if (rememberMe) {
+                    localStorage.setItem('rememberUser', 'true');
+                }
+                
+                // Mostrar mensaje de éxito
+                showSuccessMessage('¡Inicio de sesión exitoso! Redirigiendo...');
+                
+                // Redirigir después de 1.5 segundos
+                setTimeout(() => {
+                    const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
+                    localStorage.removeItem('redirectAfterLogin');
+                    window.location.href = redirectTo;
+                }, 1500);
+            } else {
+                // Login fallido
+                showErrorMessage('Credenciales inválidas. Usa admin/admin para la demo.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Agregar efecto de error visual
+                loginForm.classList.add('shake');
+                setTimeout(() => loginForm.classList.remove('shake'), 500);
+            }
+        });
+    }
+    
+    // Agregar efecto shake para errores
+    const style = document.createElement('style');
+    style.textContent = `
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 50%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+function showSuccessMessage(message) {
+    showToast(message, 'success');
+}
+
+function showErrorMessage(message) {
+    showToast(message, 'error');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 9999;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animar entrada
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 100);
+    
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+        toast.style.transform = 'translateY(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+</script>
 </body>
 </html>

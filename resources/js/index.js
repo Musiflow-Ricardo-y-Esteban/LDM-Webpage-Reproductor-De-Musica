@@ -198,7 +198,7 @@ function animarContadores() {
                 actualizarContador();
                 observador.unobserve(contador);
             }
-        });
+        }); 
     }, opciones);
     
     // Observar todos los contadores
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Efectos arcoíris mejorados para elementos clave
+// Efectos arcoíris para elementos clave
 document.addEventListener('DOMContentLoaded', () => {
     const mejorarElementos = () => {
         // Agregar borde pulsante a elementos importantes
@@ -549,4 +549,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Agregar estos efectos después de un pequeño retraso para asegurar que todo esté cargado
     setTimeout(mejorarElementos, 1000);
+
+
 });
