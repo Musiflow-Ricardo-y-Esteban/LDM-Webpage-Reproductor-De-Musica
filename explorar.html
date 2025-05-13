@@ -62,6 +62,13 @@
                 <div class="col-12 text-center">
                     <h1 class="hero-title">Explora nueva música</h1>
                     <p class="hero-subtitle">Descubre canciones, artistas y géneros que te encantarán</p>
+                    <!-- Spotify Status Indicator -->
+                    <div id="spotifyStatus" class="mt-3">
+                        <div class="alert alert-info d-inline-block" role="alert">
+                            <i class="fas fa-music fa-lg me-2" style="color: #1db954;"></i>
+                            <span id="statusText">Conectando con la música...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -77,6 +84,12 @@
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-search"></i>
                         </button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Descubre música libre y previews de artistas populares
+                        </small>
                     </div>
                 </div>
             </div>
@@ -170,8 +183,13 @@
                 <i class="fas fa-step-forward"></i>
             </button>
         </div>
-        <div class="volume-current" id="volumeSlider">
-            <div class="volume-progress-current" id="volumeProgress"></div>
+        <div class="player-actions" style="display: flex; align-items: center; gap: 10px;">
+            <div class="volume-current" id="volumeSlider">
+                <div class="volume-progress-current" id="volumeProgress"></div>
+            </div>
+            <button class="control-btn-current" id="openExternalBtn" style="display: none;" title="Abrir enlace externo">
+                <i class="fas fa-external-link-alt"></i>
+            </button>
         </div>
     </div>
 
@@ -237,7 +255,47 @@
     <script src="resources/js/login.js"></script>
     <!-- Asistente IA -->
     <script src="resources/js/asistente.js"></script>
-    <!-- Explorar Script -->
-    <script src="resources/js/explorar.js"></script>
+    <!-- Free Music API Integration -->
+    <script src="resources/js/free-music-api.js"></script>
+    
+    <script>
+        // Update status indicator
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusElement = document.getElementById('statusText');
+            const statusAlert = document.querySelector('#spotifyStatus .alert');
+            
+            // Set initial loading state
+            if (statusElement) {
+                statusElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Conectando a APIs de música...';
+            }
+            
+            // Listen for API initialization
+            const checkStatus = () => {
+                if (window.musicExplorer && window.musicExplorer.isInitialized) {
+                    statusElement.textContent = 'APIs de música conectadas ✓';
+                    statusAlert.className = 'alert alert-success d-inline-block';
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        document.getElementById('spotifyStatus').style.display = 'none';
+                    }, 3000);
+                } else if (window.musicExplorer) {
+                    statusElement.textContent = 'Usando fuentes de música gratuitas';
+                    statusAlert.className = 'alert alert-info d-inline-block';
+                    
+                    // Hide after 5 seconds
+                    setTimeout(() => {
+                        document.getElementById('spotifyStatus').style.display = 'none';
+                    }, 5000);
+                } else {
+                    // Still checking
+                    setTimeout(checkStatus, 1000);
+                }
+            };
+            
+            // Start checking after a short delay
+            setTimeout(checkStatus, 1000);
+        });
+    </script>
 </body>
 </html>
