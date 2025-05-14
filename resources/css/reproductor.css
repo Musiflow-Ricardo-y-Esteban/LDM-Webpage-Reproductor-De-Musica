@@ -229,3 +229,151 @@
 .feature-content p {
     color: var(--texto-secundario);
 }
+
+.current-player {
+    background: linear-gradient(135deg, rgba(18, 18, 18, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.control-btn-current {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+}
+
+.control-btn-current::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.control-btn-current:hover::before {
+    left: 100%;
+}
+
+.control-btn-current:hover {
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--acento-actual);
+    box-shadow: 0 5px 15px rgba(255, 20, 147, 0.3);
+}
+
+.play-btn-current {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(135deg, var(--acento-actual), var(--arcoiris-5));
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.play-btn-current::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.play-btn-current:hover::after {
+    width: 100%;
+    height: 100%;
+}
+
+.play-btn-current:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
+}
+
+/* Animación de las barras de progreso */
+.progress-bar-container,
+.volume-slider-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.progress-bar-container:hover,
+.volume-slider-container:hover {
+    transform: scaleY(1.5);
+}
+
+#progressBarMain,
+#volumeProgress {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#progressBarMain::after,
+#volumeProgress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 100%;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.progress-bar-container:hover #progressBarMain::after,
+.volume-slider-container:hover #volumeProgress::after {
+    opacity: 1;
+}
+
+/* Animación de información de la pista */
+.current-track-details {
+    animation: slideInUp 0.5s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efecto de onda para botones */
+.ripple-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
+}
+
+.ripple-btn:active::after {
+    width: 300px;
+    height: 300px;
+}

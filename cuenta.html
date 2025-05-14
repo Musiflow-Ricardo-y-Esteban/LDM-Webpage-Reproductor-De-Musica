@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusiFlow - Mi Cuenta</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link href="resources/css/header.css" rel="stylesheet">
+    <link href="resources/css/main.css" rel="stylesheet">
+    <link href="resources/css/reproductor.css" rel="stylesheet">
+    <link href="resources/css/animaciones.css" rel="stylesheet">
+    <link href="resources/css/footer.css" rel="stylesheet">
+    <!-- Agregar CSS específico para la página de cuenta -->
+    <style>
+        :root {
+            --bg-profile: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+            --card-bg: rgba(40, 40, 40, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --favorite-color: #e91e63;
+            --success-color: #4caf50;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            background: var(--bg-profile);
+            padding-top: 80px;
+        }
+
+        .account-header {
+            background: rgba(30, 30, 30, 0.8);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .account-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255, 0, 102, 0.1) 0%, transparent 50%), 
+                        linear-gradient(-45deg, rgba(0, 153, 255, 0.1) 50%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .profile-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--acento-actual), transparent, var(--acento-actual));
+            border-radius: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .profile-section:hover::before {
+            opacity: 0.3;
+        }
+
+        .profile-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--acento-actual);
+            margin: 0 auto 1rem;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-5));
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .playlist-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playlist-card::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, var(--acento-actual), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+
+        .playlist-card:hover::after {
+            transform: translateX(100%);
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .favorite-song {
+            background: rgba(35, 35, 35, 0.8);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .favorite-song:hover {
+            background: rgba(45, 45, 45, 0.9);
+            transform: translateX(5px);
+        }
+
+        .favorite-song::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--favorite-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .favorite-song:hover::before {
+            transform: scaleY(1);
+        }
+
+        .song-info {
+            flex-grow: 1;
+            margin-left: 1rem;
+        }
+
+        .song-title {
+            font-weight: 600;
+            color: var(--texto-primario);
+            margin-bottom: 0.25rem;
+        }
+
+        .song-artist {
+            color: var(--texto-secundario);
+            font-size: 0.9rem;
+        }
+
+        .settings-item {
+            background: rgba(30, 30, 30, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .settings-item:hover {
+            background: rgba(40, 40, 40, 0.8);
+        }
+
+        .form-control-custom {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid var(--border-color);
+            color: var(--texto-primario);
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-custom:focus {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: var(--acento-actual);
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
+            color: var(--texto-primario);
+        }
+
+        .btn-custom {
+            background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-5));
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--arcoiris-5), var(--acento-actual));
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .btn-custom:hover::before {
+            left: 0;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--acento-actual), var(--arcoiris-5));
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .recent-activity {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .recent-activity::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .recent-activity::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .recent-activity::-webkit-scrollbar-thumb {
+            background: var(--acento-actual);
+            border-radius: 2px;
+        }
+
+        .activity-item {
+            padding: 0.75rem;
+            border-left: 3px solid var(--acento-actual);
+            margin-bottom: 1rem;
+            background: rgba(40, 40, 40, 0.5);
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(50, 50, 50, 0.7);
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper {
+                padding-top: 60px;
+            }
+            
+            .profile-section {
+                padding: 1rem;
+            }
+            
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .favorite-song {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MusiFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="explorar.html"><i class="fas fa-compass"></i> Explorar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#biblioteca"><i class="fas fa-book"></i> Biblioteca</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#premium"><i class="fas fa-crown"></i> Premium</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="cuenta.html" id="loginLink"><i class="fas fa-user"></i> Mi Cuenta</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-wrapper">
+        <!-- Header de Cuenta -->
+        <section class="account-header">
+            <div class="container">
+                <h1 class="text-center mb-0" style="font-size: 2.5rem; font-weight: 700; color: var(--texto-primario);">
+                    Mi Cuenta
+                </h1>
+                <p class="text-center text-secondary">Personaliza tu experiencia musical</p>
+            </div>
+        </section>
+
+        <div class="container mb-5">
+            <!-- Estadísticas del Usuario -->
+            <div class="stats-grid mb-4" data-aos="fade-up">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSongs">0</div>
+                    <div class="text-secondary">Canciones Favoritas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalPlaylists">0</div>
+                    <div class="text-secondary">Listas de Reproducción</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="playTime">0h</div>
+                    <div class="text-secondary">Tiempo de Reproducción</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Perfil del Usuario -->
+                <div class="col-lg-4 mb-4">
+                    <div class="profile-section" data-aos="fade-right">
+                        <h3 class="text-center mb-3">Perfil</h3>
+                        <div class="profile-avatar">
+                            <img src="/api/placeholder/150/150" alt="Avatar" id="userAvatar">
+                        </div>
+                        <div class="text-center">
+                            <h4 id="userName" class="mb-2">Usuario</h4>
+                            <p class="text-secondary" id="userEmail">usuario@email.com</p>
+                            <button class="btn btn-custom btn-sm mb-3" onclick="editProfile()">
+                                <i class="fas fa-edit"></i> Editar Perfil
+                            </button>
+                        </div>
+
+                        <!-- Configuración -->
+                        <div class="mt-4">
+                            <h5 class="mb-3">Configuración</h5>
+                            <div class="settings-item">
+                                <span><i class="fas fa-volume-up me-2"></i>Volumen predeterminado</span>
+                                <input type="range" class="form-range" min="0" max="100" value="50" id="defaultVolume">
+                            </div>
+                            <div class="settings-item">
+                                <span><i class="fas fa-random me-2"></i>Reproducción aleatoria</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="shuffleMode">
+                                </div>
+                            </div>
+                            <div class="settings-item">
+                                <span><i class="fas fa-bell me-2"></i>Notificaciones</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifications" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canciones Favoritas -->
+                <div class="col-lg-4 mb-4">
+                    <div class="profile-section" data-aos="fade-up">
+                        <h3 class="mb-3">
+                            <i class="fas fa-heart text-danger me-2"></i>
+                            Canciones Favoritas
+                        </h3>
+                        <div id="favoriteSongs">
+                            <!-- Las canciones favoritas se cargarán aquí -->
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-outline-light btn-sm" onclick="loadMoreFavorites()">
+                                <i class="fas fa-plus"></i> Ver más
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente -->
+                <div class="col-lg-4 mb-4">
+                    <div class="profile-section" data-aos="fade-left">
+                        <h3 class="mb-3">
+                            <i class="fas fa-history me-2"></i>
+                            Actividad Reciente
+                        </h3>
+                        <div class="recent-activity" id="recentActivity">
+                            <!-- La actividad reciente se cargará aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listas de Reproducción -->
+            <div class="profile-section mt-4" data-aos="fade-up">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Mis Listas de Reproducción
+                    </h3>
+                    <button class="btn btn-custom" onclick="createPlaylist()">
+                        <i class="fas fa-plus"></i> Nueva Lista
+                    </button>
+                </div>
+                <div class="row" id="userPlaylists">
+                    <!-- Las listas de reproducción se cargarán aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Perfil -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-white">Editar Perfil</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label text-white">Nombre de Usuario</label>
+                            <input type="text" class="form-control form-control-custom" id="editUsername">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label text-white">Correo Electrónico</label>
+                            <input type="email" class="form-control form-control-custom" id="editEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBio" class="form-label text-white">Biografía</label>
+                            <textarea class="form-control form-control-custom" id="editBio" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAvatar" class="form-label text-white">Avatar</label>
+                            <input type="file" class="form-control form-control-custom" id="editAvatar" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-custom" onclick="saveProfile()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nueva Lista de Reproducción -->
+    <div class="modal fade" id="newPlaylistModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-white">Nueva Lista de Reproducción</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newPlaylistForm">
+                        <div class="mb-3">
+                            <label for="playlistName" class="form-label text-white">Nombre de la Lista</label>
+                            <input type="text" class="form-control form-control-custom" id="playlistName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="playlistDescription" class="form-label text-white">Descripción</label>
+                            <textarea class="form-control form-control-custom" id="playlistDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="playlistCover" class="form-label text-white">Imagen de Portada</label>
+                            <input type="file" class="form-control form-control-custom" id="playlistCover" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-custom" onclick="savePlaylist()">Crear Lista</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h5 class="footer-title">MusiFlow</h5>
+                    <p>La mejor plataforma para descubrir música nueva.</p>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <h5 class="footer-title">Enlaces</h5>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="explorar.html">Explorar</a></li>
+                        <li><a href="cuenta.html">Mi Cuenta</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 MusiFlow. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- Login System -->
+    <script src="resources/js/login.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                // Redirect to login page
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Initialize AOS animations
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
+
+            initializeAccount();
+        });
+
+        function initializeAccount() {
+            // Load user data
+            loadUserData();
+            loadFavoriteSongs();
+            loadRecentActivity();
+            loadUserPlaylists();
+            updateStats();
+        }
+
+        function loadUserData() {
+            const userEmail = localStorage.getItem('userEmail') || 'usuario@email.com';
+            const userName = localStorage.getItem('userName') || userEmail.split('@')[0];
+            
+            document.getElementById('userEmail').textContent = userEmail;
+            document.getElementById('userName').textContent = userName;
+            
+            // Load user avatar if exists
+            const userAvatar = localStorage.getItem('userAvatar');
+            if (userAvatar) {
+                document.getElementById('userAvatar').src = userAvatar;
+            }
+        }
+
+        function loadFavoriteSongs() {
+            const favorites = JSON.parse(localStorage.getItem('favoriteSongs') || '[]');
+            const container = document.getElementById('favoriteSongs');
+            
+            if (favorites.length === 0) {
+                container.innerHTML = '<p class="text-secondary text-center">No tienes canciones favoritas aún</p>';
+                return;
+            }
+
+            container.innerHTML = favorites.slice(0, 5).map(song => `
+                <div class="favorite-song">
+                    <img src="${song.image || '/api/placeholder/60/60'}" alt="Cover" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                    </div>
+                    <button class="btn btn-sm" onclick="removeFavorite('${song.id}')" style="color: var(--favorite-color);">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function loadRecentActivity() {
+            const activities = JSON.parse(localStorage.getItem('recentActivity') || '[]');
+            const container = document.getElementById('recentActivity');
+            
+            if (activities.length === 0) {
+                const defaultActivities = [
+                    { action: 'Reproduciste', item: 'Bohemian Rhapsody - Queen', time: 'Hace 2 horas' },
+                    { action: 'Agregaste a favoritos', item: 'Blinding Lights - The Weeknd', time: 'Hace 5 horas' },
+                    { action: 'Creaste la lista', item: 'Mis Favoritos 2024', time: 'Ayer' },
+                    { action: 'Seguiste a', item: 'Dua Lipa', time: 'Hace 2 días' }
+                ];
+                
+                container.innerHTML = defaultActivities.map(activity => `
+                    <div class="activity-item">
+                        <div style="font-weight: 600;">${activity.action}</div>
+                        <div class="text-secondary">${activity.item}</div>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = activities.map(activity => `
+                    <div class="activity-item">
+                        <div style="font-weight: 600;">${activity.action}</div>
+                        <div class="text-secondary">${activity.item}</div>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loadUserPlaylists() {
+            const playlists = JSON.parse(localStorage.getItem('userPlaylists') || '[]');
+            const container = document.getElementById('userPlaylists');
+            
+            if (playlists.length === 0) {
+                container.innerHTML = '<div class="col-12"><p class="text-secondary text-center">No tienes listas de reproducción aún</p></div>';
+                return;
+            }
+
+            container.innerHTML = playlists.map(playlist => `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="playlist-card">
+                        <img src="${playlist.cover || '/api/placeholder/150/150'}" alt="Playlist Cover" 
+                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px;">
+                        <h5 class="mt-2 mb-1">${playlist.name}</h5>
+                        <p class="text-secondary small">${playlist.description || 'Sin descripción'}</p>
+                        <p class="text-muted small">${playlist.songs || 0} canciones</p>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-light" onclick="editPlaylist('${playlist.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePlaylist('${playlist.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const favorites = JSON.parse(localStorage.getItem('favoriteSongs') || '[]');
+            const playlists = JSON.parse(localStorage.getItem('userPlaylists') || '[]');
+            const playTime = localStorage.getItem('totalPlayTime') || '0';
+            
+            document.getElementById('totalSongs').textContent = favorites.length;
+            document.getElementById('totalPlaylists').textContent = playlists.length;
+            document.getElementById('playTime').textContent = playTime + 'h';
+        }
+
+        function editProfile() {
+            const userName = document.getElementById('userName').textContent;
+            const userEmail = document.getElementById('userEmail').textContent;
+            
+            document.getElementById('editUsername').value = userName;
+            document.getElementById('editEmail').value = userEmail;
+            document.getElementById('editBio').value = localStorage.getItem('userBio') || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+            modal.show();
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('editUsername').value;
+            const newEmail = document.getElementById('editEmail').value;
+            const newBio = document.getElementById('editBio').value;
+            const avatarFile = document.getElementById('editAvatar').files[0];
+            
+            // Update localStorage
+            localStorage.setItem('userName', newName);
+            localStorage.setItem('userEmail', newEmail);
+            localStorage.setItem('userBio', newBio);
+            
+            // Update UI
+            document.getElementById('userName').textContent = newName;
+            document.getElementById('userEmail').textContent = newEmail;
+            
+            // Handle avatar upload
+            if (avatarFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarUrl = e.target.result;
+                    localStorage.setItem('userAvatar', avatarUrl);
+                    document.getElementById('userAvatar').src = avatarUrl;
+                };
+                reader.readAsDataURL(avatarFile);
+            }
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+            modal.hide();
+            
+            // Show success message
+            showToast('Perfil actualizado correctamente', 'success');
+        }
+
+        function createPlaylist() {
+            const modal = new bootstrap.Modal(document.getElementById('newPlaylistModal'));
+            modal.show();
+        }
+
+        function savePlaylist() {
+            const name = document.getElementById('playlistName').value;
+            const description = document.getElementById('playlistDescription').value;
+            const coverFile = document.getElementById('playlistCover').files[0];
+            
+            if (!name) {
+                showToast('El nombre de la lista es obligatorio', 'error');
+                return;
+            }
+            
+            const playlist = {
+                id: Date.now().toString(),
+                name: name,
+                description: description,
+                songs: 0,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Handle cover upload
+            if (coverFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    playlist.cover = e.target.result;
+                    savePlaylistToStorage(playlist);
+                };
+                reader.readAsDataURL(coverFile);
+            } else {
+                savePlaylistToStorage(playlist);
+            }
+        }
+
+        function savePlaylistToStorage(playlist) {
+            const playlists = JSON.parse(localStorage.getItem('userPlaylists') || '[]');
+            playlists.push(playlist);
+            localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newPlaylistModal'));
+            modal.hide();
+            
+            // Clear form
+            document.getElementById('newPlaylistForm').reset();
+            
+            // Reload playlists
+            loadUserPlaylists();
+            updateStats();
+            
+            showToast('Lista de reproducción creada correctamente', 'success');
+        }
+
+        function removeFavorite(songId) {
+            const favorites = JSON.parse(localStorage.getItem('favoriteSongs') || '[]');
+            const updatedFavorites = favorites.filter(song => song.id !== songId);
+            localStorage.setItem('favoriteSongs', JSON.stringify(updatedFavorites));
+            
+            loadFavoriteSongs();
+            updateStats();
+            showToast('Canción eliminada de favoritos', 'success');
+        }
+
+        function editPlaylist(playlistId) {
+            showToast('Función de edición de lista en desarrollo', 'info');
+        }
+
+        function deletePlaylist(playlistId) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta lista de reproducción?')) {
+                const playlists = JSON.parse(localStorage.getItem('userPlaylists') || '[]');
+                const updatedPlaylists = playlists.filter(playlist => playlist.id !== playlistId);
+                localStorage.setItem('userPlaylists', JSON.stringify(updatedPlaylists));
+                
+                loadUserPlaylists();
+                updateStats();
+                showToast('Lista de reproducción eliminada', 'success');
+            }
+        }
+
+        function loadMoreFavorites() {
+            showToast('Función de cargar más favoritos en desarrollo', 'info');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4caf50' : type === 'error' ? '#dc3545' : '#2196f3'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 9999;
+                transform: translateY(100px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}-circle"></i>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Settings handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load settings from localStorage
+            const savedVolume = localStorage.getItem('defaultVolume') || '50';
+            const shuffleMode = localStorage.getItem('shuffleMode') === 'true';
+            const notifications = localStorage.getItem('notifications') !== 'false';
+            
+            document.getElementById('defaultVolume').value = savedVolume;
+            document.getElementById('shuffleMode').checked = shuffleMode;
+            document.getElementById('notifications').checked = notifications;
+            
+            // Save settings on change
+            document.getElementById('defaultVolume').addEventListener('change', (e) => {
+                localStorage.setItem('defaultVolume', e.target.value);
+                showToast('Volumen predeterminado actualizado', 'success');
+            });
+            
+            document.getElementById('shuffleMode').addEventListener('change', (e) => {
+                localStorage.setItem('shuffleMode', e.target.checked);
+                showToast('Configuración de reproducción aleatoria actualizada', 'success');
+            });
+            
+            document.getElementById('notifications').addEventListener('change', (e) => {
+                localStorage.setItem('notifications', e.target.checked);
+                showToast('Configuración de notificaciones actualizada', 'success');
+            });
+        });
+
+        // Logout functionality
+        document.querySelector('#loginLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userName');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>
