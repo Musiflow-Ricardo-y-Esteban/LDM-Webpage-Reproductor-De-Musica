@@ -153,3 +153,25 @@
         font-size: 2.5rem;
     }
 }
+
+/* ----- NOTAS MUSICALES FLOTANTES ----- */
+/* Notas que flotan por la pantalla */
+
+.notes-container { /* Añade estilos al contenedor si no los tiene */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.note {
+    position: absolute;
+    opacity: 0;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.3);
+    animation: flotarNota 15s linear infinite;
+}

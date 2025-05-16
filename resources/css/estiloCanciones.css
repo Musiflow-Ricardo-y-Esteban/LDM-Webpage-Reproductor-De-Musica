@@ -1,0 +1,329 @@
+/* Personalización para pantallas pequeñas */
+@media (max-width: 768px) {
+    .track-header, .track-row {
+        grid-template-columns: 50px 5fr 1fr;
+    }
+    
+    .track-album {
+        display: none;
+    }
+    
+    .current-player {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+    }
+    
+    .current-track-info {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .player-controls-current {
+        margin-bottom: 15px;
+    }
+    
+    .player-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .volume-slider {
+        width: 80px;
+    }
+}/* Estilos para el listado de canciones al estilo Spotify */
+
+/* Sección de resultados */
+.results-section {
+    padding: 30px 0;
+    background-color: #121212;
+    min-height: 60vh;
+}
+
+.section-title {
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+/* Contenedor de pistas */
+.tracks-container {
+    background-color: rgba(40, 40, 40, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Encabezado de la tabla */
+.track-header {
+    display: grid;
+    grid-template-columns: 60px 4fr 2fr 1fr;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #b3b3b3;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Filas de canciones */
+.track-row {
+    display: grid;
+    grid-template-columns: 60px 4fr 2fr 1fr;
+    padding: 12px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.track-row:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.track-row:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Número de pista y botón play */
+.track-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #b3b3b3;
+    position: relative;
+}
+
+.play-button {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.play-button i {
+    font-size: 14px;
+}
+
+/* Información de la pista */
+.track-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.track-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.track-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.track-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.track-artist {
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+/* Álbum */
+.track-album {
+    display: flex;
+    align-items: center;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+/* Duración y acciones */
+.track-duration {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+.track-actions {
+    display: flex;
+    gap: 8px;
+    visibility: hidden;
+}
+
+.action-button {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.2s ease;
+}
+
+.action-button:hover {
+    color: #1ed760;
+}
+
+/* Estado sin resultados */
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #b3b3b3;
+    font-size: 1.1rem;
+}
+
+/* Reproductor fijo mejorado */
+.current-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #181818;
+    border-top: 1px solid #282828;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    height: 90px;
+}
+
+.current-track-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 30%;
+}
+
+.current-track-image {
+    width: 56px;
+    height: 56px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.current-track-details {
+    overflow: hidden;
+}
+
+.current-track-details h5 {
+    color: #fff;
+    margin: 0;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-track-details p {
+    color: #b3b3b3;
+    margin: 5px 0 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Efectos de hover para el botón de play */
+.play-button:hover {
+    color: #1ed760; /* Color verde de Spotify al pasar el mouse */
+    text-shadow: 0 0 8px rgba(30, 215, 96, 0.6); /* Brillo sutil sin movimiento */
+}
+
+/* Controles de volumen */
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volume-icon {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.volume-icon:hover {
+    color: #fff;
+}
+
+.volume-slider {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 4px;
+    border-radius: 2px;
+    background: #5e5e5e;
+    outline: none;
+    transition: background 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* Efecto hover en el control deslizante */
+.volume-slider:hover {
+    background: #777;
+}
+
+.volume-slider:hover::-webkit-slider-thumb {
+    background: #1ed760;
+    transform: scale(1.2);
+}
+
+.volume-slider:hover::-moz-range-thumb {
+    background: #1ed760;
+    transform: scale(1.2);
+}
+
+/* Ajustes para el reproductor fijo */
+.player-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    width: 30%;
+}

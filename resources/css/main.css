@@ -7,6 +7,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow-x: hidden;
     animation: cambioArcoiris 60s infinite linear;
+    overflow-y: scroll; 
 }
 
 /* Títulos de sección */

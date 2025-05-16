@@ -21,6 +21,7 @@
     <link href="resources/css/misc.css" rel="stylesheet">
     <link href="resources/css/asistente.css" rel="stylesheet">
     <link href="resources/css/explorar.css" rel="stylesheet">
+    <link rel="stylesheet" href="resources/css/estiloCanciones.css">
 </head>
 <body>
     <!-- Efecto de cursor brillante -->
@@ -62,13 +63,7 @@
                 <div class="col-12 text-center">
                     <h1 class="hero-title">Explora nueva música</h1>
                     <p class="hero-subtitle">Descubre canciones, artistas y géneros que te encantarán</p>
-                    <!-- Spotify Status Indicator -->
-                    <div id="spotifyStatus" class="mt-3">
-                        <div class="alert alert-info d-inline-block" role="alert">
-                            <i class="fas fa-music fa-lg me-2" style="color: #1db954;"></i>
-                            <span id="statusText">Conectando con la música...</span>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -96,7 +91,7 @@
         </div>
     </section>
     
-    <!-- Sección de Géneros -->
+    <!-- Sección de Géneros --><!--
     <section class="genres-section">
         <div class="container">
             <h2 class="section-title text-center" data-aos="fade-up">Géneros Populares</h2>
@@ -152,16 +147,15 @@
             </div>
         </div>
     </section>
-    
-    <!-- Sección de Resultados -->
-    <section class="results-section" id="resultsSection" style="display: none;">
-        <div class="container">
-            <h2 class="section-title">Resultados</h2>
-            <div id="searchResults">
-                <!-- Los resultados se mostrarán aquí -->
-            </div>
+    -->
+    <section class="results-section" id="resultsSection">
+    <div class="container">
+        <h2 class="section-title">Resultados</h2>
+        <div id="searchResults">
+            <!-- Las canciones se cargarán aquí automáticamente -->
         </div>
-    </section>
+    </div>
+</section>
     
     <!-- Reproductor Fijo -->
     <div class="current-player" id="currentPlayer">
@@ -257,45 +251,9 @@
     <script src="resources/js/asistente.js"></script>
     <!-- Free Music API Integration -->
     <script src="resources/js/free-music-api.js"></script>
+    <!-- Javascript para mostrar las canciones -->
+    <script src="resources/js/mostrarCanciones.js"></script>
+
     
-    <script>
-        // Update status indicator
-        document.addEventListener('DOMContentLoaded', () => {
-            const statusElement = document.getElementById('statusText');
-            const statusAlert = document.querySelector('#spotifyStatus .alert');
-            
-            // Set initial loading state
-            if (statusElement) {
-                statusElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Conectando a APIs de música...';
-            }
-            
-            // Listen for API initialization
-            const checkStatus = () => {
-                if (window.musicExplorer && window.musicExplorer.isInitialized) {
-                    statusElement.textContent = 'APIs de música conectadas ✓';
-                    statusAlert.className = 'alert alert-success d-inline-block';
-                    
-                    // Hide after 3 seconds
-                    setTimeout(() => {
-                        document.getElementById('spotifyStatus').style.display = 'none';
-                    }, 3000);
-                } else if (window.musicExplorer) {
-                    statusElement.textContent = 'Usando fuentes de música gratuitas';
-                    statusAlert.className = 'alert alert-info d-inline-block';
-                    
-                    // Hide after 5 seconds
-                    setTimeout(() => {
-                        document.getElementById('spotifyStatus').style.display = 'none';
-                    }, 5000);
-                } else {
-                    // Still checking
-                    setTimeout(checkStatus, 1000);
-                }
-            };
-            
-            // Start checking after a short delay
-            setTimeout(checkStatus, 1000);
-        });
-    </script>
 </body>
 </html>
