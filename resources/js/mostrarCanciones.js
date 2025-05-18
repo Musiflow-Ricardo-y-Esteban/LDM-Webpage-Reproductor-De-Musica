@@ -9,7 +9,7 @@ const musicDatabase = {
             cover: "resources/album covers/darkhorse.jpg",
             duration: "3:45",
             genre: "Pop",
-            source: "resources/audio/DarkHorse.mp3" // Aquí pondrás tu ruta real
+            source: "resources/audio/DarkHorse.mp3"
         },
         {
             id: 2,
@@ -19,47 +19,47 @@ const musicDatabase = {
             cover: "resources/album covers/unorthodoxJukebox.jpg",
             duration: "3:54",
             genre: "Pop",
-            source: "resources/audio/LockedOutOfHeaven.mp3" // Aquí pondrás tu ruta real
+            source: "resources/audio/LockedOutOfHeaven.mp3"
         },
         {
             id: 3,
-            title: "Senderos",
-            artist: "Bosque Urbano",
-            album: "Caminos",
-            cover: "/api/placeholder/300/300",
-            duration: "3:28",
-            genre: "Alternative",
-            source: "resources/audio/track3.mp3" // Aquí pondrás tu ruta real
+            title: "SOS",
+            artist: "Rihanna",
+            album: "A Girl Like Me",
+            cover: "resources/album covers/AGirlLikeMe.jpg",
+            duration: "4:01",
+            genre: "Pop",
+            source: "resources/audio/SOS.mp3"
         },
         {
             id: 4,
-            title: "Noche Eterna",
-            artist: "Estrellas Fugaces",
-            album: "Universo",
-            cover: "/api/placeholder/300/300",
-            duration: "5:10",
-            genre: "Ambient",
-            source: "resources/audio/track4.mp3" // Aquí pondrás tu ruta real
+            title: "End of Beginning",
+            artist: "Djo",
+            album: "DECIDE",
+            cover: "resources/album covers/DECIDE.png",
+            duration: "2:39",
+            genre: "Synth-Pop",
+            source: "resources/audio/EndOfBeginning.mp3"
         },
         {
             id: 5,
-            title: "Olas de Cristal",
-            artist: "Mar Adentro",
-            album: "Profundidades",
-            cover: "/api/placeholder/300/300",
-            duration: "3:56",
-            genre: "Electronic",
-            source: "resources/audio/track5.mp3" // Aquí pondrás tu ruta real
+            title: "Judas",
+            artist: "Lady Gaga",
+            album: "Born This Way",
+            cover: "resources/album covers/BornThisWay.jpg",
+            duration: "4:09",
+            genre: "Pop",
+            source: "resources/audio/Judas.mp3"
         },
         {
             id: 6,
-            title: "Viento del Sur",
-            artist: "Travesía",
-            album: "Expediciones",
-            cover: "/api/placeholder/300/300",
-            duration: "4:30",
-            genre: "World",
-            source: "resources/audio/track6.mp3" // Aquí pondrás tu ruta real
+            title: "The Line",
+            artist: "Twenty One Pilots, Arcane, League of Legends",
+            album: "ARCANE",
+            cover: "resources/album covers/ARCANE.jpg",
+            duration: "3:54",
+            genre: "ElectroPop",
+            source: "resources/audio/the line.mp3"
         }
     ]
 };
@@ -422,6 +422,8 @@ function searchTracks(query) {
         track.genre.toLowerCase().includes(query)
     );
 }
+
+
 
 // Inicializar la página cuando se cargue
 document.addEventListener('DOMContentLoaded', () => {

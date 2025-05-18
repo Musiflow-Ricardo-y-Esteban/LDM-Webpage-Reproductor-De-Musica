@@ -73,6 +73,8 @@ class MusicExplorer {
         }
     }
 
+    
+
     async simulateSearch(query) {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -354,6 +356,8 @@ class MusicExplorer {
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
+
+    
 }
 
 // Global functions for HTML onclick events
