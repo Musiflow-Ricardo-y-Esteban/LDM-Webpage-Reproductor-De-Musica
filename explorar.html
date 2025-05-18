@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Explorar</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- AOS Animation Library -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
-    
+
     <!-- CSS personalizado -->
     <link href="resources/css/header.css" rel="stylesheet">
     <link href="resources/css/main.css" rel="stylesheet">
@@ -23,15 +24,17 @@
     <link href="resources/css/explorar.css" rel="stylesheet">
     <link rel="stylesheet" href="resources/css/estiloCanciones.css">
 </head>
+
 <body>
     <!-- Efecto de cursor brillante -->
     <div class="glowing-cursor"></div>
-    
+
     <!-- Navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
             <a class="navbar-brand" href="index.html">MusiFlow</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -49,13 +52,14 @@
                         <a class="nav-link" href="index.html#premium"><i class="fas fa-crown"></i> Premium</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="login.html" id="loginLink"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                        <a class="nav-link" href="login.html" id="loginLink"><i class="fas fa-sign-in-alt"></i>
+                            Ingresar</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
+
     <!-- Header de Explorar -->
     <section class="explore-header">
         <div class="container">
@@ -63,19 +67,20 @@
                 <div class="col-12 text-center">
                     <h1 class="hero-title">Explora nueva música</h1>
                     <p class="hero-subtitle">Descubre canciones, artistas y géneros que te encantarán</p>
-                    
+
                 </div>
             </div>
         </div>
     </section>
-    
+
     <!-- Sección de Búsqueda -->
     <section class="search-section">
         <div class="container">
             <div class="row">
                 <div class="col-12">
                     <div class="search-box">
-                        <input type="text" class="search-input" id="searchInput" placeholder="Busca canciones, artistas o álbumes...">
+                        <input type="text" class="search-input" id="searchInput"
+                            placeholder="Busca canciones, artistas o álbumes...">
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-search"></i>
                         </button>
@@ -90,7 +95,7 @@
             </div>
         </div>
     </section>
-    
+
     <!-- Sección de Géneros --><!--
     <section class="genres-section">
         <div class="container">
@@ -149,14 +154,14 @@
     </section>
     -->
     <section class="results-section" id="resultsSection">
-    <div class="container">
-        <h2 class="section-title">Resultados</h2>
-        <div id="searchResults">
-            <!-- Las canciones se cargarán aquí automáticamente -->
+        <div class="container">
+            <h2 class="section-title">Resultados</h2>
+            <div id="searchResults">
+                <!-- Las canciones se cargarán aquí automáticamente -->
+            </div>
         </div>
-    </div>
-</section>
-    
+    </section>
+
     <!-- Reproductor Fijo -->
     <div class="current-player" id="currentPlayer">
         <div class="current-track-info">
@@ -166,25 +171,35 @@
                 <p id="currentTrackArtist">Para comenzar</p>
             </div>
         </div>
-        <div class="player-controls-current">
-            <button class="control-btn-current" id="prevBtn">
-                <i class="fas fa-step-backward"></i>
-            </button>
-            <button class="control-btn-current play-btn-current" id="playPauseBtn">
-                <i class="fas fa-play"></i>
-            </button>
-            <button class="control-btn-current" id="nextBtn">
-                <i class="fas fa-step-forward"></i>
-            </button>
-        </div>
-        
-        <div class="player-actions" style="display: flex; align-items: center; gap: 10px;">
-            <div class="volume-current" id="volumeSlider">
-                <div class="volume-progress-current" id="volumeProgress"></div>
+
+        <div class="player-center-section">
+            <div class="player-controls-current">
+                <button class="control-btn-current" id="prevBtn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="control-btn-current play-btn-current" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn-current" id="nextBtn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
             </div>
-            <button class="control-btn-current" id="openExternalBtn" style="display: none;" title="Abrir enlace externo">
-                <i class="fas fa-external-link-alt"></i>
-            </button>
+            <div class="progress-bar-container">
+                <span id="currentTime">0:00</span>
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <span id="totalTime">0:00</span>
+            </div>
+        </div>
+
+        <div class="player-actions">
+            <div class="volume-container" id="volumeContainer">
+                <button class="volume-icon">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeControl">
+            </div>
         </div>
     </div>
 
@@ -255,6 +270,7 @@
     <!-- Javascript para mostrar las canciones -->
     <script src="resources/js/mostrarCanciones.js"></script>
 
-    
+
 </body>
+
 </html>
