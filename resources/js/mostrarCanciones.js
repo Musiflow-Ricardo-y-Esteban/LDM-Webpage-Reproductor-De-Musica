@@ -64,7 +64,7 @@ const musicDatabase = {
     ]
 };
 
-// Reproductor de audio global
+// Variables globales para el reproductor de audio
 let currentAudio = null;
 let currentTrackId = null;
 let isPlaying = false;
@@ -215,6 +215,9 @@ function togglePlayTrack(trackId) {
     const track = musicDatabase.tracks.find(t => t.id === trackId);
     if (!track) return;
     
+    // Debug - ver qué está ocurriendo
+    console.log(`togglePlayTrack: trackId=${trackId}, currentTrackId=${currentTrackId}, isPlaying=${isPlaying}`);
+    
     // Si ya hay una canción reproduciéndose, detenerla
     if (currentAudio) {
         currentAudio.pause();
@@ -232,14 +235,38 @@ function togglePlayTrack(trackId) {
     // Si es la misma pista, alternar reproducción/pausa
     if (currentTrackId === trackId && currentAudio) {
         if (isPlaying) {
+            // Pausar reproducción
+            currentAudio.pause();
             isPlaying = false;
-            document.querySelector(`.play-button[data-track-id="${trackId}"]`).innerHTML = '<i class="fas fa-play"></i>';
+            
+            // Cambiar iconos a reproducir
+            const playButton = document.querySelector(`.play-button[data-track-id="${trackId}"]`);
+            if (playButton) {
+                playButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
             document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+            
+            console.log("Pausando reproducción");
         } else {
-            currentAudio.play();
+            // Reanudar reproducción
+            currentAudio.play()
+                .then(() => {
+                    console.log("Reproducción reanudada con éxito");
+                })
+                .catch(error => {
+                    console.error("Error al reanudar la reproducción:", error);
+                });
+            
             isPlaying = true;
-            document.querySelector(`.play-button[data-track-id="${trackId}"]`).innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Cambiar iconos a pausar
+            const playButton = document.querySelector(`.play-button[data-track-id="${trackId}"]`);
+            if (playButton) {
+                playButton.innerHTML = '<i class="fas fa-pause"></i>';
+            }
             document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            
+            console.log("Reanudando reproducción");
         }
     } 
     // Si es una pista nueva, reproducirla
@@ -249,6 +276,9 @@ function togglePlayTrack(trackId) {
             currentAudio = null;
         }
         
+        console.log(`Reproduciendo nueva pista: ${track.title}`);
+        
+        // Crear nuevo objeto de audio
         currentAudio = new Audio(track.source);
         currentTrackId = trackId;
         
@@ -260,15 +290,29 @@ function togglePlayTrack(trackId) {
         
         currentAudio.addEventListener('ended', () => {
             isPlaying = false;
-            document.querySelector(`.play-button[data-track-id="${trackId}"]`).innerHTML = '<i class="fas fa-play"></i>';
+            const playButton = document.querySelector(`.play-button[data-track-id="${trackId}"]`);
+            if (playButton) {
+                playButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
             document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
         });
         
-        currentAudio.play();
+        // Iniciar reproducción
+        currentAudio.play()
+            .then(() => {
+                console.log("Reproducción iniciada con éxito");
+            })
+            .catch(error => {
+                console.error("Error al iniciar la reproducción:", error);
+            });
+        
         isPlaying = true;
         
         // Actualizar el icono del botón de reproducción
-        document.querySelector(`.play-button[data-track-id="${trackId}"]`).innerHTML = '<i class="fas fa-pause"></i>';
+        const playButton = document.querySelector(`.play-button[data-track-id="${trackId}"]`);
+        if (playButton) {
+            playButton.innerHTML = '<i class="fas fa-pause"></i>';
+        }
         document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
         
         // Actualizar información en el reproductor fijo
@@ -281,19 +325,6 @@ function updateCurrentPlayer(track) {
     document.getElementById('currentTrackImage').src = track.cover;
     document.getElementById('currentTrackName').textContent = track.title;
     document.getElementById('currentTrackArtist').textContent = track.artist;
-    
-    // Botones del reproductor
-    document.getElementById('playPauseBtn').addEventListener('click', () => {
-        togglePlayTrack(currentTrackId);
-    });
-    
-    document.getElementById('prevBtn').addEventListener('click', () => {
-        playPreviousTrack();
-    });
-    
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        playNextTrack();
-    });
     
     // Asegurarse de que el control de volumen esté inicializado
     initVolumeControl();
@@ -423,8 +454,6 @@ function searchTracks(query) {
     );
 }
 
-
-
 // Inicializar la página cuando se cargue
 document.addEventListener('DOMContentLoaded', () => {
     // Mostrar todas las canciones inicialmente
@@ -447,16 +476,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Inicializar reproductor
-    document.getElementById('playPauseBtn').addEventListener('click', () => {
+    // Configurar los event listeners para el reproductor
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Evento para el botón de pausa/reproducción
+    playPauseBtn.addEventListener('click', () => {
+        console.log("Click en botón play/pause global");
         if (currentTrackId) {
+            console.log(`Llamando a togglePlayTrack con trackId=${currentTrackId}`);
             togglePlayTrack(currentTrackId);
+        } else {
+            console.log("No hay pista actual seleccionada");
         }
     });
     
-    document.getElementById('prevBtn').addEventListener('click', playPreviousTrack);
-    document.getElementById('nextBtn').addEventListener('click', playNextTrack);
+    // Evento para el botón anterior
+    prevBtn.addEventListener('click', () => {
+        console.log("Click en botón 'anterior'");
+        playPreviousTrack();
+    });
+    
+    // Evento para el botón siguiente
+    nextBtn.addEventListener('click', () => {
+        console.log("Click en botón 'siguiente'");
+        playNextTrack();
+    });
     
     // Inicializar control de volumen por defecto
     initVolumeControl();
+
+    // Log para depuración
+    console.log("Página inicializada correctamente");
 });
