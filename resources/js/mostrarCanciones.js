@@ -264,9 +264,24 @@ function togglePlayTrack(trackId) {
 function seekTo(percent) {
     if (!currentAudio) return;
     
+    console.log(`Saltando a: ${percent}%`);
+    
+    // Asegurarse de que el porcentaje esté entre 0 y 100
+    percent = Math.max(0, Math.min(100, percent));
+    
     const newTime = (percent / 100) * currentAudio.duration;
     currentAudio.currentTime = newTime;
+    
+    // Actualizar la barra de progreso inmediatamente
     updateProgress();
+    
+    // Asegurarse de que se esté reproduciendo
+    if (isPlaying) {
+        currentAudio.play()
+            .catch(error => {
+                console.error("Error al reanudar reproducción después de buscar:", error);
+            });
+    }
 }
 
 // Inicializar el control de volumen
@@ -539,6 +554,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mostrar todas las canciones inicialmente
     displayTracks(musicDatabase.tracks);
     
+    // Configurar evento click para la barra de progreso
+    const progressBarContainer = document.querySelector('.progress-bar-container');
+    const progressBarElement = document.querySelector('.progress-bar');
+
+// Evento para hacer clic en la barra de progreso
+if (progressBarContainer) {
+    progressBarContainer.addEventListener('click', (e) => {
+        if (!currentAudio) return;
+        
+        console.log("Click en la barra de progreso");
+        
+        // Calcular la posición del clic respecto a la barra
+        const rect = progressBarElement.getBoundingClientRect();
+        const clickPos = e.clientX - rect.left;
+        const barWidth = rect.width;
+        const percentage = (clickPos / barWidth) * 100;
+        
+        console.log(`Buscando posición: ${percentage}%`);
+        
+        // Saltar a la posición correspondiente
+        seekTo(percentage);
+    });
+} else {
+    console.error("No se encontró el elemento de la barra de progreso (.progress-bar-container)");
+}
+
     // Funcionalidad de búsqueda
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -560,7 +601,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playPauseBtn = document.getElementById('playPauseBtn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-    const progressBar = document.querySelector('.progress-container');
     
     // Evento para el botón de pausa/reproducción
     playPauseBtn.addEventListener('click', () => {
@@ -585,20 +625,30 @@ document.addEventListener('DOMContentLoaded', () => {
         playNextTrack();
     });
     
+    // Configurar evento click para la barra de progreso
+    const progressContainer = document.querySelector('.progress-container');
+    const progressBar = document.querySelector('.progress-bar');
+    
     // Evento para hacer clic en la barra de progreso
-    if (progressBar) {
-        progressBar.addEventListener('click', (e) => {
+    if (progressContainer) {
+        progressContainer.addEventListener('click', (e) => {
             if (!currentAudio) return;
             
+            console.log("Click en la barra de progreso");
+            
             // Calcular la posición del clic respecto a la barra
-            const rect = progressBar.getBoundingClientRect();
+            const rect = progressContainer.getBoundingClientRect();
             const clickPos = e.clientX - rect.left;
             const barWidth = rect.width;
             const percentage = (clickPos / barWidth) * 100;
             
+            console.log(`Buscando posición: ${percentage}%`);
+            
             // Saltar a la posición correspondiente
             seekTo(percentage);
         });
+    } else {
+        console.error("No se encontró el elemento de la barra de progreso (.progress-container)");
     }
     
     // Inicializar control de volumen por defecto
