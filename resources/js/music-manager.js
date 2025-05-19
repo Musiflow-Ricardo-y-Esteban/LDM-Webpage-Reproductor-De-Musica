@@ -7,13 +7,23 @@ class MusicManager {
         this.currentAudio = null;
         this.currentTrack = null;
         this.isPlaying = false;
-        this.currentPlaylist = [];
+        
+        // Listas de reproducción separadas para cada modo
+        this.localPlaylist = [];
+        this.spotifyPlaylist = [];
+        
         this.currentTrackIndex = 0;
         this.progressInterval = null;
+        this.isLoopEnabled = false;
+        this.isShuffleEnabled = false;
         
         this.init();
     }
 
+    //=======================================================
+    // INICIALIZACIÓN Y CONFIGURACIÓN
+    //=======================================================
+    
     async init() {
         // Inicializar interfaz
         this.bindEventListeners();
@@ -63,6 +73,18 @@ class MusicManager {
             nextBtn.addEventListener('click', () => this.playNext());
         }
         
+        // Añadir controles de bucle y aleatorio
+        const loopBtn = document.getElementById('loopBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        
+        if (loopBtn) {
+            loopBtn.addEventListener('click', () => this.toggleLoop());
+        }
+        
+        if (shuffleBtn) {
+            shuffleBtn.addEventListener('click', () => this.toggleShuffle());
+        }
+        
         // Inicializar control de volumen
         this.initVolumeControl();
         
@@ -81,20 +103,17 @@ class MusicManager {
         document.getElementById('localModeBtn').classList.toggle('active', mode === 'local');
         document.getElementById('spotifyModeBtn').classList.toggle('active', mode === 'spotify');
         
-        // Detener reproducción actual
-        if (this.currentAudio) {
-            this.currentAudio.pause();
-            this.isPlaying = false;
-            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-        }
+        // Detener cualquier reproducción actual
+        this.stopPlayback();
         
-        // Cerrar el embed de Spotify si está abierto
-        this.hideSpotifyEmbed();
-        
+        // Establecer el nuevo modo
         this.currentMode = mode;
         
         if (mode === 'spotify') {
-            // Inicializar Spotify si no se ha hecho
+            // Ocultar completamente el reproductor local en modo Spotify
+            document.getElementById('currentPlayer').style.display = 'none';
+            
+            // Inicializar Spotify si es necesario
             const spotifyStatus = document.getElementById('spotifyStatus');
             spotifyStatus.style.display = 'inline-block';
             
@@ -105,7 +124,7 @@ class MusicManager {
                 if (searchInput.value.trim()) {
                     this.handleSearch();
                 } else {
-                    // Mostrar un mensaje para buscar
+                    // Mostrar mensaje de bienvenida
                     this.showSpotifyWelcome();
                 }
             } else {
@@ -114,8 +133,41 @@ class MusicManager {
                 this.showError('No se pudo conectar con Spotify. Revisa tus credenciales.');
             }
         } else {
+            // Mostrar el reproductor local en modo local
+            document.getElementById('currentPlayer').style.display = 'flex';
+            
+            // Ocultar el embed de Spotify si está presente
+            this.hideSpotifyEmbed();
+            
             // Cargar canciones locales
             this.loadLocalTracks();
+        }
+    }
+
+    //=======================================================
+    // GESTIÓN DE REPRODUCCIÓN
+    //=======================================================
+    
+    // Detener cualquier reproducción actual
+    stopPlayback() {
+        // Detener audio local si está reproduciendo
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
+            this.stopProgressUpdate();
+        }
+        
+        // Ocultar embed de Spotify si está presente
+        this.hideSpotifyEmbed();
+        
+        // Reiniciar estado
+        this.currentTrack = null;
+        this.isPlaying = false;
+        
+        // Actualizar botón de reproducción
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        if (playPauseBtn) {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         }
     }
 
@@ -136,6 +188,10 @@ class MusicManager {
         }
     }
 
+    //=======================================================
+    // CARGA Y BÚSQUEDA DE CANCIONES
+    //=======================================================
+    
     loadLocalTracks() {
         // Usamos la función existente de mostrarCanciones.js
         displayTracks(musicDatabase.tracks);
@@ -154,11 +210,17 @@ class MusicManager {
                 // Buscar en Spotify
                 results = await this.spotify.searchTracks(query);
                 
+                // Almacenar en la lista de Spotify
+                this.spotifyPlaylist = results;
+                
                 // Mostrar resultados
                 this.displaySpotifyResults(results);
             } else {
                 // Buscar en la base de datos local
                 results = searchTracks(query);
+                
+                // Almacenar en la lista local
+                this.localPlaylist = results;
                 
                 // Mostrar resultados usando la función de mostrarCanciones.js
                 displayTracks(results);
@@ -184,13 +246,19 @@ class MusicManager {
                 // Buscar en Spotify por género
                 results = await this.spotify.searchByGenre(genre);
                 
+                // Almacenar en la lista de Spotify
+                this.spotifyPlaylist = results;
+                
                 // Mostrar resultados
                 this.displaySpotifyResults(results);
             } else {
                 // Filtrar por género en la base de datos local
                 results = musicDatabase.tracks.filter(track => 
-                    track.genre.toLowerCase().includes(genre.toLowerCase())
+                    track.genre && track.genre.toLowerCase().includes(genre.toLowerCase())
                 );
+                
+                // Almacenar en la lista local
+                this.localPlaylist = results;
                 
                 // Mostrar resultados
                 displayTracks(results);
@@ -201,15 +269,16 @@ class MusicManager {
         }
     }
 
+    //=======================================================
+    // VISUALIZACIÓN DE RESULTADOS
+    //=======================================================
+    
     displaySpotifyResults(tracks) {
         if (!tracks || tracks.length === 0) {
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = '<div class="no-results">No se encontraron canciones</div>';
             return;
         }
-        
-        // Guardar la lista actual
-        this.currentPlaylist = tracks;
         
         const resultsContainer = document.getElementById('searchResults');
         resultsContainer.innerHTML = '';
@@ -306,7 +375,7 @@ class MusicManager {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const trackId = button.dataset.trackId;
-                const track = this.currentPlaylist.find(t => t.id === trackId);
+                const track = this.spotifyPlaylist.find(t => t.id === trackId);
                 if (track) {
                     this.playTrack(track);
                 }
@@ -317,14 +386,14 @@ class MusicManager {
         document.querySelectorAll('.track-row').forEach(row => {
             row.addEventListener('click', () => {
                 const trackId = row.dataset.trackId;
-                const track = this.currentPlaylist.find(t => t.id === trackId);
+                const track = this.spotifyPlaylist.find(t => t.id === trackId);
                 if (track) {
                     this.playTrack(track);
                 }
             });
         });
         
-        // Like button functionality
+        // Funcionalidad de botón "Me gusta"
         document.querySelectorAll('.like-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -340,43 +409,47 @@ class MusicManager {
         });
     }
 
+    //=======================================================
+    // REPRODUCCIÓN DE CANCIONES
+    //=======================================================
+    
     playTrack(track) {
-        // Detener la reproducción actual
-        if (this.currentAudio) {
-            this.currentAudio.pause();
-            this.stopProgressUpdate();
-        }
+        // Detener cualquier reproducción actual
+        this.stopPlayback();
         
-        // Actualizar la interfaz
+        // Actualizar interfaz
         this.currentTrack = track;
-        this.updatePlayerUI(track);
         
-        // Si es una canción de Spotify, usar el embed
+        // Para canciones de Spotify, usar solo el reproductor embed
         if (track.source === 'spotify') {
             // Mostrar el embed de Spotify
             this.showSpotifyEmbed(track.id);
-            
-            // Restaurar el espacio en el fondo para que el contenido no quede detrás del reproductor
-            document.body.style.paddingBottom = '80px';
-            
-            // Actualizar la interfaz de la lista
-            this.updateTrackListUI(track);
-            
             return;
         }
         
-        // Para canciones locales, usar el reproductor normal
+        // Para canciones locales, usar el reproductor nativo
+        this.updatePlayerUI(track);
         this.currentAudio = new Audio(track.source);
         
         // Configurar eventos
         this.currentAudio.addEventListener('ended', () => {
-            this.playNext();
+            if (this.isLoopEnabled) {
+                this.currentAudio.currentTime = 0;
+                this.currentAudio.play().catch(error => {
+                    console.error('Error al reiniciar la reproducción en bucle:', error);
+                });
+            } else {
+                this.playNext();
+            }
         });
         
         this.currentAudio.addEventListener('error', (e) => {
             console.error('Error de reproducción:', e);
             this.showError('Error al reproducir la pista.');
         });
+        
+        // Configurar bucle si está activado
+        this.currentAudio.loop = this.isLoopEnabled;
         
         // Establecer volumen
         const volumeControl = document.getElementById('volumeControl');
@@ -390,7 +463,7 @@ class MusicManager {
                 this.isPlaying = true;
                 document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
                 
-                // Iniciar la actualización de la barra de progreso
+                // Iniciar actualizaciones de la barra de progreso
                 this.startProgressUpdate();
                 
                 // Actualizar la interfaz de la lista
@@ -402,121 +475,215 @@ class MusicManager {
             });
     }
 
-showSpotifyEmbed(trackId) {
-    // Crear contenedor para el embed si no existe
-    let embedContainer = document.getElementById('spotifyEmbed');
-    if (!embedContainer) {
-        embedContainer = document.createElement('div');
-        embedContainer.id = 'spotifyEmbed';
-        embedContainer.className = 'spotify-embed-container';
+    showSpotifyEmbed(trackId) {
+        // Asegurarse de que cualquier reproducción local se detenga
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.stopProgressUpdate();
+            this.currentAudio = null;
+        }
         
-        // Estilos mejorados para el contenedor - posición fija
-        embedContainer.style.cssText = `
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1001;
-            background-color: #181818;
-            border-top: 1px solid #282828;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
-        `;
+        // Crear contenedor para el embed si no existe
+        let embedContainer = document.getElementById('spotifyEmbed');
+        if (!embedContainer) {
+            embedContainer = document.createElement('div');
+            embedContainer.id = 'spotifyEmbed';
+            embedContainer.className = 'spotify-embed-container';
+            
+            // Estilos mejorados para el contenedor - posición fija
+            embedContainer.style.cssText = `
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                z-index: 1001;
+                background-color: #181818;
+                border-top: 1px solid #282828;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+            `;
+            
+            document.body.appendChild(embedContainer);
+        }
         
-        document.body.appendChild(embedContainer);
-    }
-    
-    // Mostrar un indicador de carga
-    embedContainer.innerHTML = `
-        <div class="spotify-loading">
-            <div class="spotify-spinner">
-                <i class="fas fa-circle-notch fa-spin"></i>
-            </div>
-            <p>Cargando canción...</p>
-        </div>
-    `;
-    
-    // Mostrar el embed
-    embedContainer.style.display = 'block';
-    
-    // Crear el iframe de Spotify después de mostrar el indicador de carga
-    setTimeout(() => {
+        // Mostrar un indicador de carga
         embedContainer.innerHTML = `
-            <iframe 
-                src="https://open.spotify.com/embed/track/${trackId}?autoplay=1&utm_source=generator" 
-                width="100%" 
-                height="80" 
-                frameborder="0" 
-                allowtransparency="true" 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy">
-            </iframe>
-            <button id="closeEmbed" class="close-embed-btn">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="spotify-loading">
+                <div class="spotify-spinner">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                </div>
+                <p>Cargando canción...</p>
+            </div>
         `;
         
-        // Agregar evento para cerrar el embed
-        document.getElementById('closeEmbed').addEventListener('click', () => {
-            this.hideSpotifyEmbed();
-        });
-    }, 300); // Pequeño retraso para mostrar el spinner
-    
-    // Ocultar el reproductor normal para canciones de Spotify
-    document.getElementById('currentPlayer').style.display = 'none';
-    
-    // Asegurarse de que los estilos existan
-    this.addEmbedStyles();
-    
-    // Actualizar estado
-    this.isPlaying = true;
-}
+        // Mostrar el embed
+        embedContainer.style.display = 'block';
+        
+        // Añadir padding para evitar que el contenido quede oculto detrás del embed
+        document.body.style.paddingBottom = '90px';
+        
+        // Crear el iframe de Spotify después de mostrar el indicador de carga
+        setTimeout(() => {
+            // Obtener parámetros para aleatorio
+            const shuffleParam = this.isShuffleEnabled ? '&shuffle=1' : '';
+            
+            embedContainer.innerHTML = `
+                <iframe 
+                    src="https://open.spotify.com/embed/track/${trackId}?autoplay=1${shuffleParam}&utm_source=generator" 
+                    width="100%" 
+                    height="80" 
+                    frameborder="0" 
+                    allowtransparency="true" 
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                    loading="lazy">
+                </iframe>
+                <div class="spotify-controls">
+                    <button id="openInSpotify" class="spotify-action-btn" title="Abrir en Spotify">
+                        <i class="fab fa-spotify"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Añadir evento para abrir en Spotify
+            if (this.currentTrack && this.currentTrack.externalUrl) {
+                document.getElementById('openInSpotify').addEventListener('click', () => {
+                    window.open(this.currentTrack.externalUrl, '_blank');
+                });
+            }
+        }, 300);
+        
+        // Asegurarse de que los estilos existan
+        this.addEmbedStyles();
+        
+        // Actualizar estado
+        this.isPlaying = true;
+    }
 
     hideSpotifyEmbed() {
         const embedContainer = document.getElementById('spotifyEmbed');
         if (embedContainer) {
             embedContainer.style.display = 'none';
             
-            // Restaurar el espacio al fondo
+            // Restaurar el padding
             document.body.style.paddingBottom = '';
             
-            // Si hay una pista local actual, mostrar el reproductor normal
-            if (this.currentTrack && this.currentTrack.source !== 'spotify') {
-                document.getElementById('currentPlayer').style.display = 'flex';
-            } else {
-                // Mostrar el reproductor normal sin ninguna canción activa
-                document.getElementById('currentPlayer').style.display = 'flex';
+            // Limpiar la pista actual si estamos en modo Spotify
+            if (this.currentMode === 'spotify') {
+                this.currentTrack = null;
+                this.isPlaying = false;
             }
         }
     }
 
+    //=======================================================
+    // CONTROLES DEL REPRODUCTOR
+    //=======================================================
+    
+    toggleLoop() {
+        if (this.currentMode === 'local') {
+            // Para canciones locales
+            this.isLoopEnabled = !this.isLoopEnabled;
+            
+            if (this.currentAudio) {
+                this.currentAudio.loop = this.isLoopEnabled;
+            }
+            
+            // Actualizar UI
+            const loopBtn = document.getElementById('loopBtn');
+            if (loopBtn) {
+                loopBtn.classList.toggle('active', this.isLoopEnabled);
+            }
+        } else {
+            // Para modo Spotify
+            this.showMessage('La función de bucle no está disponible para canciones de Spotify');
+        }
+    }
+
+    toggleShuffle() {
+        this.isShuffleEnabled = !this.isShuffleEnabled;
+        
+        // Actualizar UI
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        if (shuffleBtn) {
+            shuffleBtn.classList.toggle('active', this.isShuffleEnabled);
+        }
+        
+        // Si la pista actual es de Spotify, recargar el embed con el parámetro de aleatorio
+        if (this.currentTrack && this.currentTrack.source === 'spotify') {
+            this.showSpotifyEmbed(this.currentTrack.id);
+        }
+    }
+
+    // Mostrar un mensaje temporal
+    showMessage(message) {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'player-message';
+        messageEl.textContent = message;
+        messageEl.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        `;
+        
+        document.body.appendChild(messageEl);
+        
+        // Aparecer
+        setTimeout(() => { messageEl.style.opacity = '1'; }, 10);
+        
+        // Desaparecer y eliminar
+        setTimeout(() => {
+            messageEl.style.opacity = '0';
+            setTimeout(() => messageEl.remove(), 300);
+        }, 2000);
+    }
+
+    //=======================================================
+    // ESTILOS Y ELEMENTOS VISUALES
+    //=======================================================
+    
     addEmbedStyles() {
-        // Si ya existe el estilo, no hacer nada
+        // Si el estilo ya existe, no hacer nada
         if (document.getElementById('embed-styles')) return;
         
         // Crear estilos para el embed y el indicador de carga
         const style = document.createElement('style');
         style.id = 'embed-styles';
         style.textContent = `
-            .close-embed-btn {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: rgba(0,0,0,0.6);
+            .spotify-action-btn {
+                background: #1DB954;
                 border: none;
                 color: white;
-                width: 24px;
-                height: 24px;
+                width: 30px;
+                height: 30px;
                 border-radius: 50%;
                 cursor: pointer;
-                font-size: 12px;
+                font-size: 14px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: all 0.2s ease;
                 z-index: 1002;
             }
             
-            .close-embed-btn:hover {
-                background: rgba(255,255,255,0.2);
+            .spotify-action-btn:hover {
+                background: #1ED760;
+                transform: scale(1.1);
+            }
+            
+            .spotify-controls {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                display: flex;
+                gap: 8px;
+                z-index: 1002;
             }
             
             .spotify-embed-container iframe {
@@ -542,12 +709,26 @@ showSpotifyEmbed(trackId) {
                 font-size: 14px;
                 color: #b3b3b3;
             }
+            
+            /* Estilos para los botones de bucle y aleatorio */
+            #loopBtn, #shuffleBtn {
+                opacity: 0.6;
+                transition: all 0.3s ease;
+            }
+            
+            #loopBtn.active, #shuffleBtn.active {
+                opacity: 1;
+                color: #1ed760;
+            }
         `;
         document.head.appendChild(style);
     }
 
     updateTrackListUI() {
-        // Actualizar el estado de los botones de reproducción en la lista
+        // Solo ejecutar esto en modo local
+        if (this.currentMode !== 'local') return;
+        
+        // Actualizar botones de reproducción en la lista de pistas
         document.querySelectorAll('.play-button').forEach(button => {
             const trackId = button.dataset.trackId;
             if (this.currentTrack && this.currentTrack.id === trackId) {
@@ -560,16 +741,23 @@ showSpotifyEmbed(trackId) {
                 button.innerHTML = '<i class="fas fa-play"></i>';
             }
         });
+        
+        // Actualizar estado de botones de bucle y aleatorio
+        const loopBtn = document.getElementById('loopBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        
+        if (loopBtn) {
+            loopBtn.classList.toggle('active', this.isLoopEnabled);
+        }
+        
+        if (shuffleBtn) {
+            shuffleBtn.classList.toggle('active', this.isShuffleEnabled);
+        }
     }
 
     togglePlayPause() {
-        if (!this.currentTrack) return;
-        
-        if (this.currentTrack.source === 'spotify') {
-            // Para canciones de Spotify, solo mostramos el embed
-            this.showSpotifyEmbed(this.currentTrack.id);
-            return;
-        }
+        // Solo para modo local
+        if (this.currentMode !== 'local' || !this.currentTrack) return;
         
         if (!this.currentAudio) return;
         
@@ -591,36 +779,63 @@ showSpotifyEmbed(trackId) {
                 });
         }
         
-        // Actualizar la interfaz de la lista
+        // Actualizar interfaz de la lista
         this.updateTrackListUI();
     }
 
+    //=======================================================
+    // NAVEGACIÓN DE CANCIONES
+    //=======================================================
+    
     playNext() {
-        if (!this.currentTrack || this.currentPlaylist.length === 0) return;
+        // Solo para modo local
+        if (this.currentMode !== 'local' || !this.currentTrack) return;
+        
+        if (this.localPlaylist.length === 0) return;
         
         // Encontrar la posición actual
-        const currentIndex = this.currentPlaylist.findIndex(t => t.id === this.currentTrack.id);
+        const currentIndex = this.localPlaylist.findIndex(t => t.id === this.currentTrack.id);
         
-        // Calcular el siguiente índice
-        const nextIndex = (currentIndex + 1) % this.currentPlaylist.length;
+        // Calcular siguiente índice
+        let nextIndex;
         
-        // Reproducir la siguiente pista
-        this.playTrack(this.currentPlaylist[nextIndex]);
+        if (this.isShuffleEnabled) {
+            // Pista aleatoria (excluyendo la actual)
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * this.localPlaylist.length);
+            } while (randomIndex === currentIndex && this.localPlaylist.length > 1);
+            
+            nextIndex = randomIndex;
+        } else {
+            // Secuencial
+            nextIndex = (currentIndex + 1) % this.localPlaylist.length;
+        }
+        
+        // Reproducir siguiente pista
+        this.playTrack(this.localPlaylist[nextIndex]);
     }
 
     playPrevious() {
-        if (!this.currentTrack || this.currentPlaylist.length === 0) return;
+        // Solo para modo local
+        if (this.currentMode !== 'local' || !this.currentTrack) return;
+        
+        if (this.localPlaylist.length === 0) return;
         
         // Encontrar la posición actual
-        const currentIndex = this.currentPlaylist.findIndex(t => t.id === this.currentTrack.id);
+        const currentIndex = this.localPlaylist.findIndex(t => t.id === this.currentTrack.id);
         
-        // Calcular el índice anterior
-        const prevIndex = (currentIndex - 1 + this.currentPlaylist.length) % this.currentPlaylist.length;
+        // Calcular índice anterior
+        const prevIndex = (currentIndex - 1 + this.localPlaylist.length) % this.localPlaylist.length;
         
-        // Reproducir la pista anterior
-        this.playTrack(this.currentPlaylist[prevIndex]);
+        // Reproducir pista anterior
+        this.playTrack(this.localPlaylist[prevIndex]);
     }
 
+    //=======================================================
+    // CONTROL DE PROGRESO
+    //=======================================================
+    
     startProgressUpdate() {
         // Limpiar cualquier intervalo existente
         this.stopProgressUpdate();
@@ -652,14 +867,14 @@ showSpotifyEmbed(trackId) {
         const currentTime = this.currentAudio.currentTime;
         const duration = this.currentAudio.duration || 0;
         
-        // Actualizar el texto del tiempo transcurrido
+        // Actualizar texto de tiempo transcurrido
         currentTimeElement.textContent = this.formatTime(currentTime);
         totalTimeElement.textContent = this.formatTime(duration);
         
-        // Calcular el porcentaje de progreso
+        // Calcular porcentaje de progreso
         const progressPercent = (currentTime / duration) * 100;
         
-        // Actualizar la barra de progreso
+        // Actualizar barra de progreso
         progressBar.style.width = `${progressPercent}%`;
     }
 
@@ -670,17 +885,17 @@ showSpotifyEmbed(trackId) {
     }
 
     handleProgressBarClick(e) {
-        if (!this.currentAudio) return;
+        if (!this.currentAudio || this.currentMode !== 'local') return;
         
         const progressBarContainer = e.currentTarget;
         const rect = progressBarContainer.getBoundingClientRect();
         const clickPosition = e.clientX - rect.left;
         const percentage = (clickPosition / rect.width);
         
-        // Establecer la nueva posición
+        // Establecer nueva posición
         this.currentAudio.currentTime = percentage * this.currentAudio.duration;
         
-        // Actualizar la interfaz
+        // Actualizar interfaz
         this.updateProgress();
     }
 
@@ -689,55 +904,11 @@ showSpotifyEmbed(trackId) {
         document.getElementById('currentTrackName').textContent = track.title;
         document.getElementById('currentTrackArtist').textContent = track.artist;
         
-        // Agregar botón para abrir en Spotify (si es una canción de Spotify)
-        const playerActions = document.querySelector('.player-actions');
+        // Mostrar reproductor nativo
+        document.getElementById('currentPlayer').style.display = 'flex';
         
-        // Remover botón de Spotify si existe
-        const existingSpotifyBtn = document.getElementById('openSpotifyBtn');
-        if (existingSpotifyBtn) {
-            existingSpotifyBtn.remove();
-        }
-        
-        // Añadir botón de Spotify si es una canción de Spotify
-        if (track.source === 'spotify' && track.externalUrl) {
-            const spotifyBtn = document.createElement('button');
-            spotifyBtn.id = 'openSpotifyBtn';
-            spotifyBtn.className = 'spotify-btn';
-            spotifyBtn.innerHTML = '<i class="fab fa-spotify"></i>';
-            spotifyBtn.title = 'Abrir en Spotify';
-            spotifyBtn.addEventListener('click', () => {
-                window.open(track.externalUrl, '_blank');
-            });
-            
-            // Agregar estilos para el botón
-            spotifyBtn.style.cssText = `
-                background: #1DB954;
-                color: white;
-                border: none;
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-right: 10px;
-            `;
-            
-            // Insertar antes del control de volumen
-            const volumeContainer = document.getElementById('volumeContainer');
-            if (volumeContainer) {
-                playerActions.insertBefore(spotifyBtn, volumeContainer);
-            } else {
-                playerActions.appendChild(spotifyBtn);
-            }
-        }
-        
-        // Mostrar el reproductor para canciones locales
-        // (Para Spotify se mostrará el embed)
-        if (track.source !== 'spotify') {
-            document.getElementById('currentPlayer').style.display = 'flex';
-        }
+        // Actualizar estado de bucle/aleatorio
+        this.updateTrackListUI();
     }
 
     initVolumeControl() {
@@ -751,6 +922,10 @@ showSpotifyEmbed(trackId) {
         });
     }
 
+    //=======================================================
+    // FEEDBACK Y NOTIFICACIONES
+    //=======================================================
+    
     showLoading() {
         const searchResults = document.getElementById('searchResults');
         const resultsSection = document.getElementById('resultsSection');
@@ -795,7 +970,7 @@ showSpotifyEmbed(trackId) {
 
         document.body.appendChild(toast);
 
-        // Animar entrada
+        // Animación de entrada
         setTimeout(() => {
             toast.style.transform = 'translateY(0)';
             toast.style.opacity = '1';
@@ -814,7 +989,7 @@ showSpotifyEmbed(trackId) {
 document.addEventListener('DOMContentLoaded', () => {
     window.musicManager = new MusicManager();
     
-    // Exponer función global para buscar por género
+    // Exponer función global para búsqueda por género
     window.searchByGenre = function(genre) {
         window.musicManager.searchByGenre(genre);
     };

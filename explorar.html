@@ -23,6 +23,62 @@
     <link href="resources/css/asistente.css" rel="stylesheet">
     <link href="resources/css/explorar.css" rel="stylesheet">
     <link rel="stylesheet" href="resources/css/estiloCanciones.css">
+    
+    <style>
+        /* Styles for the loop and shuffle buttons */
+        #loopBtn, #shuffleBtn {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        #loopBtn.active, #shuffleBtn.active {
+            opacity: 1;
+            color: #1ed760;
+        }
+        
+        /* Make Spotify controls more visible */
+        .spotify-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 1002;
+        }
+        
+        .spotify-action-btn {
+            background: #1DB954;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .spotify-action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Player message style */
+        .player-message {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1100;
+            transition: opacity 0.3s;
+        }
+    </style>
 </head>
 
 <body>
@@ -96,25 +152,24 @@
         </div>
     </section>
 
-
-<div class="container mt-3">
-    <div class="source-selector">
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-dark active" id="localModeBtn">
-                <i class="fas fa-music"></i> Modo Local
-            </button>
-            <button type="button" class="btn btn-dark" id="spotifyModeBtn">
-                <i class="fab fa-spotify"></i> Modo Spotify
-            </button>
-        </div>
-        <div id="spotifyStatus" class="ms-3" style="display: none;">
-            <div class="alert alert-warning d-inline-block">
-                <small id="statusText">Conectando a Spotify...</small>
+    <!-- Selector de modo -->
+    <div class="container mt-3">
+        <div class="source-selector">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-dark active" id="localModeBtn">
+                    <i class="fas fa-music"></i> Modo Local
+                </button>
+                <button type="button" class="btn btn-dark" id="spotifyModeBtn">
+                    <i class="fab fa-spotify"></i> Modo Spotify
+                </button>
+            </div>
+            <div id="spotifyStatus" class="ms-3" style="display: none;">
+                <div class="alert alert-warning d-inline-block">
+                    <small id="statusText">Conectando a Spotify...</small>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
     
     <section class="results-section" id="resultsSection">
         <div class="container">
@@ -137,6 +192,9 @@
 
         <div class="player-center-section">
             <div class="player-controls-current">
+                <button class="control-btn-current" id="shuffleBtn" title="Shuffle">
+                    <i class="fas fa-random"></i>
+                </button>
                 <button class="control-btn-current" id="prevBtn">
                     <i class="fas fa-step-backward"></i>
                 </button>
@@ -145,6 +203,9 @@
                 </button>
                 <button class="control-btn-current" id="nextBtn">
                     <i class="fas fa-step-forward"></i>
+                </button>
+                <button class="control-btn-current" id="loopBtn" title="Loop">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
             <div class="progress-bar-container">
@@ -210,6 +271,7 @@
                     <ul class="footer-links">
                         <li><a href="index.html">Inicio</a></li>
                         <li><a href="explorar.html">Explorar</a></li>
+                        <li><a href="premium.html">Premium</a></li>
                         <li><a href="login.html">Ingresar</a></li>
                     </ul>
                 </div>
@@ -229,12 +291,12 @@
     <!-- Asistente IA -->
     <script src="resources/js/asistente.js"></script>
     <!-- Free Music API Integration -->
-    <script src="resources/js/free-music-api.js"></script>
+    <script src="resources/js/spotify-api.js"></script>
     <!-- Javascript para mostrar las canciones -->
     <script src="resources/js/mostrarCanciones.js"></script>
-    <!-- Integracion con Spotify API -->
-    <script src="resources/js/spotify-api.js"></script>
+    <!-- Music Manager -->
     <script src="resources/js/music-manager.js"></script>
+
 
 </body>
 
