@@ -9,6 +9,7 @@ class MusicManager {
         this.isPlaying = false;
         this.currentPlaylist = [];
         this.currentTrackIndex = 0;
+        this.progressInterval = null;
         
         this.init();
     }
@@ -87,6 +88,9 @@ class MusicManager {
             document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
         }
         
+        // Cerrar el embed de Spotify si está abierto
+        this.hideSpotifyEmbed();
+        
         this.currentMode = mode;
         
         if (mode === 'spotify') {
@@ -126,7 +130,7 @@ class MusicManager {
                     <i class="fab fa-spotify" style="font-size: 4rem; color: #1DB954; margin-bottom: 20px;"></i>
                     <h3>Modo Spotify Activado</h3>
                     <p>Busca canciones, artistas o álbumes para descubrir música en Spotify.</p>
-                    <p class="small">Las previsualizaciones tienen una duración de 30 segundos.</p>
+                    <p class="small">Las canciones se reproducirán mediante el reproductor integrado de Spotify.</p>
                 </div>
             `;
         }
@@ -231,12 +235,10 @@ class MusicManager {
             trackRow.className = 'track-row';
             trackRow.dataset.trackId = track.id;
             
-            const hasPreview = track.previewUrl ? '' : 'style="opacity: 0.5;"';
-            
             trackRow.innerHTML = `
                 <div class="track-number">
                     <span class="track-index">${index + 1}</span>
-                    <button class="play-button" data-track-id="${track.id}" ${hasPreview}>
+                    <button class="play-button" data-track-id="${track.id}">
                         <i class="fas fa-play"></i>
                     </button>
                 </div>
@@ -347,19 +349,24 @@ class MusicManager {
         
         // Actualizar la interfaz
         this.currentTrack = track;
-        
-        // Actualizar la interfaz de usuario
         this.updatePlayerUI(track);
         
-        if (track.source === 'spotify' && !track.previewUrl) {
-            // Si es una pista de Spotify sin vista previa, abrir en Spotify
-            this.showError('Vista previa no disponible. Abriendo en Spotify...');
-            window.open(track.externalUrl, '_blank');
+        // Si es una canción de Spotify, usar el embed
+        if (track.source === 'spotify') {
+            // Mostrar el embed de Spotify
+            this.showSpotifyEmbed(track.id);
+            
+            // Restaurar el espacio en el fondo para que el contenido no quede detrás del reproductor
+            document.body.style.paddingBottom = '80px';
+            
+            // Actualizar la interfaz de la lista
+            this.updateTrackListUI(track);
+            
             return;
         }
         
-        // Crear nuevo objeto de audio
-        this.currentAudio = new Audio(track.source || track.previewUrl);
+        // Para canciones locales, usar el reproductor normal
+        this.currentAudio = new Audio(track.source);
         
         // Configurar eventos
         this.currentAudio.addEventListener('ended', () => {
@@ -369,11 +376,6 @@ class MusicManager {
         this.currentAudio.addEventListener('error', (e) => {
             console.error('Error de reproducción:', e);
             this.showError('Error al reproducir la pista.');
-            
-            // Si es Spotify, ofrecer abrir en el sitio
-            if (track.source === 'spotify' && track.externalUrl) {
-                window.open(track.externalUrl, '_blank');
-            }
         });
         
         // Establecer volumen
@@ -391,13 +393,157 @@ class MusicManager {
                 // Iniciar la actualización de la barra de progreso
                 this.startProgressUpdate();
                 
-                // Actualizar la interfaz de la lista si es necesario
+                // Actualizar la interfaz de la lista
                 this.updateTrackListUI();
             })
             .catch(error => {
                 console.error('Error al reproducir:', error);
                 this.showError('Error al reproducir la pista.');
             });
+    }
+
+showSpotifyEmbed(trackId) {
+    // Crear contenedor para el embed si no existe
+    let embedContainer = document.getElementById('spotifyEmbed');
+    if (!embedContainer) {
+        embedContainer = document.createElement('div');
+        embedContainer.id = 'spotifyEmbed';
+        embedContainer.className = 'spotify-embed-container';
+        
+        // Estilos mejorados para el contenedor - posición fija
+        embedContainer.style.cssText = `
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1001;
+            background-color: #181818;
+            border-top: 1px solid #282828;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+        `;
+        
+        document.body.appendChild(embedContainer);
+    }
+    
+    // Mostrar un indicador de carga
+    embedContainer.innerHTML = `
+        <div class="spotify-loading">
+            <div class="spotify-spinner">
+                <i class="fas fa-circle-notch fa-spin"></i>
+            </div>
+            <p>Cargando canción...</p>
+        </div>
+    `;
+    
+    // Mostrar el embed
+    embedContainer.style.display = 'block';
+    
+    // Crear el iframe de Spotify después de mostrar el indicador de carga
+    setTimeout(() => {
+        embedContainer.innerHTML = `
+            <iframe 
+                src="https://open.spotify.com/embed/track/${trackId}?autoplay=1&utm_source=generator" 
+                width="100%" 
+                height="80" 
+                frameborder="0" 
+                allowtransparency="true" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy">
+            </iframe>
+            <button id="closeEmbed" class="close-embed-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Agregar evento para cerrar el embed
+        document.getElementById('closeEmbed').addEventListener('click', () => {
+            this.hideSpotifyEmbed();
+        });
+    }, 300); // Pequeño retraso para mostrar el spinner
+    
+    // Ocultar el reproductor normal para canciones de Spotify
+    document.getElementById('currentPlayer').style.display = 'none';
+    
+    // Asegurarse de que los estilos existan
+    this.addEmbedStyles();
+    
+    // Actualizar estado
+    this.isPlaying = true;
+}
+
+    hideSpotifyEmbed() {
+        const embedContainer = document.getElementById('spotifyEmbed');
+        if (embedContainer) {
+            embedContainer.style.display = 'none';
+            
+            // Restaurar el espacio al fondo
+            document.body.style.paddingBottom = '';
+            
+            // Si hay una pista local actual, mostrar el reproductor normal
+            if (this.currentTrack && this.currentTrack.source !== 'spotify') {
+                document.getElementById('currentPlayer').style.display = 'flex';
+            } else {
+                // Mostrar el reproductor normal sin ninguna canción activa
+                document.getElementById('currentPlayer').style.display = 'flex';
+            }
+        }
+    }
+
+    addEmbedStyles() {
+        // Si ya existe el estilo, no hacer nada
+        if (document.getElementById('embed-styles')) return;
+        
+        // Crear estilos para el embed y el indicador de carga
+        const style = document.createElement('style');
+        style.id = 'embed-styles';
+        style.textContent = `
+            .close-embed-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.6);
+                border: none;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1002;
+            }
+            
+            .close-embed-btn:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            .spotify-embed-container iframe {
+                display: block;
+            }
+            
+            .spotify-loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 80px;
+                color: #1DB954;
+            }
+            
+            .spotify-spinner {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+            
+            .spotify-loading p {
+                margin: 0;
+                font-size: 14px;
+                color: #b3b3b3;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     updateTrackListUI() {
@@ -417,7 +563,15 @@ class MusicManager {
     }
 
     togglePlayPause() {
-        if (!this.currentTrack || !this.currentAudio) return;
+        if (!this.currentTrack) return;
+        
+        if (this.currentTrack.source === 'spotify') {
+            // Para canciones de Spotify, solo mostramos el embed
+            this.showSpotifyEmbed(this.currentTrack.id);
+            return;
+        }
+        
+        if (!this.currentAudio) return;
         
         if (this.isPlaying) {
             this.currentAudio.pause();
@@ -535,8 +689,55 @@ class MusicManager {
         document.getElementById('currentTrackName').textContent = track.title;
         document.getElementById('currentTrackArtist').textContent = track.artist;
         
-        // Mostrar el reproductor
-        document.getElementById('currentPlayer').style.display = 'flex';
+        // Agregar botón para abrir en Spotify (si es una canción de Spotify)
+        const playerActions = document.querySelector('.player-actions');
+        
+        // Remover botón de Spotify si existe
+        const existingSpotifyBtn = document.getElementById('openSpotifyBtn');
+        if (existingSpotifyBtn) {
+            existingSpotifyBtn.remove();
+        }
+        
+        // Añadir botón de Spotify si es una canción de Spotify
+        if (track.source === 'spotify' && track.externalUrl) {
+            const spotifyBtn = document.createElement('button');
+            spotifyBtn.id = 'openSpotifyBtn';
+            spotifyBtn.className = 'spotify-btn';
+            spotifyBtn.innerHTML = '<i class="fab fa-spotify"></i>';
+            spotifyBtn.title = 'Abrir en Spotify';
+            spotifyBtn.addEventListener('click', () => {
+                window.open(track.externalUrl, '_blank');
+            });
+            
+            // Agregar estilos para el botón
+            spotifyBtn.style.cssText = `
+                background: #1DB954;
+                color: white;
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 10px;
+            `;
+            
+            // Insertar antes del control de volumen
+            const volumeContainer = document.getElementById('volumeContainer');
+            if (volumeContainer) {
+                playerActions.insertBefore(spotifyBtn, volumeContainer);
+            } else {
+                playerActions.appendChild(spotifyBtn);
+            }
+        }
+        
+        // Mostrar el reproductor para canciones locales
+        // (Para Spotify se mostrará el embed)
+        if (track.source !== 'spotify') {
+            document.getElementById('currentPlayer').style.display = 'flex';
+        }
     }
 
     initVolumeControl() {
