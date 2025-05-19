@@ -96,6 +96,25 @@
         </div>
     </section>
 
+
+<div class="container mt-3">
+    <div class="source-selector">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-dark active" id="localModeBtn">
+                <i class="fas fa-music"></i> Modo Local
+            </button>
+            <button type="button" class="btn btn-dark" id="spotifyModeBtn">
+                <i class="fab fa-spotify"></i> Modo Spotify
+            </button>
+        </div>
+        <div id="spotifyStatus" class="ms-3" style="display: none;">
+            <div class="alert alert-warning d-inline-block">
+                <small id="statusText">Conectando a Spotify...</small>
+            </div>
+        </div>
+    </div>
+</div>
+
     
     <section class="results-section" id="resultsSection">
         <div class="container">
@@ -213,7 +232,9 @@
     <script src="resources/js/free-music-api.js"></script>
     <!-- Javascript para mostrar las canciones -->
     <script src="resources/js/mostrarCanciones.js"></script>
-
+    <!-- Integracion con Spotify API -->
+    <script src="resources/js/spotify-api.js"></script>
+    <script src="resources/js/music-manager.js"></script>
 
 </body>
 

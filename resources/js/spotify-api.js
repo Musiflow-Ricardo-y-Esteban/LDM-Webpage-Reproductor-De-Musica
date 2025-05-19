@@ -1,24 +1,70 @@
-// spotify-api.js - Integration with Spotify Web API
+// spotify-api.js - Integración con la API de Spotify para GitHub Pages
 
-class SpotifyAPI {
+class SpotifyManager {
     constructor() {
-        // Spotify Web API credentials (you'll need to register your app at developer.spotify.com)
         this.clientId = '9eb0fbc4e8ad415ea22dcfa6293dd28f'; 
         this.clientSecret = '8a3c19ac8356486586af8762cd043477'; 
+        this.redirectUri = 'https://ricmoncar.github.io/LDM-Webpage-Reproductor-De-Musica/callback.html';
         this.apiUrl = 'https://api.spotify.com/v1';
         this.tokenUrl = 'https://accounts.spotify.com/api/token';
         this.accessToken = null;
         this.tokenExpiry = null;
-        
-        this.init();
+        this.isInitialized = false;
+        this.statusElement = document.getElementById('spotifyStatus');
+        this.statusTextElement = document.getElementById('statusText');
     }
 
     async init() {
-        await this.getAccessToken();
+        try {
+            // Mostrar estado de conexión
+            this.updateStatus('warning', 'Conectando a Spotify...');
+            this.statusElement.style.display = 'inline-block';
+            
+            // Verificar si ya hay un token almacenado en localStorage
+            const storedToken = localStorage.getItem('spotify_access_token');
+            if (storedToken) {
+                this.accessToken = storedToken;
+                this.tokenExpiry = Date.now() + 3600000; // Aproximadamente 1 hora
+                this.isInitialized = true;
+                this.updateStatus('success', 'Conectado a Spotify ✓');
+                
+                // Ocultar después de un tiempo
+                setTimeout(() => {
+                    this.statusElement.style.display = 'none';
+                }, 3000);
+                
+                return true;
+            }
+            
+            // Obtener token de acceso
+            await this.getAccessToken();
+            
+            this.isInitialized = true;
+            this.updateStatus('success', 'Conectado a Spotify ✓');
+            
+            // Ocultar después de un tiempo
+            setTimeout(() => {
+                this.statusElement.style.display = 'none';
+            }, 3000);
+            
+            return true;
+        } catch (error) {
+            console.error('Error al inicializar Spotify:', error);
+            this.updateStatus('danger', 'Error al conectar con Spotify');
+            return false;
+        }
+    }
+
+    updateStatus(type, message) {
+        if (this.statusElement && this.statusTextElement) {
+            this.statusTextElement.textContent = message;
+            this.statusElement.querySelector('.alert').className = `alert alert-${type} d-inline-block`;
+            this.statusElement.style.display = 'inline-block';
+        }
     }
 
     async getAccessToken() {
-        // Check if we have a valid token
+        // Verificar si ya tenemos un token válido
         if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
             return this.accessToken;
         }
@@ -34,16 +80,19 @@ class SpotifyAPI {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to get access token');
+                throw new Error('Error al obtener token de acceso');
             }
 
             const data = await response.json();
             this.accessToken = data.access_token;
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
             
+            // Guardar en localStorage para futuras sesiones
+            localStorage.setItem('spotify_access_token', this.accessToken);
+            
             return this.accessToken;
         } catch (error) {
-            console.error('Error getting Spotify access token:', error);
+            console.error('Error al obtener token de Spotify:', error);
             throw error;
         }
     }
@@ -56,7 +105,7 @@ class SpotifyAPI {
             url.searchParams.append('q', query);
             url.searchParams.append('type', 'track');
             url.searchParams.append('limit', limit);
-            url.searchParams.append('market', 'ES'); // Spanish market
+            url.searchParams.append('market', 'ES'); // Mercado español
 
             const response = await fetch(url, {
                 headers: {
@@ -65,19 +114,19 @@ class SpotifyAPI {
             });
 
             if (!response.ok) {
-                throw new Error('Search failed');
+                throw new Error('Error en la búsqueda');
             }
 
             const data = await response.json();
             return this.formatTracks(data.tracks.items);
         } catch (error) {
-            console.error('Error searching tracks:', error);
+            console.error('Error al buscar canciones:', error);
             throw error;
         }
     }
 
     async searchByGenre(genre, limit = 20) {
-        // Some popular genre queries for Spotify
+        // Géneros populares para Spotify
         const genreQueries = {
             pop: 'genre:pop',
             rock: 'genre:rock',
@@ -107,13 +156,156 @@ class SpotifyAPI {
             });
 
             if (!response.ok) {
-                throw new Error('Recommendations failed');
+                throw new Error('Error al obtener recomendaciones');
             }
 
             const data = await response.json();
             return this.formatTracks(data.tracks);
         } catch (error) {
-            console.error('Error getting recommendations:', error);
+            console.error('Error al obtener recomendaciones:', error);
+            throw error;
+        }
+    }
+
+    async getNewReleases(limit = 20) {
+        try {
+            await this.getAccessToken();
+            
+            const url = new URL(`${this.apiUrl}/browse/new-releases`);
+            url.searchParams.append('limit', limit);
+            url.searchParams.append('country', 'ES');
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener nuevos lanzamientos');
+            }
+
+            const data = await response.json();
+            return this.formatTracks(data.albums.items.map(item => item));
+        } catch (error) {
+            console.error('Error al obtener nuevos lanzamientos:', error);
+            throw error;
+        }
+    }
+
+    async getFeaturedPlaylists(limit = 10) {
+        try {
+            await this.getAccessToken();
+            
+            const url = new URL(`${this.apiUrl}/browse/featured-playlists`);
+            url.searchParams.append('limit', limit);
+            url.searchParams.append('country', 'ES');
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener playlists destacadas');
+            }
+
+            const data = await response.json();
+            return data.playlists.items.map(playlist => ({
+                id: playlist.id,
+                name: playlist.name,
+                description: playlist.description,
+                image: playlist.images[0]?.url || '/api/placeholder/300/300',
+                tracksTotal: playlist.tracks.total,
+                externalUrl: playlist.external_urls.spotify,
+                owner: playlist.owner.display_name
+            }));
+        } catch (error) {
+            console.error('Error al obtener playlists destacadas:', error);
+            throw error;
+        }
+    }
+
+    async getPlaylistTracks(playlistId, limit = 50) {
+        try {
+            await this.getAccessToken();
+            
+            const url = new URL(`${this.apiUrl}/playlists/${playlistId}/tracks`);
+            url.searchParams.append('limit', limit);
+            url.searchParams.append('market', 'ES');
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener canciones de la playlist');
+            }
+
+            const data = await response.json();
+            return this.formatTracks(data.items.map(item => item.track).filter(track => track != null));
+        } catch (error) {
+            console.error('Error al obtener canciones de playlist:', error);
+            throw error;
+        }
+    }
+
+    async getArtist(artistId) {
+        try {
+            await this.getAccessToken();
+            
+            const url = new URL(`${this.apiUrl}/artists/${artistId}`);
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener información del artista');
+            }
+
+            const artist = await response.json();
+            return {
+                id: artist.id,
+                name: artist.name,
+                image: artist.images[0]?.url || '/api/placeholder/300/300',
+                genres: artist.genres,
+                popularity: artist.popularity,
+                followers: artist.followers.total,
+                externalUrl: artist.external_urls.spotify
+            };
+        } catch (error) {
+            console.error('Error al obtener artista:', error);
+            throw error;
+        }
+    }
+
+    async getArtistTopTracks(artistId) {
+        try {
+            await this.getAccessToken();
+            
+            const url = new URL(`${this.apiUrl}/artists/${artistId}/top-tracks`);
+            url.searchParams.append('market', 'ES');
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener canciones populares del artista');
+            }
+
+            const data = await response.json();
+            return this.formatTracks(data.tracks);
+        } catch (error) {
+            console.error('Error al obtener canciones populares:', error);
             throw error;
         }
     }
@@ -122,218 +314,56 @@ class SpotifyAPI {
         return spotifyTracks.map(track => ({
             id: track.id,
             title: track.name,
-            artist: track.artists.map(artist => artist.name).join(', '),
-            album: track.album.name,
-            image: track.album.images[0]?.url || '/api/placeholder/300/300',
+            artist: track.artists ? track.artists.map(artist => artist.name).join(', ') : 'Artista desconocido',
+            album: track.album ? track.album.name : 'Álbum desconocido',
+            image: track.album && track.album.images && track.album.images.length > 0 
+                ? track.album.images[0].url 
+                : (track.images && track.images.length > 0 ? track.images[0].url : '/api/placeholder/300/300'),
             previewUrl: track.preview_url,
             duration: this.formatDuration(track.duration_ms),
             externalUrl: track.external_urls.spotify,
-            popularity: track.popularity
+            popularity: track.popularity || 0,
+            source: 'spotify',
+            explicit: track.explicit || false,
+            artistId: track.artists && track.artists.length > 0 ? track.artists[0].id : null
         }));
     }
 
     formatDuration(milliseconds) {
+        if (!milliseconds) return '0:00';
         const minutes = Math.floor(milliseconds / 60000);
         const seconds = Math.floor((milliseconds % 60000) / 1000);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
-}
 
-// Updated MusicExplorer class with Spotify integration
-class MusicExplorerWithSpotify extends MusicExplorer {
-    constructor() {
-        super();
-        this.spotifyAPI = new SpotifyAPI();
-        this.currentAudio = null;
-        this.isInitialized = false;
-    }
-
-    async init() {
-        super.init();
-        try {
-            await this.spotifyAPI.init();
+    // Método para ofrecer login con Spotify (implementación futura)
+    initiateUserLogin() {
+        const scopes = 'user-read-private user-read-email user-library-read user-top-read';
+        const authUrl = new URL('https://accounts.spotify.com/authorize');
+        
+        authUrl.searchParams.append('client_id', this.clientId);
+        authUrl.searchParams.append('response_type', 'token');
+        authUrl.searchParams.append('redirect_uri', this.redirectUri);
+        authUrl.searchParams.append('scope', scopes);
+        authUrl.searchParams.append('show_dialog', 'true');
+        
+        // Abrir ventana de autorización
+        window.open(authUrl.toString(), 'spotify-login', 'width=600,height=800');
+        
+        // Función para recibir el token
+        window.spotifyTokenReceived = (token) => {
+            this.accessToken = token;
+            this.tokenExpiry = Date.now() + 3600000; // 1 hora
             this.isInitialized = true;
-            console.log('Spotify API initialized successfully');
-        } catch (error) {
-            console.error('Failed to initialize Spotify API:', error);
-            this.showError('Error al conectar con Spotify. Usando datos de demostración.');
-        }
+            this.updateStatus('success', 'Conectado como usuario de Spotify ✓');
+        };
     }
 
-    async handleSearch() {
-        const query = document.getElementById('searchInput').value.trim();
-        if (!query) return;
-
-        this.showLoading();
-        
-        try {
-            let results;
-            if (this.isInitialized) {
-                results = await this.spotifyAPI.searchTracks(query);
-                console.log('Spotify search results:', results);
-            } else {
-                // Fallback to demo data if Spotify API fails
-                results = await this.simulateSearch(query);
-            }
-            
-            this.displayResults(results);
-        } catch (error) {
-            console.error('Search error:', error);
-            this.showError('Error al buscar música.');
-            // Try fallback
-            const results = await this.simulateSearch(query);
-            this.displayResults(results);
-        }
-    }
-
-    async searchByGenre(genre) {
-        this.showLoading();
-        
-        try {
-            let results;
-            if (this.isInitialized) {
-                results = await this.spotifyAPI.searchByGenre(genre);
-                console.log(`Spotify ${genre} results:`, results);
-            } else {
-                results = await this.simulateGenreSearch(genre);
-            }
-            
-            this.displayResults(results);
-        } catch (error) {
-            console.error('Genre search error:', error);
-            this.showError('Error al buscar por género.');
-            // Try fallback
-            const results = await this.simulateGenreSearch(genre);
-            this.displayResults(results);
-        }
-    }
-
-    playTrack(track) {
-        // Stop current audio if playing
-        if (this.currentAudio) {
-            this.currentAudio.pause();
-        }
-
-        this.currentTrack = track;
-        
-        // Check if track has preview URL
-        if (track.previewUrl) {
-            this.currentAudio = new Audio(track.previewUrl);
-            this.audio = this.currentAudio; // For compatibility with parent class
-            
-            // Find track in playlist for navigation
-            this.currentTrackIndex = this.currentPlaylist.findIndex(t => t.id === track.id);
-            
-            this.currentAudio.play().catch(error => {
-                console.error('Playback error:', error);
-                this.showError('Error al reproducir la pista. Abriendo Spotify...');
-                // Open Spotify link as fallback
-                if (track.externalUrl) {
-                    window.open(track.externalUrl, '_blank');
-                }
-            });
-            
-            this.updatePlayerUI();
-            this.isPlaying = true;
-            
-            // Update play button
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            
-            // Add event listener for track end
-            this.currentAudio.addEventListener('ended', () => {
-                this.playNext();
-            });
-        } else {
-            // No preview available, open Spotify
-            this.showError('Vista previa no disponible. Abriendo en Spotify...');
-            if (track.externalUrl) {
-                window.open(track.externalUrl, '_blank');
-            }
-        }
-    }
-
-    createTrackElement(track) {
-        const trackDiv = document.createElement('div');
-        trackDiv.className = 'track-item';
-        
-        const hasPreview = track.previewUrl ? '' : ' style="opacity: 0.7;"';
-        const previewText = track.previewUrl ? 'Reproducir vista previa' : 'Abrir en Spotify';
-        
-        trackDiv.innerHTML = `
-            <img src="${track.image}" alt="${track.title}" class="track-image">
-            <div class="track-info">
-                <div class="track-name">${track.title}</div>
-                <div class="track-artist">${track.artist}</div>
-                <div class="track-album" style="font-size: 0.8rem; color: var(--texto-secundario); margin-top: 2px;">
-                    ${track.album}
-                </div>
-            </div>
-            <div class="track-popularity" style="color: var(--texto-secundario); margin-right: 15px;">
-                <i class="fas fa-fire" style="color: ${track.popularity >= 70 ? '#ff6b6b' : track.popularity >= 40 ? '#ffa500' : '#ffffff'};" title="Popularidad: ${track.popularity}%"></i>
-            </div>
-            <div class="track-duration" style="color: var(--texto-secundario); margin-right: 15px;">
-                ${track.duration}
-            </div>
-            <button class="play-btn-small" onclick="musicExplorer.playTrack(${JSON.stringify(track).replace(/"/g, '&quot;')})" 
-                    title="${previewText}"${hasPreview}>
-                <i class="fas fa-${track.previewUrl ? 'play' : 'external-link-alt'}"></i>
-            </button>
-        `;
-
-        return trackDiv;
-    }
-
-    togglePlayPause() {
-        if (!this.currentTrack) return;
-
-        if (this.isPlaying) {
-            if (this.currentAudio) {
-                this.currentAudio.pause();
-            }
-            this.isPlaying = false;
-            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
-        } else {
-            if (this.currentAudio) {
-                this.currentAudio.play().catch(error => {
-                    console.error('Playback error:', error);
-                    this.showError('Error al reproducir la pista.');
-                });
-                this.isPlaying = true;
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-            }
-        }
-    }
-
-    updatePlayerUI() {
-        document.getElementById('currentTrackImage').src = this.currentTrack.image;
-        document.getElementById('currentTrackName').textContent = this.currentTrack.title;
-        document.getElementById('currentTrackArtist').textContent = this.currentTrack.artist;
-        
-        // Show Spotify link
-        const playerElement = document.getElementById('currentPlayer');
-        if (this.currentTrack.externalUrl) {
-            playerElement.title = 'Click para abrir en Spotify';
-            playerElement.style.cursor = 'pointer';
-            playerElement.onclick = () => {
-                window.open(this.currentTrack.externalUrl, '_blank');
-            };
-        }
-    }
-
-    showError(message) {
-        super.showError(message);
-        
-        // Add info about Spotify setup if needed
-        if (message.includes('Spotify') && !this.isInitialized) {
-            setTimeout(() => {
-                this.showError('Para usar Spotify, configura tu CLIENT_ID y CLIENT_SECRET en spotify-api.js');
-            }, 1000);
-        }
+    // Limpiar la sesión
+    logout() {
+        this.accessToken = null;
+        this.tokenExpiry = null;
+        localStorage.removeItem('spotify_access_token');
+        this.updateStatus('warning', 'Desconectado de Spotify');
     }
 }
-
-// Initialize the enhanced music explorer
-document.addEventListener('DOMContentLoaded', () => {
-    window.musicExplorer = new MusicExplorerWithSpotify();
-});

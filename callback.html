@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusiFlow - Autorización completada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+            padding-top: 100px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #181818;
+            border-radius: 10px;
+        }
+        .success-icon {
+            color: #1DB954;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #1DB954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h2>Autorización completada</h2>
+        <p>Puedes cerrar esta ventana y volver a MusiFlow.</p>
+        <button onclick="window.close()">Cerrar ventana</button>
+    </div>
+    
+    <script>
+        // Extraer el token de acceso de la URL si existe
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = params.get('access_token');
+        
+        if (accessToken) {
+            // Guardar token en localStorage para usarlo en la app principal
+            localStorage.setItem('spotify_access_token', accessToken);
+            
+            // Si la ventana fue abierta por la app principal
+            if (window.opener) {
+                window.opener.spotifyTokenReceived(accessToken);
+                window.close();
+            }
+        }
+    </script>
+</body>
+</html>
