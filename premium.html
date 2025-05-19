@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusiFlow - Planes Premium</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link href="resources/css/header.css" rel="stylesheet">
+    <link href="resources/css/main.css" rel="stylesheet">
+    <link href="resources/css/reproductor.css" rel="stylesheet">
+    <link href="resources/css/animaciones.css" rel="stylesheet">
+    <link href="resources/css/footer.css" rel="stylesheet">
+    <link href="resources/css/misc.css" rel="stylesheet">
+    <link href="resources/css/asistente.css" rel="stylesheet">
+    
+    <style>
+        /* Estilos específicos para la página premium */
+        .premium-header {
+            background: linear-gradient(135deg, #121212 0%, #2a2a2a 100%);
+            padding: 100px 0 50px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .premium-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 102, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        .premium-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .premium-badge {
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            color: white;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.3);
+        }
+        
+        .plans-section {
+            padding: 80px 0;
+            background-color: var(--oscuro-primario);
+        }
+        
+        .plan-card {
+            background-color: rgba(30, 30, 30, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .plan-header {
+            padding: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .plan-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255, 20, 147, 0.1), rgba(0, 153, 255, 0.1));
+            z-index: 0;
+        }
+        
+        .plan-title {
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 0;
+        }
+        
+        .plan-period {
+            font-size: 0.9rem;
+            color: var(--texto-secundario);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .plan-features {
+            padding: 30px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .feature-icon i {
+            font-size: 12px;
+            color: white;
+        }
+        
+        .plan-action {
+            padding: 0 30px 30px;
+        }
+        
+        .btn-premium {
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+        }
+        
+        .most-popular {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            color: white;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transform: rotate(45deg) translate(25%, -120%);
+            width: 200px;
+            text-align: center;
+        }
+        
+        .premium-cta {
+            padding: 80px 0;
+            background-color: var(--oscuro-secundario);
+            text-align: center;
+        }
+        
+        .premium-features {
+            padding: 80px 0;
+            background-color: var(--oscuro-secundario);
+        }
+        
+        .premium-feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 50px;
+        }
+        
+        .premium-feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, rgba(255, 20, 147, 0.1), rgba(0, 153, 255, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            color: var(--acento-actual);
+            flex-shrink: 0;
+        }
+        
+        .modal-premium .modal-content {
+            background-color: #181818;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-premium .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-premium .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Efecto de cursor brillante -->
+    <div class="glowing-cursor"></div>
+    
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MusiFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="explorar.html"><i class="fas fa-compass"></i> Explorar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#biblioteca"><i class="fas fa-book"></i> Biblioteca</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="premium.html"><i class="fas fa-crown"></i> Premium</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html" id="loginLink"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Notas musicales flotantes -->
+    <div class="notes-container"></div>
+    
+    <!-- Header Premium -->
+    <section class="premium-header">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <div class="premium-badge">PREMIUM</div>
+                    <h1 class="hero-title flotante mb-4">Mejora tu experiencia musical</h1>
+                    <p class="hero-subtitle mb-5">Descubre todas las ventajas de MusiFlow Premium y disfruta de la música sin límites.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sección de Planes -->
+    <section class="plans-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center mb-5">
+                    <h2 class="section-title">Elige tu plan</h2>
+                    <p class="mb-0">Tenemos diferentes opciones para adaptarnos a tus necesidades.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Plan Individual -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="plan-card">
+                        <div class="plan-header">
+                            <h3 class="plan-title">Individual</h3>
+                            <h4 class="plan-price">4,99€</h4>
+                            <p class="plan-period">por mes</p>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Música sin anuncios</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Escucha sin conexión</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Reproducción en cualquier dispositivo</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Calidad de audio normal</div>
+                            </div>
+                        </div>
+                        <div class="plan-action">
+                            <button class="btn btn-premium">Comenzar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plan Estándar -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="plan-card">
+                        <div class="most-popular">MÁS POPULAR</div>
+                        <div class="plan-header">
+                            <h3 class="plan-title">Estándar</h3>
+                            <h4 class="plan-price">8,99€</h4>
+                            <p class="plan-period">por mes</p>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Música sin anuncios</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Escucha sin conexión</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Reproducción en cualquier dispositivo</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Calidad de audio alta</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Recomendaciones personalizadas</div>
+                            </div>
+                        </div>
+                        <div class="plan-action">
+                            <button class="btn btn-premium">Comenzar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plan Familiar -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="plan-card">
+                        <div class="plan-header">
+                            <h3 class="plan-title">Familiar</h3>
+                            <h4 class="plan-price">14,99€</h4>
+                            <p class="plan-period">por mes</p>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>6 cuentas Premium independientes</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Música sin anuncios</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Escucha sin conexión</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Calidad de audio ultra</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Control parental</div>
+                            </div>
+                        </div>
+                        <div class="plan-action">
+                            <button class="btn btn-premium">Comenzar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plan Estudiante (opcional) -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="plan-card">
+                        <div class="plan-header">
+                            <h3 class="plan-title">Estudiante</h3>
+                            <h4 class="plan-price">2,99€</h4>
+                            <p class="plan-period">por mes</p>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Música sin anuncios</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Escucha sin conexión</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Calidad de audio alta</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-info"></i></div>
+                                <div>Verificación académica requerida</div>
+                            </div>
+                        </div>
+                        <div class="plan-action">
+                            <button class="btn btn-premium">Comenzar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plan Anual -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+                    <div class="plan-card">
+                        <div class="plan-header">
+                            <h3 class="plan-title">Annual</h3>
+                            <h4 class="plan-price">89,99€</h4>
+                            <p class="plan-period">por año <span class="badge bg-success ms-2">25% AHORRO</span></p>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Música sin anuncios</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Escucha sin conexión</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>Calidad de audio alta</div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon"><i class="fas fa-check"></i></div>
+                                <div>25% de descuento anual</div>
+                            </div>
+                        </div>
+                        <div class="plan-action">
+                            <button class="btn btn-premium">Comenzar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Características de Premium -->
+    <section class="premium-features">
+        <div class="container">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <h2 class="section-title">¿Por qué elegir Premium?</h2>
+                    <p>Todas las ventajas que disfrutarás al mejorar tu experiencia.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="premium-feature-item">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div>
+                            <h4>Música sin interrupciones</h4>
+                            <p>Disfruta de tu música favorita sin publicidad ni interrupciones. Sonido continuo y fluido para sumergirte por completo en cada canción.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="premium-feature-item">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div>
+                            <h4>Descarga y escucha sin conexión</h4>
+                            <p>Descarga tus canciones, álbumes y listas de reproducción para escucharlos incluso sin conexión a Internet. Perfecto para viajes y ahorro de datos.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="premium-feature-item">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-headphones"></i>
+                        </div>
+                        <div>
+                            <h4>Calidad de audio superior</h4>
+                            <p>Experimenta el sonido como nunca antes con nuestra calidad de audio premium. Cada detalle y matiz de tus canciones favoritas con claridad cristalina.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="premium-feature-item">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div>
+                            <h4>Múltiples dispositivos</h4>
+                            <p>Reproduce tu música en todos tus dispositivos: smartphone, tablet, ordenador, dispositivos inteligentes y más, con sincronización perfecta entre todos ellos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Premium -->
+    <section class="premium-cta">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="section-title flotante">¿Listo para mejorar tu experiencia musical?</h2>
+                    <p class="mb-4">Elige ahora tu plan Premium perfecto y comienza a disfrutar.</p>
+                    <button class="btn btn-premium btn-lg">Ver planes</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Floating chat button -->
+    <div class="music-assistant-button" id="musicAssistantButton">
+        <i>🎵</i>
+    </div>
+
+    <!-- Chat modal -->
+    <div class="music-assistant-modal" id="musicAssistantModal">
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="sparkle-effect"></div>
+        <div class="assistant-header">
+            <h1 class="assistant-title">MusicGPT</h1>
+            <p class="assistant-description">Tu asistente musical inteligente</p>
+            <button class="close-button" id="closeButton">×</button>
+        </div>
+        <div class="assistant-chat-container">
+            <div class="assistant-chat-messages" id="chatMessages"></div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-indicator-content">
+                    <span>MusicGPT está escribiendo</span>
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        <div class="assistant-input-area">
+            <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
+            <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-title">MusiFlow</h5>
+                    <p>La mejor plataforma para descubrir, compartir y disfrutar de música en alta calidad con una experiencia única y personalizada.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-4">
+                    <h5 class="footer-title">Compañía</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Acerca de</a></li>
+                        <li><a href="#">Empleos</a></li>
+                        <li><a href="#">Prensa</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6 mb-4">
+                    <h5 class="footer-title">Comunidad</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Artistas</a></li>
+                        <li><a href="#">Desarrolladores</a></li>
+                        <li><a href="#">Publicidad</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6 mb-4">
+                    <h5 class="footer-title">Enlaces</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Soporte</a></li>
+                        <li><a href="#">App móvil</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6 mb-4">
+                    <h5 class="footer-title">Legal</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacidad</a></li>
+                        <li><a href="#">Términos</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2025 MusiFlow. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modal de información premium -->
+    <div class="modal fade modal-premium" id="premiumInfoModal" tabindex="-1" aria-labelledby="premiumInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="premiumInfoModalLabel">¡MusiFlow es gratuito!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-gift text-success" style="font-size: 48px;"></i>
+                    </div>
+                    <p>MusiFlow es completamente gratuito para todos los usuarios. No es necesario pagar ninguna suscripción para disfrutar de nuestra plataforma musical.</p>
+                    <p>Esta página de planes premium es solo demostrativa como parte de nuestro proyecto educativo para el módulo de Lenguaje de Marcas y Entornos de Desarrollo.</p>
+                    <p>¡Disfruta de toda la música que quieras sin coste alguno!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">¡Entendido!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Asistente IA -->
+    <script src="resources/js/asistente.js"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- Login System -->
+    <script src="resources/js/login.js"></script>
+    
+    <script>
+        // Inicializar AOS
+        document.addEventListener('DOMContentLoaded', () => {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
+            
+            // Animaciones para elementos
+            crearNotas();
+            iniciarCursorBrillante();
+            
+            // Configurar botones de planes premium para abrir el modal
+            const premiumButtons = document.querySelectorAll('.btn-premium, .section-title.flotante, .premium-cta .btn-premium');
+            premiumButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const premiumModal = new bootstrap.Modal(document.getElementById('premiumInfoModal'));
+                    premiumModal.show();
+                });
+            });
+        });
+        
+        // Crear notas musicales flotantes
+        function crearNotas() {
+            const contenedorNotas = document.querySelector('.notes-container');
+            if (!contenedorNotas) return;
+            
+            const notas = ['♪', '♫', '𝅘𝅥𝅮', '𝅘𝅥', '𝅘𝅥𝅯', '𝅗𝅥', '𝄞'];
+            const cantidadNotas = 20;
+            
+            for (let i = 0; i < cantidadNotas; i++) {
+                const nota = document.createElement('div');
+                nota.classList.add('note');
+                nota.innerHTML = notas[Math.floor(Math.random() * notas.length)];
+                nota.style.left = `${Math.random() * 100}%`;
+                nota.style.animationDelay = `${Math.random() * 15}s`;
+                nota.style.animationDuration = `${15 + Math.random() * 15}s`;
+                nota.style.fontSize = `${1 + Math.random() * 1.5}rem`;
+                nota.style.color = `rgba(255, 255, 255, ${0.1 + Math.random() * 0.3})`;
+                contenedorNotas.appendChild(nota);
+            }
+        }
+        
+        // Efecto de cursor brillante
+        function iniciarCursorBrillante() {
+            const cursor = document.querySelector('.glowing-cursor');
+            if (!cursor) return;
+            
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+                cursor.style.opacity = '1';
+            });
+            
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+            });
+        }
+    </script>
+</body>
+</html>
