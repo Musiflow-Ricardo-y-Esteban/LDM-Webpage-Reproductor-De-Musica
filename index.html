@@ -47,7 +47,7 @@
                         <a class="nav-link" href="premium.html"><i class="fas fa-crown"></i> Premium</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                        <a class="nav-link" href="#" id="loginNavLink" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
                     </li>
                 </ul>
             </div>
@@ -72,14 +72,14 @@
                 <div class="col-lg-6" data-aos="fade-left" data-aos-delay="400">
                     <div class="login-form shadow">
                         <h3 class="mb-4">Inicia sesión</h3>
-                        <form>
+                        <form id="heroLoginForm">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com">
+                                <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com" required>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" placeholder="Tu contraseña">
+                                <input type="password" class="form-control" id="password" placeholder="Tu contraseña" required>
                             </div>
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="rememberMe">
@@ -87,11 +87,11 @@
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Entrar</button>
                             <div class="mt-3 text-center">
-                                <a href="#" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                                <a href="#" id="forgotPasswordLink" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
                             </div>
                             <hr>
                             <p class="text-center mb-0">¿No tienes cuenta?</p>
-                            <button type="button" class="btn btn-outline-light w-100 mt-2">Crear cuenta</button>
+                            <button type="button" id="heroCreateAccountBtn" class="btn btn-outline-light w-100 mt-2">Crear cuenta</button>
                         </form>
                     </div>
                 </div>
@@ -452,52 +452,50 @@
         <div class="particles-container"></div>
     </section>
     
-         <!-- Floating chat button -->
-         <div class="music-assistant-button" id="musicAssistantButton">
-            <i>🎵</i>
-        </div>
-    
-        <!-- Chat modal -->
-        <div class="music-assistant-modal" id="musicAssistantModal">
-            <!-- Decorative elements -->
-            <div class="neon-decoration"></div>
-            <div class="neon-decoration"></div>
-            <div class="neon-decoration"></div>
-            <div class="sparkle-effect"></div>
-            
-            <!-- Modal header -->
-            <div class="assistant-header">
-                <h1 class="assistant-title">MusicGPT</h1>
-                <p class="assistant-description">Tu asistente musical inteligente</p>
-                <button class="close-button" id="closeButton">×</button>
-            </div>
-            
-            <!-- Chat container -->
-            <div class="assistant-chat-container">
-                <div class="assistant-chat-messages" id="chatMessages">
-                    <!-- Messages will be added here dynamically -->
-                </div>
-                
-                <div class="typing-indicator" id="typingIndicator">
-                    <div class="typing-indicator-content">
-                        <span>MusicGPT está escribiendo</span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Input area -->
-            <div class="assistant-input-area">
-                <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
-                <button class="assistant-send-button" id="sendButton">
-                    <i>➤</i>
-                </button>
-            </div>
-        </div>
-    
+    <!-- Floating chat button -->
+    <div class="music-assistant-button" id="musicAssistantButton">
+        <i>🎵</i>
+    </div>
 
+    <!-- Chat modal -->
+    <div class="music-assistant-modal" id="musicAssistantModal">
+        <!-- Decorative elements -->
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="sparkle-effect"></div>
+        
+        <!-- Modal header -->
+        <div class="assistant-header">
+            <h1 class="assistant-title">MusicGPT</h1>
+            <p class="assistant-description">Tu asistente musical inteligente</p>
+            <button class="close-button" id="closeButton">×</button>
+        </div>
+        
+        <!-- Chat container -->
+        <div class="assistant-chat-container">
+            <div class="assistant-chat-messages" id="chatMessages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-indicator-content">
+                    <span>MusicGPT está escribiendo</span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input area -->
+        <div class="assistant-input-area">
+            <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
+            <button class="assistant-send-button" id="sendButton">
+                <i>➤</i>
+            </button>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -570,14 +568,14 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="modalLoginForm">
                         <div class="mb-3">
                             <label for="modalEmail" class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" id="modalEmail" placeholder="nombre@ejemplo.com">
+                            <input type="email" class="form-control" id="modalEmail" placeholder="nombre@ejemplo.com" required>
                         </div>
                         <div class="mb-3">
                             <label for="modalPassword" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="modalPassword" placeholder="Tu contraseña">
+                            <input type="password" class="form-control" id="modalPassword" placeholder="Tu contraseña" required>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="modalRememberMe">
@@ -586,7 +584,7 @@
                         <button type="submit" class="btn btn-primary w-100">Entrar</button>
                     </form>
                     <div class="mt-3 text-center">
-                        <a href="#" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                        <a href="#" id="modalForgotPasswordLink" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
                     </div>
                     <div class="mt-3">
                         <p class="text-center mb-2">O inicia sesión con</p>
@@ -598,149 +596,374 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 justify-content-center">
-                    <p class="mb-0">¿No tienes cuenta? <a href="#" class="text-decoration-none">Regístrate</a></p>
+                    <p class="mb-0">¿No tienes cuenta? <a href="#" id="modalRegisterLink" class="text-decoration-none">Regístrate</a></p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
     <!-- Asistente IA -->
-    <script src = resources/js/asistente.js></script>
+    <script src="resources/js/asistente.js"></script>
+    
+    <!-- Firebase Initialization -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    
     <!-- Bootstrap JS Bundle con Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Biblioteca de animaciones AOS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    
+    <!-- Firebase Auth JS -->
+    <script src="resources/js/firebase-init.js"></script>
+    <script src="resources/js/login.js"></script>
+    
     <!-- JS -->
     <script src="resources/js/index.js"></script>
-
+    
     <script>
-// Integrar el sistema de login en login.html
-document.addEventListener('DOMContentLoaded', () => {
-    // Si el usuario ya está logueado, redirigir
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (isLoggedIn) {
-        const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
-        localStorage.removeItem('redirectAfterLogin');
-        window.location.href = redirectTo;
-        return;
-    }
-
-    // Manejar el formulario de login
-    const loginForm = document.querySelector('.login-page-section form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
+    // Configuración del sistema de autenticación personalizado
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicializar las animaciones AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Agregar estilos para loading overlay y animaciones
+        const styles = `
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                visibility: hidden;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            .loading-overlay.show {
+                visibility: visible;
+                opacity: 1;
+            }
+            .spinner {
+                width: 50px;
+                height: 50px;
+                border: 5px solid rgba(255, 255, 255, 0.1);
+                border-left-color: var(--acento-actual);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            .shake {
+                animation: shake 0.5s;
+            }
+            @keyframes shake {
+                0%, 50%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        
+        if (!document.getElementById('animation-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'animation-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+        }
+        
+        // Manejar botones de creación de cuenta
+        const handleCreateAccountClick = (e) => {
+            e.preventDefault();
+            // Si authSystem está disponible, usarlo
+            if (window.authSystem) {
+                window.authSystem.showRegistrationModal();
+            } else {
+                // Verificar si firebase-auth está cargado
+                if (typeof firebase !== 'undefined') {
+                    // Firebase está disponible pero authSystem no
+                    // Cargar login.js e inicializar authSystem
+                    const script = document.createElement('script');
+                    script.src = 'resources/js/login.js';
+                    script.onload = () => {
+                        // Inicializar authSystem después de cargar script
+                        if (typeof AuthSystem !== 'undefined') {
+                            window.authSystem = new AuthSystem();
+                            setTimeout(() => {
+                                window.authSystem.showRegistrationModal();
+                            }, 100);
+                        } else {
+                            console.error('AuthSystem no está disponible después de cargar login.js');
+                            alert('Error al cargar el sistema de autenticación. Por favor, recarga la página.');
+                        }
+                    };
+                    script.onerror = () => {
+                        console.error('Error al cargar login.js');
+                        alert('Error al cargar el sistema de autenticación. Por favor, recarga la página.');
+                    };
+                    document.body.appendChild(script);
+                } else {
+                    // Firebase no está disponible todavía
+                    console.error('Firebase no está inicializado');
+                    alert('El sistema de autenticación se está cargando. Por favor, inténtalo de nuevo en unos segundos.');
+                }
+            }
+        };
+        
+        // Asignar evento al botón de Crear Cuenta en la sección hero
+        const heroCreateAccountBtn = document.getElementById('heroCreateAccountBtn');
+        if (heroCreateAccountBtn) {
+            heroCreateAccountBtn.addEventListener('click', handleCreateAccountClick);
+        }
+        
+        // Asignar evento al enlace de registro en el modal de login
+        const modalRegisterLink = document.getElementById('modalRegisterLink');
+        if (modalRegisterLink) {
+            modalRegisterLink.addEventListener('click', handleCreateAccountClick);
+        }
+        
+        // Manejar eventos de olvido de contraseña
+        const handleForgotPassword = (e) => {
+            e.preventDefault();
+            if (window.authSystem) {
+                window.authSystem.showForgotPasswordModal();
+            } else {
+                alert('El sistema de autenticación se está cargando. Por favor, inténtalo de nuevo en unos segundos.');
+            }
+        };
+        
+        // Asignar evento a los enlaces de olvido de contraseña
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        if (forgotPasswordLink) {
+            forgotPasswordLink.addEventListener('click', handleForgotPassword);
+        }
+        
+        const modalForgotPasswordLink = document.getElementById('modalForgotPasswordLink');
+        if (modalForgotPasswordLink) {
+            modalForgotPasswordLink.addEventListener('click', handleForgotPassword);
+        }
+        
+        // Formularios de login
+        const heroLoginForm = document.getElementById('heroLoginForm');
+        const modalLoginForm = document.getElementById('modalLoginForm');
+        
+        const handleLoginSubmit = async (e) => {
             e.preventDefault();
             
-            const email = loginForm.querySelector('#email').value;
-            const password = loginForm.querySelector('#password').value;
-            const rememberMe = loginForm.querySelector('#rememberMe').checked;
-            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const form = e.target;
+            const emailInput = form.querySelector('input[type="email"]');
+            const passwordInput = form.querySelector('input[type="password"]');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            if (!emailInput || !passwordInput || !submitBtn) {
+                console.error('Formulario incompleto');
+                return;
+            }
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!email || !password) {
+                showToast('Por favor, introduce tu correo electrónico y contraseña.', 'error');
+                return;
+            }
             
             // Mostrar estado de carga
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
             submitBtn.disabled = true;
             
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Validar credenciales
-            if (email === 'admin@gmail.com' && password === 'admin') {
-                // Login exitoso
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userEmail', email);
-                
-                if (rememberMe) {
-                    localStorage.setItem('rememberUser', 'true');
+            // Usar Firebase Auth si está disponible
+            if (window.firebaseAuth) {
+                try {
+                    const result = await window.firebaseAuth.loginUser(email, password);
+                    
+                    if (result.success) {
+                        showToast('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                        
+                        // Cerrar modal si está abierto
+                        const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                        if (loginModal) {
+                            loginModal.hide();
+                        }
+                        
+                        // Redirigir a la cuenta
+                        setTimeout(() => {
+                            window.location.href = 'account.html';
+                        }, 1500);
+                    } else {
+                        showToast(result.error || 'Credenciales inválidas.', 'error');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        
+                        // Efecto de error
+                        form.classList.add('shake');
+                        setTimeout(() => form.classList.remove('shake'), 500);
+                    }
+                } catch (error) {
+                    console.error('Error de login:', error);
+                    showToast('Error al iniciar sesión. Inténtalo de nuevo.', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 }
-                
-                // Mostrar mensaje de éxito
-                showSuccessMessage('¡Inicio de sesión exitoso! Redirigiendo...');
-                
-                // Redirigir después de 1.5 segundos
-                setTimeout(() => {
-                    const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
-                    localStorage.removeItem('redirectAfterLogin');
-                    window.location.href = redirectTo;
-                }, 1500);
             } else {
-                // Login fallido
-                showErrorMessage('Credenciales inválidas. Usa admin/admin para la demo.');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                // Firebase no disponible, usar sistema local
+                // Simular delay de API
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
-                // Agregar efecto de error visual
-                loginForm.classList.add('shake');
-                setTimeout(() => loginForm.classList.remove('shake'), 500);
+                if (email === 'admin@gmail.com' && password === 'admin') {
+                    // Login exitoso
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    
+                    showToast('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                    
+                    // Cerrar modal si está abierto
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    if (loginModal) {
+                        loginModal.hide();
+                    }
+                    
+                    // Redirigir
+                    setTimeout(() => {
+                        window.location.href = 'account.html';
+                    }, 1500);
+                } else {
+                    showToast('Credenciales inválidas. Usa admin@gmail.com/admin para la demo.', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Efecto de error
+                    form.classList.add('shake');
+                    setTimeout(() => form.classList.remove('shake'), 500);
+                }
             }
-        });
-    }
-    
-    // Agregar efecto shake para errores
-    const style = document.createElement('style');
-    style.textContent = `
-        .shake {
-            animation: shake 0.5s;
+        };
+        
+        // Asignar eventos a formularios de login
+        if (heroLoginForm) {
+            heroLoginForm.addEventListener('submit', handleLoginSubmit);
         }
         
-        @keyframes shake {
-            0%, 50%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        if (modalLoginForm) {
+            modalLoginForm.addEventListener('submit', handleLoginSubmit);
         }
-    `;
-    document.head.appendChild(style);
-});
-
-function showSuccessMessage(message) {
-    showToast(message, 'success');
-}
-
-function showErrorMessage(message) {
-    showToast(message, 'error');
-}
-
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 5px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 9999;
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    `;
+        
+        // Verificar estado de autenticación para actualizar UI
+        const checkAuthState = () => {
+            // Si Firebase Auth está disponible, usarlo
+            if (window.firebaseAuth) {
+                window.firebaseAuth.onAuthStateChanged((authState) => {
+                    if (authState.loggedIn && authState.user) {
+                        updateUIForLoggedInUser(authState.user);
+                    }
+                });
+            } else {
+                // Usar localStorage como fallback
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                const userEmail = localStorage.getItem('userEmail');
+                
+                if (isLoggedIn && userEmail) {
+                    updateUIForLoggedInUser({ email: userEmail });
+                }
+            }
+        };
+        
+        // Actualizar UI para un usuario logueado
+        const updateUIForLoggedInUser = (user) => {
+            const displayName = user.displayName || user.username || user.email.split('@')[0];
+            
+            // Actualizar enlace de login en la barra de navegación
+            const loginNavLink = document.getElementById('loginNavLink');
+            if (loginNavLink) {
+                loginNavLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
+                loginNavLink.removeAttribute('data-bs-toggle');
+                loginNavLink.removeAttribute('data-bs-target');
+                loginNavLink.href = 'account.html';
+            }
+            
+            // Ocultar formulario de login en hero si está visible
+            const heroLoginForm = document.querySelector('.hero .login-form');
+            if (heroLoginForm) {
+                heroLoginForm.innerHTML = `
+                    <div class="text-center">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h3 class="mb-3">¡Bienvenido de nuevo!</h3>
+                        <p class="mb-4">${displayName}</p>
+                        <a href="account.html" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-user-cog me-2"></i> Mi cuenta
+                        </a>
+                        <a href="explorar.html" class="btn btn-outline-light w-100">
+                            <i class="fas fa-compass me-2"></i> Explorar música
+                        </a>
+                    </div>
+                `;
+            }
+        };
+        
+        // Verificar estado de autenticación al cargar
+        checkAuthState();
+    });
     
-    toast.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
-        <span>${message}</span>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Animar entrada
-    setTimeout(() => {
-        toast.style.transform = 'translateY(0)';
-        toast.style.opacity = '1';
-    }, 100);
-    
-    // Eliminar después de 3 segundos
-    setTimeout(() => {
-        toast.style.transform = 'translateY(100px)';
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-</script>
+    // Función para mostrar notificaciones toast
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        }, 100);
+        
+        // Eliminar después de 3 segundos
+        setTimeout(() => {
+            toast.style.transform = 'translateY(100px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    </script>
 </body>
 </html>
