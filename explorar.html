@@ -286,18 +286,136 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <!-- AOS Animation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <!-- Login System -->
+
+    <!-- Load Firebase first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+    <!-- Initialize Firebase before other scripts -->
+    <script>
+    // Initialize Firebase directly in explorar.html
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCtn83ZMoWCZaL1QSuzTpOv-hJmXI-o8k",
+        authDomain: "musiflow-42411.firebaseapp.com",
+        databaseURL: "https://musiflow-42411-default-rtdb.firebaseio.com",
+        projectId: "musiflow-42411",
+        storageBucket: "musiflow-42411.appspot.com",
+        messagingSenderId: "619733935410",
+        appId: "1:619733935410:web:11cb4a60a7de4fcd30a32b",
+        measurementId: "G-FFVMTR5LVM"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase initialized for explorar.html");
+    }
+
+    // Create authentication interface
+    window.firebaseAuth = {
+        getCurrentUser: function() {
+            return new Promise((resolve, reject) => {
+                const user = firebase.auth().currentUser;
+                
+                if (!user) {
+                    resolve(null);
+                    return;
+                }
+                
+                // Get additional user data from database
+                firebase.database().ref('users/' + user.uid).once('value')
+                    .then(snapshot => {
+                        const userData = snapshot.val() || {};
+                        resolve({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || userData.username,
+                            photoURL: user.photoURL || userData.profile_picture,
+                            emailVerified: user.emailVerified,
+                            ...userData
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error getting user data:', error);
+                        resolve({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL,
+                            emailVerified: user.emailVerified
+                        });
+                    });
+            });
+        },
+        
+        isUserLoggedIn: function() {
+            return !!firebase.auth().currentUser;
+        },
+        
+        onAuthStateChanged: function(callback) {
+            return firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in
+                    firebase.database().ref('users/' + user.uid).once('value')
+                        .then(snapshot => {
+                            const userData = snapshot.val() || {};
+                            callback({
+                                user: {
+                                    uid: user.uid,
+                                    email: user.email,
+                                    displayName: user.displayName || userData.username,
+                                    photoURL: user.photoURL || userData.profile_picture,
+                                    emailVerified: user.emailVerified,
+                                    ...userData
+                                },
+                                loggedIn: true
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching user data:', error);
+                            callback({
+                                user: {
+                                    uid: user.uid,
+                                    email: user.email,
+                                    displayName: user.displayName,
+                                    photoURL: user.photoURL,
+                                    emailVerified: user.emailVerified
+                                },
+                                loggedIn: true
+                            });
+                        });
+                } else {
+                    // User is signed out
+                    callback({
+                        user: null,
+                        loggedIn: false
+                    });
+                }
+            });
+        }
+    };
+
+    // Update login link based on authentication state
+    firebase.auth().onAuthStateChanged(user => {
+        const loginLink = document.getElementById('loginLink');
+        
+        if (user && loginLink) {
+            // User is logged in
+            const displayName = user.displayName || user.email.split('@')[0];
+            loginLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
+            loginLink.href = 'account.html';
+        }
+    });
+    </script>
+
+    <!-- Now load the other scripts after Firebase is initialized -->
     <script src="resources/js/login.js"></script>
-    <!-- Asistente IA -->
     <script src="resources/js/asistente.js"></script>
-    <!-- Free Music API Integration -->
     <script src="resources/js/spotify-api.js"></script>
-    <!-- Javascript para mostrar las canciones -->
     <script src="resources/js/mostrarCanciones.js"></script>
-    <!-- Music Manager -->
     <script src="resources/js/music-manager.js"></script>
-
-
 </body>
 
 </html>
