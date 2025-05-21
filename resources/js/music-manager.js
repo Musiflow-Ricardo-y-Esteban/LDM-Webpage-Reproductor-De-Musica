@@ -9,19 +9,43 @@
 class MusicManager {
     constructor() {
         this.currentMode = 'local'; // Modo inicial: 'local' o 'spotify'
-        this.spotify = new SpotifyManager();
-        this.currentAudio = null;
-        this.currentTrack = null;
+        this.spotify = new SpotifyManager(); // Asume que SpotifyManager está globalmente disponible o cargado antes
+        this.currentAudio = null;    // HTMLAudioElement para pistas locales
+        this.currentTrack = null;    // Objeto: { id, title, artist, image, source, album, duration, sourceOrigin ('local'/'spotify') }
         this.isPlaying = false;
         
-        // Listas de reproducción separadas para cada modo
-        this.localPlaylist = [];
-        this.spotifyPlaylist = [];
+        this.localPlaylist = [];     // Lista de reproducción de pistas locales
+        this.spotifyPlaylist = [];   // Lista de reproducción de pistas de Spotify
         
-        this.currentTrackIndex = 0;
-        this.progressInterval = null;
-        this.isLoopEnabled = false;
-        this.isShuffleEnabled = false;
+        this.currentTrackIndex = -1; // Índice en la lista de reproducción actual
+        this.progressInterval = null; // Intervalo para la barra de progreso
+        this.isLoopEnabled = false;   // Estado de bucle
+        this.isShuffleEnabled = false; // Estado de reproducción aleatoria
+
+        // Caché de Elementos DOM
+        this.dom = {
+            localModeBtn: document.getElementById('localModeBtn'),
+            spotifyModeBtn: document.getElementById('spotifyModeBtn'),
+            searchInput: document.getElementById('searchInput'),
+            searchBtn: document.getElementById('searchBtn'),
+            playPauseBtn: document.getElementById('playPauseBtn'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            loopBtn: document.getElementById('loopBtn'),
+            shuffleBtn: document.getElementById('shuffleBtn'),
+            volumeControl: document.getElementById('volumeControl'),
+            progressBarContainer: document.querySelector('.progress-bar-container'), // Área principal clicable de la barra
+            progressBar: document.getElementById('progressBar'), // El relleno visual del progreso
+            currentTimeDisplay: document.getElementById('currentTime'),
+            totalTimeDisplay: document.getElementById('totalTime'),
+            currentPlayerDisplay: document.getElementById('currentPlayer'), // Toda la barra inferior del reproductor
+            currentTrackImage: document.getElementById('currentTrackImage'),
+            currentTrackName: document.getElementById('currentTrackName'),
+            currentTrackArtist: document.getElementById('currentTrackArtist'),
+            resultsSection: document.getElementById('resultsSection'),
+            searchResults: document.getElementById('searchResults'),
+            spotifyEmbedContainer: null // Se creará si es necesario
+        };
         
         this.init();
     }
@@ -30,135 +54,95 @@ class MusicManager {
     // INICIALIZACIÓN Y CONFIGURACIÓN
     //=======================================================
     
-    /**
-     * Inicializa el gestor de música
-     * Configura eventos y carga contenido inicial
-     */
     async init() {
-        // Inicializar interfaz
+        console.log("MusicManager: Inicializando...");
         this.bindEventListeners();
         
-        // Cargar canciones locales por defecto
-        this.loadLocalTracks();
+        // Configurar UI del modo inicial
+        this.dom.localModeBtn?.classList.add('active');
+        this.dom.spotifyModeBtn?.classList.remove('active');
+        if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'flex'; // Mostrar reproductor local por defecto
+
+        this.loadLocalTracks(); // Cargar y mostrar pistas locales por defecto
+        this.addEmbedStyles();  // Añadir estilos para el embed de Spotify tempranamente
+        this.updateLoopShuffleButtonsUI(); // Actualizar botones de bucle/aleatorio
+
+        // Intentar inicializar Spotify, pero no bloquear la funcionalidad local
+        this.spotify.init().then(connected => {
+            if (connected) {
+                console.log("MusicManager: Spotify inicializado correctamente después de la configuración principal.");
+            } else {
+                console.warn("MusicManager: Falló la inicialización de Spotify después de la configuración principal. El modo Spotify podría no funcionar.");
+            }
+        }).catch(err => {
+             console.error("MusicManager: Error durante la inicialización asíncrona de Spotify:", err);
+        });
     }
 
-    /**
-     * Configura todos los event listeners para la interfaz
-     * Conecta botones y controles con sus funciones
-     */
     bindEventListeners() {
-        // Botones para cambiar entre modos
-        const localModeBtn = document.getElementById('localModeBtn');
-        const spotifyModeBtn = document.getElementById('spotifyModeBtn');
+        this.dom.localModeBtn?.addEventListener('click', () => this.setMode('local'));
+        this.dom.spotifyModeBtn?.addEventListener('click', () => this.setMode('spotify'));
         
-        if (localModeBtn) {
-            localModeBtn.addEventListener('click', () => this.setMode('local'));
-        }
-        
-        if (spotifyModeBtn) {
-            spotifyModeBtn.addEventListener('click', () => this.setMode('spotify'));
-        }
-        
-        // Evento para el formulario de búsqueda
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        
-        if (searchBtn && searchInput) {
-            searchBtn.addEventListener('click', () => this.handleSearch());
-            searchInput.addEventListener('keypress', (e) => {
+        if (this.dom.searchBtn && this.dom.searchInput) {
+            this.dom.searchBtn.addEventListener('click', () => this.handleSearch());
+            this.dom.searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.handleSearch();
             });
         }
         
-        // Controles del reproductor
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
+        this.dom.playPauseBtn?.addEventListener('click', () => this.togglePlayPause());
+        this.dom.prevBtn?.addEventListener('click', () => this.playPrevious());
+        this.dom.nextBtn?.addEventListener('click', () => this.playNext());
+        this.dom.loopBtn?.addEventListener('click', () => this.toggleLoop());
+        this.dom.shuffleBtn?.addEventListener('click', () => this.toggleShuffle());
         
-        if (playPauseBtn) {
-            playPauseBtn.addEventListener('click', () => this.togglePlayPause());
-        }
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => this.playPrevious());
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this.playNext());
-        }
-        
-        // Añadir controles de bucle y aleatorio
-        const loopBtn = document.getElementById('loopBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        
-        if (loopBtn) {
-            loopBtn.addEventListener('click', () => this.toggleLoop());
-        }
-        
-        if (shuffleBtn) {
-            shuffleBtn.addEventListener('click', () => this.toggleShuffle());
-        }
-        
-        // Inicializar control de volumen
         this.initVolumeControl();
         
-        // Configurar barra de progreso
-        const progressBar = document.querySelector('.progress-bar');
-        if (progressBar) {
-            const progressContainer = document.querySelector('.progress-bar-container');
-            progressContainer.addEventListener('click', (e) => this.handleProgressBarClick(e));
+        if (this.dom.progressBarContainer) {
+            this.dom.progressBarContainer.addEventListener('click', (e) => this.handleProgressBarClick(e));
+        } else {
+            console.warn("Contenedor de barra de progreso ('.progress-bar-container') no encontrado para el evento de clic.");
         }
     }
 
-    /**
-     * Cambia entre los modos de reproducción (local/Spotify)
-     * Actualiza la interfaz y carga contenido apropiado
-     */
     async setMode(mode) {
         if (mode === this.currentMode) return;
+        console.log(`MusicManager: Estableciendo modo a ${mode}`);
+
+        this.stopPlayback(); // Detener reproducción actual antes de cambiar
         
-        // Actualizar estado visual de los botones
-        document.getElementById('localModeBtn').classList.toggle('active', mode === 'local');
-        document.getElementById('spotifyModeBtn').classList.toggle('active', mode === 'spotify');
-        
-        // Detener cualquier reproducción actual
-        this.stopPlayback();
-        
-        // Establecer el nuevo modo
         this.currentMode = mode;
+        this.dom.localModeBtn?.classList.toggle('active', mode === 'local');
+        this.dom.spotifyModeBtn?.classList.toggle('active', mode === 'spotify');
         
         if (mode === 'spotify') {
-            // Ocultar completamente el reproductor local en modo Spotify
-            document.getElementById('currentPlayer').style.display = 'none';
+            if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'none'; // Ocultar reproductor local
+            this.hideSpotifyEmbed(); // Asegurar que esté oculto inicialmente
             
-            // Inicializar Spotify si es necesario
-            const spotifyStatus = document.getElementById('spotifyStatus');
-            spotifyStatus.style.display = 'inline-block';
-            
-            const isInitialized = await this.spotify.init();
-            if (isInitialized) {
-                // Buscar o mostrar contenido de Spotify
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput.value.trim()) {
-                    this.handleSearch();
+            const spotifyInitialized = await this.spotify.init(); // Asegurar que Spotify esté listo
+            if (spotifyInitialized) {
+                if (this.dom.searchResults) this.dom.searchResults.innerHTML = ''; // Limpiar resultados previos
+                 // Comprobar si hay una consulta de búsqueda existente para reejecutar, o mostrar bienvenida
+                if (this.dom.searchInput && this.dom.searchInput.value.trim()) {
+                    this.handleSearch(); // Realizar búsqueda en modo Spotify
                 } else {
-                    // Mostrar mensaje de bienvenida
                     this.showSpotifyWelcome();
                 }
             } else {
-                // Volver al modo local si falla
-                this.setMode('local');
-                this.showError('No se pudo conectar con Spotify. Revisa tus credenciales.');
+                this.showError('No se pudo conectar con Spotify. Revisa tus credenciales e inténtalo de nuevo.');
+                // Opcionalmente, volver al modo local o deshabilitar el botón de Spotify
+                await this.setMode('local'); // Volver a local como fallback
             }
-        } else {
-            // Mostrar el reproductor local en modo local
-            document.getElementById('currentPlayer').style.display = 'flex';
-            
-            // Ocultar el embed de Spotify si está presente
+        } else { // modo local
+            if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'flex'; // Mostrar reproductor local
             this.hideSpotifyEmbed();
-            
-            // Cargar canciones locales
-            this.loadLocalTracks();
+            this.loadLocalTracks(); // Recargar/remostrar pistas locales
+            if (this.currentTrack && this.currentTrack.sourceOrigin === 'local') {
+                 this.updatePlayerUI(this.currentTrack); // Restaurar UI si una pista local estaba sonando
+            } else {
+                // Si ninguna pista local era la actual, limpiar la UI del reproductor o mostrar predeterminada
+                 this.updatePlayerUI(null); // Limpia el reproductor
+            }
         }
     }
 
@@ -166,43 +150,33 @@ class MusicManager {
     // GESTIÓN DE REPRODUCCIÓN
     //=======================================================
     
-    /**
-     * Detiene cualquier reproducción actual
-     * Pausa audio y reestablece estado
-     */
-    stopPlayback() {
-        // Detener audio local si está reproduciendo
+    stopPlayback(fullStop = true) { // fullStop para limpiar currentTrack
+        console.log("MusicManager: Deteniendo reproducción.");
         if (this.currentAudio) {
             this.currentAudio.pause();
+            this.currentAudio.src = ""; // Liberar recurso de audio
+            // Remover listeners específicos de esta instancia de audio
+            if (this.boundHandleTrackEnd) this.currentAudio.removeEventListener('ended', this.boundHandleTrackEnd);
+            if (this.boundHandleAudioError) this.currentAudio.removeEventListener('error', this.boundHandleAudioError);
+            if (this.boundHandleTimeUpdate) this.currentAudio.removeEventListener('timeupdate', this.boundHandleTimeUpdate);
             this.currentAudio = null;
-            this.stopProgressUpdate();
         }
-        
-        // Ocultar embed de Spotify si está presente
-        this.hideSpotifyEmbed();
-        
-        // Reiniciar estado
-        this.currentTrack = null;
+        this.stopProgressUpdate();
+        this.hideSpotifyEmbed(); // Siempre ocultar embed de Spotify al detener
+
+        if (fullStop) {
+            this.currentTrack = null;
+            this.currentTrackIndex = -1;
+        }
         this.isPlaying = false;
-        
-        // Actualizar botón de reproducción
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        if (playPauseBtn) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
+        this.updatePlayPauseButtonUI();
+        if (fullStop) this.updatePlayerUI(null); // Limpiar reproductor si es detención completa
     }
 
-    /**
-     * Muestra pantalla de bienvenida para modo Spotify
-     * Incluye información y sugerencias para el usuario
-     */
     showSpotifyWelcome() {
-        const resultsSection = document.getElementById('resultsSection');
-        const searchResults = document.getElementById('searchResults');
-        
-        if (resultsSection && searchResults) {
-            resultsSection.style.display = 'block';
-            searchResults.innerHTML = `
+        if (this.dom.resultsSection && this.dom.searchResults) {
+            this.dom.resultsSection.style.display = 'block';
+            this.dom.searchResults.innerHTML = `
                 <div class="spotify-welcome" style="text-align: center; padding: 40px; color: #b3b3b3;">
                     <i class="fab fa-spotify" style="font-size: 4rem; color: #1DB954; margin-bottom: 20px;"></i>
                     <h3>Modo Spotify Activado</h3>
@@ -217,118 +191,116 @@ class MusicManager {
     // CARGA Y BÚSQUEDA DE CANCIONES
     //=======================================================
     
-    /**
-     * Carga las pistas locales desde la base de datos
-     * Utiliza la función existente para mostrarlas
-     */
     loadLocalTracks() {
-        // Usamos la función existente de mostrarCanciones.js
-        displayTracks(musicDatabase.tracks);
+        // musicDatabase debería estar globalmente disponible desde mostrarCanciones.js
+        // searchLocalTracks y displayLocalTracks también desde mostrarCanciones.js
+        if (typeof musicDatabase !== 'undefined' && typeof displayLocalTracks === 'function') {
+            this.localPlaylist = [...musicDatabase.tracks]; // Crear una copia mutable
+            displayLocalTracks(this.localPlaylist); // Mostrar todas las pistas locales
+            // Si no hay pista actual y hay pistas locales, podrías establecer la primera como predeterminada
+            // pero sin reproducirla.
+            if (!this.currentTrack && this.localPlaylist.length > 0) {
+                // this.updatePlayerUI(this.localPlaylist[0]); // Actualiza la UI del reproductor con la primera canción
+            } else if (!this.currentTrack) {
+                this.updatePlayerUI(null); // Limpiar UI si no hay pistas
+            }
+        } else {
+            console.error("musicDatabase o displayLocalTracks no encontrados. Asegúrate que mostrarCanciones.js esté cargado.");
+            this.showError("Error al cargar canciones locales.");
+        }
     }
 
-    /**
-     * Gestiona la búsqueda de música en el modo actual
-     * Realiza búsquedas en local o Spotify según modo
-     */
     async handleSearch() {
-        const query = document.getElementById('searchInput').value.trim();
-        if (!query) return;
-        
-        this.showLoading();
-        
-        try {
-            let results;
-            
-            if (this.currentMode === 'spotify') {
-                // Buscar en Spotify
-                results = await this.spotify.searchTracks(query);
-                
-                // Almacenar en la lista de Spotify
-                this.spotifyPlaylist = results;
-                
-                // Mostrar resultados
-                this.displaySpotifyResults(results);
-            } else {
-                // Buscar en la base de datos local
-                results = searchTracks(query);
-                
-                // Almacenar en la lista local
-                this.localPlaylist = results;
-                
-                // Mostrar resultados usando la función de mostrarCanciones.js
-                displayTracks(results);
-            }
-        } catch (error) {
-            console.error('Error en la búsqueda:', error);
-            this.showError('Error al buscar música. Inténtalo de nuevo.');
-            
-            // Si estamos en modo Spotify y falla, mostrar el mensaje de bienvenida
-            if (this.currentMode === 'spotify') {
+        const query = this.dom.searchInput ? this.dom.searchInput.value.trim() : "";
+        if (!query) {
+             // Si la consulta está vacía: en modo local, mostrar todas las pistas locales. En Spotify, mostrar bienvenida.
+            if (this.currentMode === 'local') {
+                this.loadLocalTracks();
+            } else if (this.currentMode === 'spotify') {
                 this.showSpotifyWelcome();
             }
-        }
-    }
-
-    /**
-     * Busca música por género en el modo actual
-     * @param {string} genre - Género musical a buscar
-     */
-    async searchByGenre(genre) {
-        this.showLoading();
-        
-        try {
-            let results;
-            
-            if (this.currentMode === 'spotify') {
-                // Buscar en Spotify por género
-                results = await this.spotify.searchByGenre(genre);
-                
-                // Almacenar en la lista de Spotify
-                this.spotifyPlaylist = results;
-                
-                // Mostrar resultados
-                this.displaySpotifyResults(results);
-            } else {
-                // Filtrar por género en la base de datos local
-                results = musicDatabase.tracks.filter(track => 
-                    track.genre && track.genre.toLowerCase().includes(genre.toLowerCase())
-                );
-                
-                // Almacenar en la lista local
-                this.localPlaylist = results;
-                
-                // Mostrar resultados
-                displayTracks(results);
-            }
-        } catch (error) {
-            console.error('Error en la búsqueda por género:', error);
-            this.showError('Error al buscar música por género.');
-        }
-    }
-
-    //=======================================================
-    // VISUALIZACIÓN DE RESULTADOS
-    //=======================================================
-    
-    /**
-     * Muestra resultados de Spotify en la interfaz
-     * @param {Array} tracks - Pistas a mostrar
-     */
-    displaySpotifyResults(tracks) {
-        if (!tracks || tracks.length === 0) {
-            const searchResults = document.getElementById('searchResults');
-            searchResults.innerHTML = '<div class="no-results">No se encontraron canciones</div>';
             return;
         }
         
-        const resultsContainer = document.getElementById('searchResults');
-        resultsContainer.innerHTML = '';
+        this.showLoading();
         
-        // Crear contenedor de pistas
+        try {
+            if (this.currentMode === 'spotify') {
+                if (!this.spotify.isConnected) { // Comprobar conexión antes de buscar
+                    const connected = await this.spotify.init();
+                    if (!connected) {
+                        this.showError('Spotify no está conectado. Intenta de nuevo.');
+                        this.showSpotifyWelcome(); // Mostrar bienvenida en caso de fallo
+                        return;
+                    }
+                }
+                const results = await this.spotify.searchTracks(query);
+                this.spotifyPlaylist = results; // Actualizar lista de Spotify con resultados
+                this.displaySpotifyResults(results);
+            } else { // modo local
+                // searchLocalTracks de mostrarCanciones.js
+                const results = typeof searchLocalTracks === 'function' ? searchLocalTracks(query) : [];
+                this.localPlaylist = results; // Actualizar lista local actual con resultados de búsqueda
+                // displayLocalTracks de mostrarCanciones.js
+                if(typeof displayLocalTracks === 'function') displayLocalTracks(results);
+            }
+        } catch (error) {
+            console.error('Error en la búsqueda:', error);
+            this.showError(`Error al buscar música: ${error.message || 'Inténtalo de nuevo.'}`);
+            if (this.currentMode === 'spotify') {
+                this.showSpotifyWelcome();
+            } else {
+                if(this.dom.searchResults) this.dom.searchResults.innerHTML = '<div class="no-results">Error en la búsqueda local.</div>';
+            }
+        }
+    }
+
+    async searchByGenre(genre) {
+        this.showLoading();
+        try {
+            if (this.currentMode === 'spotify') {
+                 if (!this.spotify.isConnected) {
+                    const connected = await this.spotify.init();
+                    if (!connected) {
+                        this.showError('Spotify no está conectado. Intenta de nuevo.');
+                        this.showSpotifyWelcome();
+                        return;
+                    }
+                }
+                const results = await this.spotify.searchByGenre(genre);
+                this.spotifyPlaylist = results;
+                this.displaySpotifyResults(results);
+            } else { // modo local
+                const results = musicDatabase.tracks.filter(track => 
+                    track.genre && track.genre.toLowerCase().includes(genre.toLowerCase())
+                );
+                this.localPlaylist = results;
+                if (typeof displayLocalTracks === 'function') displayLocalTracks(results);
+            }
+        } catch (error) {
+            console.error('Error en la búsqueda por género:', error);
+            this.showError(`Error al buscar por género: ${error.message || 'Inténtalo de nuevo.'}`);
+             if (this.currentMode === 'spotify') this.showSpotifyWelcome();
+        }
+    }
+
+    //=======================================================
+    // VISUALIZACIÓN DE RESULTADOS (Específico de Spotify, local lo maneja displayLocalTracks)
+    //=======================================================
+    
+    displaySpotifyResults(tracks) {
+        if (!this.dom.searchResults) return;
+
+        if (!tracks || tracks.length === 0) {
+            this.dom.searchResults.innerHTML = '<div class="no-results">No se encontraron canciones en Spotify.</div>';
+            return;
+        }
+        
+        this.dom.searchResults.innerHTML = ''; // Limpiar
+        
         const tracksContainer = document.createElement('div');
         tracksContainer.className = 'tracks-container';
         
-        // Agregar encabezados
         const headerRow = document.createElement('div');
         headerRow.className = 'track-header';
         headerRow.innerHTML = `
@@ -339,11 +311,10 @@ class MusicManager {
         `;
         tracksContainer.appendChild(headerRow);
         
-        // Generar filas de canciones
         tracks.forEach((track, index) => {
             const trackRow = document.createElement('div');
             trackRow.className = 'track-row';
-            trackRow.dataset.trackId = track.id;
+            trackRow.dataset.trackId = track.id; // ID de pista de Spotify
             
             trackRow.innerHTML = `
                 <div class="track-number">
@@ -360,7 +331,7 @@ class MusicManager {
                     </div>
                 </div>
                 <div class="track-album">${track.album}</div>
-                <div class="track-duration">
+                <div class="track-duration"> {/* Corregido: class en vez de class. */}
                     <span>${track.duration}</span>
                     <div class="track-actions">
                         <button class="action-button" title="Abrir en Spotify" onclick="window.open('${track.externalUrl}', '_blank')">
@@ -372,79 +343,59 @@ class MusicManager {
                     </div>
                 </div>
             `;
-            
             tracksContainer.appendChild(trackRow);
-            
-            // Eventos para hovering en la fila
-            trackRow.addEventListener('mouseenter', () => {
+
+            // Hover simplificado, botón de play siempre visible en la lista de Spotify por ahora
+             trackRow.addEventListener('mouseenter', () => {
                 const playButton = trackRow.querySelector('.play-button');
                 const indexElement = trackRow.querySelector('.track-index');
+                if(indexElement) indexElement.style.display = 'none';
+                if(playButton) playButton.style.display = 'flex';
                 
-                if (this.currentTrack && this.currentTrack.id === track.id && this.isPlaying) {
-                    indexElement.style.display = 'none';
-                    playButton.style.display = 'flex';
-                    playButton.innerHTML = '<i class="fas fa-pause"></i>';
-                } else {
-                    indexElement.style.display = 'none';
-                    playButton.style.display = 'flex';
-                }
-                
-                trackRow.querySelector('.track-actions').style.visibility = 'visible';
+                const actions = trackRow.querySelector('.track-actions');
+                if(actions) actions.style.visibility = 'visible';
             });
-            
             trackRow.addEventListener('mouseleave', () => {
                 const playButton = trackRow.querySelector('.play-button');
                 const indexElement = trackRow.querySelector('.track-index');
-                
-                if (!(this.currentTrack && this.currentTrack.id === track.id)) {
-                    indexElement.style.display = 'block';
-                    playButton.style.display = 'none';
-                } else if (this.currentTrack && this.currentTrack.id === track.id && this.isPlaying) {
-                    indexElement.style.display = 'none';
-                    playButton.style.display = 'flex';
-                    playButton.innerHTML = '<i class="fas fa-pause"></i>';
+
+                // Si no es la pista actual O si es la actual pero está pausada, mostrar índice y ocultar botón play
+                const isCurrentAndPlaying = this.currentTrack && this.currentTrack.id === track.id && this.isPlaying;
+                if (!isCurrentAndPlaying) {
+                    if(indexElement) indexElement.style.display = 'block';
+                    if(playButton) playButton.style.display = 'none';
                 }
-                
-                trackRow.querySelector('.track-actions').style.visibility = 'hidden';
+                // Si es la actual y está sonando, el botón de pausa ya debería estar visible.
+                // Si es la actual y está pausada, el botón de play debería estar visible.
+
+                const actions = trackRow.querySelector('.track-actions');
+                if(actions) actions.style.visibility = 'hidden';
             });
         });
         
-        resultsContainer.appendChild(tracksContainer);
+        this.dom.searchResults.appendChild(tracksContainer);
         
-        // Añadir eventos de clic a los botones de reproducción
-        document.querySelectorAll('.play-button').forEach(button => {
-            button.addEventListener('click', (e) => {
+        // Event listeners para resultados de Spotify
+        this.dom.searchResults.querySelectorAll('.play-button, .track-row').forEach(element => {
+            element.addEventListener('click', (e) => {
+                if (e.target.closest('.action-button')) return; // No reproducir si se hizo clic en un botón de acción interno
                 e.stopPropagation();
-                const trackId = button.dataset.trackId;
-                const track = this.spotifyPlaylist.find(t => t.id === trackId);
-                if (track) {
-                    this.playTrack(track);
+                const trackRowElement = element.closest('.track-row');
+                if (!trackRowElement) return;
+                const trackId = trackRowElement.dataset.trackId;
+                const trackToPlay = this.spotifyPlaylist.find(t => t.id === trackId);
+                if (trackToPlay) {
+                    this.playTrack(trackToPlay);
                 }
             });
         });
-        
-        // Añadir evento de clic a las filas completas
-        document.querySelectorAll('.track-row').forEach(row => {
-            row.addEventListener('click', () => {
-                const trackId = row.dataset.trackId;
-                const track = this.spotifyPlaylist.find(t => t.id === trackId);
-                if (track) {
-                    this.playTrack(track);
-                }
-            });
-        });
-        
-        // Funcionalidad de botón "Me gusta"
-        document.querySelectorAll('.like-button').forEach(button => {
+         this.dom.searchResults.querySelectorAll('.like-button').forEach(button => {
             button.addEventListener('click', (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); /* ... lógica de "me gusta" ... */
                 const icon = button.querySelector('i');
-                if (icon.classList.contains('far')) {
-                    icon.classList.replace('far', 'fas');
-                    icon.style.color = '#1ed760'; // Color verde de Spotify
-                } else {
-                    icon.classList.replace('fas', 'far');
-                    icon.style.color = ''; // Color por defecto
+                if (icon) {
+                    icon.classList.toggle('fas'); icon.classList.toggle('far');
+                    icon.style.color = icon.classList.contains('fas') ? '#1ed760' : '';
                 }
             });
         });
@@ -454,654 +405,512 @@ class MusicManager {
     // REPRODUCCIÓN DE CANCIONES
     //=======================================================
     
-    /**
-     * Reproduce una pista musical
-     * @param {Object} track - Pista a reproducir
-     */
     playTrack(track) {
-        // Detener cualquier reproducción actual
-        this.stopPlayback();
-        
-        // Actualizar interfaz
-        this.currentTrack = track;
-        
-        // Para canciones de Spotify, usar solo el reproductor embed
-        if (track.source === 'spotify') {
-            // Mostrar el embed de Spotify
-            this.showSpotifyEmbed(track.id);
+        if (!track) {
+            console.warn("playTrack llamada con pista nula");
             return;
         }
+        console.log(`MusicManager: Intentando reproducir pista: ${track.title} (Fuente: ${track.sourceOrigin || track.source})`);
+        this.stopPlayback(false); // Detener previa, pero no limpiar currentTrack aún
+
+        // Asegurar que sourceOrigin esté definido. Si track.source es 'spotify', es de Spotify. Sino, local.
+        this.currentTrack = { ...track, sourceOrigin: track.source === 'spotify' ? 'spotify' : 'local' };
         
-        // Para canciones locales, usar el reproductor nativo
-        this.updatePlayerUI(track);
-        this.currentAudio = new Audio(track.source);
-        
-        // Configurar eventos
-        this.currentAudio.addEventListener('ended', () => {
-            if (this.isLoopEnabled) {
-                this.currentAudio.currentTime = 0;
-                this.currentAudio.play().catch(error => {
-                    console.error('Error al reiniciar la reproducción en bucle:', error);
-                });
-            } else {
-                this.playNext();
-            }
-        });
-        
-        this.currentAudio.addEventListener('error', (e) => {
-            console.error('Error de reproducción:', e);
-            this.showError('Error al reproducir la pista.');
-        });
-        
-        // Configurar bucle si está activado
-        this.currentAudio.loop = this.isLoopEnabled;
-        
-        // Establecer volumen
-        const volumeControl = document.getElementById('volumeControl');
-        if (volumeControl) {
-            this.currentAudio.volume = parseFloat(volumeControl.value);
+        // Actualizar currentTrackIndex basado en el modo actual y la lista de reproducción
+        if (this.currentMode === 'local') {
+            this.currentTrackIndex = this.localPlaylist.findIndex(t => t.id === this.currentTrack.id);
+        } else if (this.currentMode === 'spotify') {
+            this.currentTrackIndex = this.spotifyPlaylist.findIndex(t => t.id === this.currentTrack.id);
         }
-        
-        // Reproducir
-        this.currentAudio.play()
-            .then(() => {
-                this.isPlaying = true;
-                document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
-                
-                // Iniciar actualizaciones de la barra de progreso
-                this.startProgressUpdate();
-                
-                // Actualizar la interfaz de la lista
-                this.updateTrackListUI();
-            })
-            .catch(error => {
-                console.error('Error al reproducir:', error);
-                this.showError('Error al reproducir la pista.');
-            });
+
+        if (this.currentTrack.sourceOrigin === 'spotify') {
+            if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'none'; // Ocultar reproductor local
+            this.showSpotifyEmbed(this.currentTrack.id);
+            this.isPlaying = true; // Asumir que el embed de Spotify auto-reproduce
+            this.updatePlayPauseButtonUI(); // Actualizar botón principal play/pause
+            // No es necesario llamar a updatePlayerUI para Spotify ya que el embed lo maneja
+        } else { // Pista local
+            if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'flex'; // Asegurar que el reproductor local esté visible
+            this.hideSpotifyEmbed();
+            this.updatePlayerUI(this.currentTrack);
+
+            this.currentAudio = new Audio(this.currentTrack.source);
+            this.currentAudio.volume = this.dom.volumeControl ? parseFloat(this.dom.volumeControl.value) : 0.7;
+            this.currentAudio.loop = this.isLoopEnabled;
+
+            // Guardar referencias bindeadas para poder removerlas luego
+            this.boundHandleTrackEnd = this.handleTrackEnd.bind(this);
+            this.boundHandleAudioError = this.handleAudioError.bind(this);
+            this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this);
+
+            this.currentAudio.addEventListener('ended', this.boundHandleTrackEnd);
+            this.currentAudio.addEventListener('error', this.boundHandleAudioError);
+            this.currentAudio.addEventListener('timeupdate', this.boundHandleTimeUpdate); // Para progreso manual
+            
+            this.currentAudio.play()
+                .then(() => {
+                    this.isPlaying = true;
+                    this.updatePlayPauseButtonUI();
+                    this.startProgressUpdate(); // Para audio local
+                    this.updateTrackListVisualState(this.currentTrack.id, true);
+                })
+                .catch(error => {
+                    console.error('Error al reproducir pista local:', error);
+                    this.showError(`Error al reproducir: ${error.message}`);
+                    this.isPlaying = false;
+                    this.updatePlayPauseButtonUI();
+                    this.updateTrackListVisualState(this.currentTrack.id, false);
+                });
+        }
+    }
+    
+    // Manejadores de eventos para HTMLAudioElement, bindeados en playTrack
+    handleTrackEnd() {
+        console.log("MusicManager: Pista local finalizada.");
+        this.isPlaying = false; // Establecer antes de llamar playNext o hacer bucle
+        if (this.isLoopEnabled && this.currentMode === 'local' && this.currentAudio) {
+            this.currentAudio.currentTime = 0;
+            this.currentAudio.play().catch(e => console.error("Error al re-activar bucle", e));
+            this.isPlaying = true; // Se establece de nuevo a true si el play es exitoso
+        } else {
+            this.playNext();
+        }
+        this.updatePlayPauseButtonUI(); // Actualizar después de la acción
     }
 
-    /**
-     * Muestra el reproductor embed de Spotify para una pista
-     * @param {string} trackId - ID de la pista de Spotify
-     */
+    handleAudioError(e) {
+        console.error('Error de reproducción de audio local:', e);
+        this.showError('Error al reproducir la pista local.');
+        this.isPlaying = false;
+        this.updatePlayPauseButtonUI();
+        this.stopProgressUpdate();
+    }
+    
+    handleTimeUpdate() { // Para actualización manual del progreso si es necesario, aunque startProgressUpdate usa setInterval
+        if(this.currentMode === 'local' && this.isPlaying && this.currentAudio) {
+            // this.updateProgress(); // Se puede llamar aquí si no se usa setInterval
+        }
+    }
+
     showSpotifyEmbed(trackId) {
-        // Asegurarse de que cualquier reproducción local se detenga
-        if (this.currentAudio) {
-            this.currentAudio.pause();
-            this.stopProgressUpdate();
-            this.currentAudio = null;
-        }
-        
-        // Crear contenedor para el embed si no existe
-        let embedContainer = document.getElementById('spotifyEmbed');
-        if (!embedContainer) {
-            embedContainer = document.createElement('div');
-            embedContainer.id = 'spotifyEmbed';
-            embedContainer.className = 'spotify-embed-container';
-            
-            // Estilos mejorados para el contenedor - posición fija
-            embedContainer.style.cssText = `
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                z-index: 1001;
-                background-color: #181818;
+        this.stopPlayback(false); // Detener audio local si hay, no limpiar currentTrack
+        if(this.dom.currentPlayerDisplay) this.dom.currentPlayerDisplay.style.display = 'none'; // Ocultar reproductor nativo
+
+        if (!this.dom.spotifyEmbedContainer) {
+            this.dom.spotifyEmbedContainer = document.createElement('div');
+            this.dom.spotifyEmbedContainer.id = 'spotifyEmbed';
+            this.dom.spotifyEmbedContainer.className = 'spotify-embed-container';
+            this.dom.spotifyEmbedContainer.style.cssText = `
+                position: fixed; bottom: 0; left: 0; width: 100%;
+                z-index: 1001; background-color: #181818;
                 border-top: 1px solid #282828;
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.5); display: none; /* Inicia oculto */
             `;
-            
-            document.body.appendChild(embedContainer);
+            document.body.appendChild(this.dom.spotifyEmbedContainer);
         }
         
-        // Mostrar un indicador de carga
-        embedContainer.innerHTML = `
-            <div class="spotify-loading">
-                <div class="spotify-spinner">
-                    <i class="fas fa-circle-notch fa-spin"></i>
-                </div>
-                <p>Cargando canción...</p>
-            </div>
-        `;
+        this.dom.spotifyEmbedContainer.innerHTML = `<div class="spotify-loading" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80px; color:#1DB954;">Cargando Spotify...</div>`;
+        this.dom.spotifyEmbedContainer.style.display = 'block';
+        document.body.style.paddingBottom = '90px'; // Hacer espacio
+
+        // El embed de Spotify auto-reproduce. El parámetro de shuffle para SDK es diferente.
+        // Para embed, shuffle no es un parámetro directo. Respeta el estado del cliente Spotify del usuario o la configuración de la lista.
+        const shuffleParam = ""; // this.isShuffleEnabled ? '&shuffle=1' : ''; // Shuffle no es fiable en embed
         
-        // Mostrar el embed
-        embedContainer.style.display = 'block';
-        
-        // Añadir padding para evitar que el contenido quede oculto detrás del embed
-        document.body.style.paddingBottom = '90px';
-        
-        // Crear el iframe de Spotify después de mostrar el indicador de carga
-        setTimeout(() => {
-            // Obtener parámetros para aleatorio
-            const shuffleParam = this.isShuffleEnabled ? '&shuffle=1' : '';
-            
-            embedContainer.innerHTML = `
-                <iframe 
-                    src="https://open.spotify.com/embed/track/${trackId}?autoplay=1${shuffleParam}&utm_source=generator" 
-                    width="100%" 
-                    height="80" 
-                    frameborder="0" 
-                    allowtransparency="true" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                    loading="lazy">
-                </iframe>
-                <div class="spotify-controls">
-                    <button id="openInSpotify" class="spotify-action-btn" title="Abrir en Spotify">
-                        <i class="fab fa-spotify"></i>
-                    </button>
-                </div>
-            `;
-            
-            // Añadir evento para abrir en Spotify
-            if (this.currentTrack && this.currentTrack.externalUrl) {
-                document.getElementById('openInSpotify').addEventListener('click', () => {
-                    window.open(this.currentTrack.externalUrl, '_blank');
-                });
+        setTimeout(() => { // Permitir que se muestre el mensaje de carga
+            if (this.dom.spotifyEmbedContainer && this.currentTrack && this.currentTrack.id === trackId) { // Comprobar si sigue siendo relevante
+                 this.dom.spotifyEmbedContainer.innerHTML = `
+                    <iframe 
+                        src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator&autoplay=1${shuffleParam}" 
+                        width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy">
+                    </iframe>
+                     <div class="spotify-controls" style="position:absolute; top:10px; right:10px; display:flex; gap:8px; z-index:1002;">
+                        <button id="openInSpotifyApp" class="spotify-action-btn" title="Abrir en App de Spotify" style="background:#1DB954; border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">
+                            <i class="fab fa-spotify"></i>
+                        </button>
+                    </div>
+                `;
+                const openBtn = this.dom.spotifyEmbedContainer.querySelector('#openInSpotifyApp');
+                if (openBtn && this.currentTrack && this.currentTrack.externalUrl) {
+                    openBtn.onclick = () => window.open(this.currentTrack.externalUrl, '_blank');
+                }
             }
         }, 300);
-        
-        // Asegurarse de que los estilos existan
-        this.addEmbedStyles();
-        
-        // Actualizar estado
-        this.isPlaying = true;
+        this.isPlaying = true; // Asumir auto-reproducción
     }
 
-    /**
-     * Oculta el reproductor embed de Spotify
-     */
     hideSpotifyEmbed() {
-        const embedContainer = document.getElementById('spotifyEmbed');
-        if (embedContainer) {
-            embedContainer.style.display = 'none';
-            
-            // Restaurar el padding
-            document.body.style.paddingBottom = '';
-            
-            // Limpiar la pista actual si estamos en modo Spotify
-            if (this.currentMode === 'spotify') {
-                this.currentTrack = null;
-                this.isPlaying = false;
-            }
+        if (this.dom.spotifyEmbedContainer) {
+            this.dom.spotifyEmbedContainer.style.display = 'none';
+            this.dom.spotifyEmbedContainer.innerHTML = ''; // Limpiar contenido para detener reproducción
         }
+        document.body.style.paddingBottom = ''; // Restaurar padding
     }
 
     //=======================================================
     // CONTROLES DEL REPRODUCTOR
     //=======================================================
-    
-    /**
-     * Activa/desactiva el modo de reproducción en bucle
-     */
-    toggleLoop() {
-        if (this.currentMode === 'local') {
-            // Para canciones locales
-            this.isLoopEnabled = !this.isLoopEnabled;
-            
-            if (this.currentAudio) {
-                this.currentAudio.loop = this.isLoopEnabled;
-            }
-            
-            // Actualizar UI
-            const loopBtn = document.getElementById('loopBtn');
-            if (loopBtn) {
-                loopBtn.classList.toggle('active', this.isLoopEnabled);
-            }
-        } else {
-            // Para modo Spotify
-            this.showMessage('La función de bucle no está disponible para canciones de Spotify');
-        }
-    }
-
-    /**
-     * Activa/desactiva el modo de reproducción aleatoria
-     */
-    toggleShuffle() {
-        this.isShuffleEnabled = !this.isShuffleEnabled;
-        
-        // Actualizar UI
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        if (shuffleBtn) {
-            shuffleBtn.classList.toggle('active', this.isShuffleEnabled);
-        }
-        
-        // Si la pista actual es de Spotify, recargar el embed con el parámetro de aleatorio
-        if (this.currentTrack && this.currentTrack.source === 'spotify') {
-            this.showSpotifyEmbed(this.currentTrack.id);
-        }
-    }
-
-    /**
-     * Muestra un mensaje temporal en la interfaz
-     * @param {string} message - Mensaje a mostrar
-     */
-    showMessage(message) {
-        const messageEl = document.createElement('div');
-        messageEl.className = 'player-message';
-        messageEl.textContent = message;
-        messageEl.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            z-index: 1100;
-            opacity: 0;
-            transition: opacity 0.3s;
-        `;
-        
-        document.body.appendChild(messageEl);
-        
-        // Aparecer
-        setTimeout(() => { messageEl.style.opacity = '1'; }, 10);
-        
-        // Desaparecer y eliminar
-        setTimeout(() => {
-            messageEl.style.opacity = '0';
-            setTimeout(() => messageEl.remove(), 300);
-        }, 2000);
-    }
-
-    //=======================================================
-    // ESTILOS Y ELEMENTOS VISUALES
-    //=======================================================
-    
-    /**
-     * Añade estilos CSS para los elementos del embed
-     */
-    addEmbedStyles() {
-        // Si el estilo ya existe, no hacer nada
-        if (document.getElementById('embed-styles')) return;
-        
-        // Crear estilos para el embed y el indicador de carga
-        const style = document.createElement('style');
-        style.id = 'embed-styles';
-        style.textContent = `
-            .spotify-action-btn {
-                background: #1DB954;
-                border: none;
-                color: white;
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                cursor: pointer;
-                font-size: 14px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                z-index: 1002;
-            }
-            
-            .spotify-action-btn:hover {
-                background: #1ED760;
-                transform: scale(1.1);
-            }
-            
-            .spotify-controls {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                display: flex;
-                gap: 8px;
-                z-index: 1002;
-            }
-            
-            .spotify-embed-container iframe {
-                display: block;
-            }
-            
-            .spotify-loading {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                height: 80px;
-                color: #1DB954;
-            }
-            
-            .spotify-spinner {
-                font-size: 24px;
-                margin-bottom: 8px;
-            }
-            
-            .spotify-loading p {
-                margin: 0;
-                font-size: 14px;
-                color: #b3b3b3;
-            }
-            
-            /* Estilos para los botones de bucle y aleatorio */
-            #loopBtn, #shuffleBtn {
-                opacity: 0.6;
-                transition: all 0.3s ease;
-            }
-            
-            #loopBtn.active, #shuffleBtn.active {
-                opacity: 1;
-                color: #1ed760;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    /**
-     * Actualiza los elementos visuales de la lista de pistas
-     * Destaca la pista actual y actualiza estados de botones
-     */
-    updateTrackListUI() {
-        // Solo ejecutar esto en modo local
-        if (this.currentMode !== 'local') return;
-        
-        // Actualizar botones de reproducción en la lista de pistas
-        document.querySelectorAll('.play-button').forEach(button => {
-            const trackId = button.dataset.trackId;
-            if (this.currentTrack && this.currentTrack.id === trackId) {
-                if (this.isPlaying) {
-                    button.innerHTML = '<i class="fas fa-pause"></i>';
-                } else {
-                    button.innerHTML = '<i class="fas fa-play"></i>';
-                }
-            } else {
-                button.innerHTML = '<i class="fas fa-play"></i>';
-            }
-        });
-        
-        // Actualizar estado de botones de bucle y aleatorio
-        const loopBtn = document.getElementById('loopBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        
-        if (loopBtn) {
-            loopBtn.classList.toggle('active', this.isLoopEnabled);
-        }
-        
-        if (shuffleBtn) {
-            shuffleBtn.classList.toggle('active', this.isShuffleEnabled);
-        }
-    }
-
-    /**
-     * Alterna entre reproducción y pausa
-     * Solo funciona en modo local
-     */
     togglePlayPause() {
-        // Solo para modo local
-        if (this.currentMode !== 'local' || !this.currentTrack) return;
-        
-        if (!this.currentAudio) return;
+        if (this.currentMode === 'spotify') {
+            this.showMessage("Controles de reproducción manuales no disponibles para Spotify embed. Usa los controles del widget de Spotify.");
+            return;
+        }
+
+        if (!this.currentAudio || !this.currentTrack) {
+             // Si no hay pista actual, intentar reproducir la primera de la lista local
+            if (this.localPlaylist && this.localPlaylist.length > 0) {
+                this.playTrack(this.localPlaylist[0]);
+            }
+            return;
+        }
         
         if (this.isPlaying) {
             this.currentAudio.pause();
             this.isPlaying = false;
-            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
             this.stopProgressUpdate();
         } else {
             this.currentAudio.play()
                 .then(() => {
                     this.isPlaying = true;
-                    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
                     this.startProgressUpdate();
                 })
                 .catch(error => {
                     console.error('Error al reanudar:', error);
                     this.showError('Error al reproducir la pista.');
+                    this.isPlaying = false; // Asegurar que isPlaying es false si hay error
                 });
         }
+        this.updatePlayPauseButtonUI();
+        if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
+    }
+
+    updatePlayPauseButtonUI() {
+        if (this.dom.playPauseBtn) {
+            this.dom.playPauseBtn.innerHTML = this.isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+        }
+    }
+    
+    updateTrackListVisualState(trackId, isPlaying) {
+        // Esta función debería actualizar el ícono de play/pause en la lista de pistas (tanto local como Spotify)
+        const listType = this.currentMode === 'local' ? 'local' : 'spotify';
+        console.log(`Actualizando estado visual para pista ${trackId} en lista ${listType}. Reproduciendo: ${isPlaying}`);
+
+        document.querySelectorAll(`#searchResults .track-row[data-track-id]`).forEach(row => {
+            const playButton = row.querySelector('.play-button');
+            const indexElement = row.querySelector('.track-index');
+            if (!playButton || !indexElement) return;
+
+            if (row.dataset.trackId === trackId) {
+                playButton.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                // Asegurar que el botón esté visible y el índice oculto si es la pista actual
+                playButton.style.display = 'flex';
+                indexElement.style.display = 'none';
+            } else {
+                 // Restablecer otras filas: mostrar índice, ocultar botón de play (a menos que esté en hover)
+                playButton.innerHTML = '<i class="fas fa-play"></i>';
+                 // El manejo de hover de mostrarCanciones.js/displaySpotifyResults se encargará de mostrar/ocultar
+                 // el botón de play en hover. Aquí solo reseteamos el ícono.
+                if (!row.classList.contains('hovered')) { // clase hipotética para mejor manejo de hover
+                    playButton.style.display = 'none';
+                    indexElement.style.display = 'block';
+                }
+            }
+        });
+    }
+
+    toggleLoop() {
+        this.isLoopEnabled = !this.isLoopEnabled;
+        if (this.currentMode === 'local' && this.currentAudio) {
+            this.currentAudio.loop = this.isLoopEnabled;
+        } else if (this.currentMode === 'spotify') {
+            this.showMessage('Función de bucle no aplicable directamente al widget de Spotify.');
+            // Si se desactiva, no hay acción para Spotify, ya que no lo obedece.
+        }
+        this.updateLoopShuffleButtonsUI();
+    }
+
+    toggleShuffle() {
+        this.isShuffleEnabled = !this.isShuffleEnabled;
+        this.updateLoopShuffleButtonsUI();
         
-        // Actualizar interfaz de la lista
-        this.updateTrackListUI();
+        if (this.currentMode === 'spotify' && this.currentTrack && this.isShuffleEnabled) {
+            this.showMessage('Modo aleatorio para Spotify depende de tu cliente Spotify o de la lista de reproducción.');
+        }
+    }
+    
+    updateLoopShuffleButtonsUI() {
+        this.dom.loopBtn?.classList.toggle('active', this.isLoopEnabled);
+        this.dom.shuffleBtn?.classList.toggle('active', this.isShuffleEnabled);
     }
 
     //=======================================================
-    // NAVEGACIÓN DE CANCIONES
+    // NAVEGACIÓN DE CANCIONES (Principalmente para Modo Local)
     //=======================================================
-    
-    /**
-     * Reproduce la siguiente pista en la lista
-     * Incluye soporte para modo aleatorio
-     */
     playNext() {
-        // Solo para modo local
-        if (this.currentMode !== 'local' || !this.currentTrack) return;
-        
-        if (this.localPlaylist.length === 0) return;
-        
-        // Encontrar la posición actual
-        const currentIndex = this.localPlaylist.findIndex(t => t.id === this.currentTrack.id);
-        
-        // Calcular siguiente índice
+        if (this.currentMode === 'spotify') {
+            this.showMessage("El widget de Spotify gestiona 'siguiente'.");
+            return;
+        }
+
+        const playlist = this.localPlaylist;
+        if (!playlist || playlist.length === 0) return;
+
         let nextIndex;
-        
         if (this.isShuffleEnabled) {
-            // Pista aleatoria (excluyendo la actual)
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * this.localPlaylist.length);
-            } while (randomIndex === currentIndex && this.localPlaylist.length > 1);
-            
-            nextIndex = randomIndex;
-        } else {
-            // Secuencial
-            nextIndex = (currentIndex + 1) % this.localPlaylist.length;
+            if (playlist.length <= 1) { // Si solo hay una o ninguna canción
+                nextIndex = 0;
+            } else { // Elegir una aleatoria diferente a la actual
+                do {
+                    nextIndex = Math.floor(Math.random() * playlist.length);
+                } while (playlist.length > 1 && nextIndex === this.currentTrackIndex);
+            }
+        } else { // Secuencial
+            nextIndex = (this.currentTrackIndex + 1) % playlist.length;
         }
         
-        // Reproducir siguiente pista
-        this.playTrack(this.localPlaylist[nextIndex]);
+        if (playlist[nextIndex]) {
+            this.playTrack(playlist[nextIndex]);
+        } else if (playlist.length > 0) { // Fallback a la primera si el índice es inválido
+            this.playTrack(playlist[0]);
+        }
     }
 
-    /**
-     * Reproduce la pista anterior en la lista
-     */
     playPrevious() {
-        // Solo para modo local
-        if (this.currentMode !== 'local' || !this.currentTrack) return;
-        
-        if (this.localPlaylist.length === 0) return;
-        
-        // Encontrar la posición actual
-        const currentIndex = this.localPlaylist.findIndex(t => t.id === this.currentTrack.id);
-        
-        // Calcular índice anterior
-        const prevIndex = (currentIndex - 1 + this.localPlaylist.length) % this.localPlaylist.length;
-        
-        // Reproducir pista anterior
-        this.playTrack(this.localPlaylist[prevIndex]);
-    }
+        if (this.currentMode === 'spotify') {
+             this.showMessage("El widget de Spotify gestiona 'anterior'.");
+            return;
+        }
+        const playlist = this.localPlaylist;
+        if (!playlist || playlist.length === 0) return;
 
-    //=======================================================
-    // CONTROL DE PROGRESO
-    //=======================================================
-    
-    /**
-     * Inicia la actualización periódica de la barra de progreso
-     */
-    startProgressUpdate() {
-        // Limpiar cualquier intervalo existente
-        this.stopProgressUpdate();
-        
-        // Crear nuevo intervalo
-        this.progressInterval = setInterval(() => this.updateProgress(), 1000);
-        
-        // Actualizar inmediatamente
-        this.updateProgress();
-    }
+        let prevIndex;
+         if (this.isShuffleEnabled) { // Anterior en aleatorio también puede ser otra pista aleatoria diferente
+            if (playlist.length <= 1) {
+                prevIndex = 0;
+            } else {
+                do {
+                    prevIndex = Math.floor(Math.random() * playlist.length);
+                } while (playlist.length > 1 && prevIndex === this.currentTrackIndex);
+            }
+        } else { // Secuencial
+            prevIndex = (this.currentTrackIndex - 1 + playlist.length) % playlist.length;
+        }
 
-    /**
-     * Detiene la actualización periódica de la barra de progreso
-     */
-    stopProgressUpdate() {
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
+        if (playlist[prevIndex]) {
+            this.playTrack(playlist[prevIndex]);
+        } else if (playlist.length > 0) { // Fallback a la última si el índice es inválido (raro con %)
+            this.playTrack(playlist[playlist.length - 1]);
         }
     }
 
-    /**
-     * Actualiza la barra de progreso y el tiempo transcurrido
-     */
+    //=======================================================
+    // CONTROL DE PROGRESO (Modo Local)
+    //=======================================================
+    startProgressUpdate() {
+        if (this.currentMode !== 'local' || !this.currentAudio) return;
+        this.stopProgressUpdate(); // Limpiar existente
+        this.progressInterval = setInterval(() => this.updateProgress(), 1000);
+        this.updateProgress(); // Actualización inicial
+    }
+
+    stopProgressUpdate() {
+        clearInterval(this.progressInterval);
+        this.progressInterval = null;
+    }
+
     updateProgress() {
-        if (!this.currentAudio || this.currentAudio.paused) {
+        if (this.currentMode !== 'local' || !this.currentAudio || !this.isPlaying || isNaN(this.currentAudio.duration)) {
+            // No actualizar si no es local, no hay audio, no está sonando, o la duración no está disponible
+            if (this.dom.progressBar && (!this.currentAudio || isNaN(this.currentAudio.duration))) {
+                 this.dom.progressBar.style.width = '0%'; // Resetear barra si duración es NaN
+            }
             return;
         }
         
-        const currentTimeElement = document.getElementById('currentTime');
-        const progressBar = document.getElementById('progressBar');
-        const totalTimeElement = document.getElementById('totalTime');
-        
-        // Obtener tiempo actual y duración
         const currentTime = this.currentAudio.currentTime;
-        const duration = this.currentAudio.duration || 0;
+        const duration = this.currentAudio.duration;
         
-        // Actualizar texto de tiempo transcurrido
-        currentTimeElement.textContent = this.formatTime(currentTime);
-        totalTimeElement.textContent = this.formatTime(duration);
+        if (this.dom.currentTimeDisplay) this.dom.currentTimeDisplay.textContent = this.formatTime(currentTime);
+        if (this.dom.totalTimeDisplay) this.dom.totalTimeDisplay.textContent = this.formatTime(duration);
         
-        // Calcular porcentaje de progreso
-        const progressPercent = (currentTime / duration) * 100;
-        
-        // Actualizar barra de progreso
-        progressBar.style.width = `${progressPercent}%`;
+        const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+        if (this.dom.progressBar) this.dom.progressBar.style.width = `${progressPercent}%`;
     }
 
-    /**
-     * Formatea segundos a formato "minutos:segundos"
-     * @param {number} seconds - Tiempo en segundos
-     * @return {string} Tiempo formateado
-     */
     formatTime(seconds) {
+        if (isNaN(seconds) || seconds === Infinity) return "0:00";
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     }
 
-    /**
-     * Maneja clics en la barra de progreso para saltar a una posición
-     * @param {Event} e - Evento de clic
-     */
     handleProgressBarClick(e) {
-        if (!this.currentAudio || this.currentMode !== 'local') return;
+        if (this.currentMode !== 'local' || !this.currentAudio || isNaN(this.currentAudio.duration)) return;
         
-        const progressBarContainer = e.currentTarget;
-        const rect = progressBarContainer.getBoundingClientRect();
-        const clickPosition = e.clientX - rect.left;
-        const percentage = (clickPosition / rect.width);
+        const progressBarContainerElement = this.dom.progressBarContainer; // El elemento en el que está el evento
+        if (!progressBarContainerElement) return;
+
+        const rect = progressBarContainerElement.getBoundingClientRect();
+        const clickPositionX = e.clientX - rect.left; // Posición X del clic relativa al contenedor
+        const barWidth = rect.width; // Ancho total del contenedor de la barra
         
-        // Establecer nueva posición
+        // Asegurar que el ancho no sea 0 para evitar división por cero
+        if (barWidth === 0) return;
+
+        const percentage = (clickPositionX / barWidth);
+        
         this.currentAudio.currentTime = percentage * this.currentAudio.duration;
-        
-        // Actualizar interfaz
-        this.updateProgress();
+        this.updateProgress(); // Actualizar UI inmediatamente
     }
 
-    /**
-     * Actualiza la interfaz del reproductor con información de la pista
-     * @param {Object} track - Pista a mostrar
-     */
-    updatePlayerUI(track) {
-        document.getElementById('currentTrackImage').src = track.image;
-        document.getElementById('currentTrackName').textContent = track.title;
-        document.getElementById('currentTrackArtist').textContent = track.artist;
-        
-        // Mostrar reproductor nativo
-        document.getElementById('currentPlayer').style.display = 'flex';
-        
-        // Actualizar estado de bucle/aleatorio
-        this.updateTrackListUI();
-    }
-
-    /**
-     * Inicializa el control de volumen
-     */
-    initVolumeControl() {
-        const volumeControl = document.getElementById('volumeControl');
-        if (!volumeControl) return;
-        
-        volumeControl.addEventListener('input', () => {
-            if (this.currentAudio) {
-                this.currentAudio.volume = volumeControl.value;
+    updatePlayerUI(track) { // Para la barra del reproductor local
+        if (track && track.sourceOrigin === 'local') {
+            if(this.dom.currentTrackImage) this.dom.currentTrackImage.src = track.image || 'ruta/a/imagen-local-defecto.png';
+            if(this.dom.currentTrackName) this.dom.currentTrackName.textContent = track.title || 'Título Desconocido';
+            if(this.dom.currentTrackArtist) this.dom.currentTrackArtist.textContent = track.artist || 'Artista Desconocido';
+            
+            // Actualizar tiempos solo si la información está disponible
+            if (this.dom.totalTimeDisplay) {
+                 // Si el audio ya está cargado y tiene duración, usarla.
+                if (this.currentAudio && this.currentAudio.duration && !isNaN(this.currentAudio.duration)) {
+                    this.dom.totalTimeDisplay.textContent = this.formatTime(this.currentAudio.duration);
+                } 
+                // Si no, y la pista tiene una duración preformateada (de la base de datos local), usarla.
+                else if (track.duration && typeof track.duration === 'string') {
+                     this.dom.totalTimeDisplay.textContent = track.duration; 
+                } 
+                // Fallback
+                else {
+                    this.dom.totalTimeDisplay.textContent = "0:00";
+                }
             }
+            if(this.dom.currentTimeDisplay) this.dom.currentTimeDisplay.textContent = "0:00"; // Siempre resetear tiempo actual
+            if(this.dom.progressBar) this.dom.progressBar.style.width = '0%'; // Resetear barra de progreso
+
+        } else { // Limpiar UI del reproductor si no hay pista o es pista de Spotify (que usa embed)
+            if(this.dom.currentTrackImage) this.dom.currentTrackImage.src = 'ruta/a/placeholder-defecto.png'; // Placeholder por defecto
+            if(this.dom.currentTrackName) this.dom.currentTrackName.textContent = 'Ninguna Pista Seleccionada';
+            if(this.dom.currentTrackArtist) this.dom.currentTrackArtist.textContent = '---';
+            if(this.dom.currentTimeDisplay) this.dom.currentTimeDisplay.textContent = "0:00";
+            if(this.dom.totalTimeDisplay) this.dom.totalTimeDisplay.textContent = "0:00";
+            if(this.dom.progressBar) this.dom.progressBar.style.width = '0%';
+        }
+        this.updatePlayPauseButtonUI(); // Actualizar siempre el botón principal
+        this.updateLoopShuffleButtonsUI(); // Y los de bucle/aleatorio
+    }
+
+    initVolumeControl() {
+        if (!this.dom.volumeControl) return;
+        this.dom.volumeControl.addEventListener('input', (e) => {
+            const volumeValue = parseFloat(e.target.value);
+            if (this.currentMode === 'local' && this.currentAudio) {
+                this.currentAudio.volume = volumeValue;
+            } else if (this.currentMode === 'spotify') {
+                this.showMessage("Ajusta el volumen desde el widget de Spotify o el sistema.");
+                // Opcionalmente revertir el slider si quieres mostrar que no es efectivo para Spotify
+                // e.target.value = this.currentAudio ? this.currentAudio.volume : (localStorage.getItem('volumeLevel') || 0.7);
+            }
+            // Guardar volumen para persistencia (opcional)
+            // localStorage.setItem('volumeLevel', volumeValue.toString());
         });
+         // Establecer volumen inicial si el audio existe (ej. en cambio de pista) o desde localStorage
+        // const savedVolume = localStorage.getItem('volumeLevel');
+        // if (savedVolume) this.dom.volumeControl.value = savedVolume;
+        if (this.currentAudio) this.currentAudio.volume = parseFloat(this.dom.volumeControl.value);
     }
 
     //=======================================================
     // FEEDBACK Y NOTIFICACIONES
     //=======================================================
-    
-    /**
-     * Muestra indicador de carga durante búsquedas
-     */
     showLoading() {
-        const searchResults = document.getElementById('searchResults');
-        const resultsSection = document.getElementById('resultsSection');
-        
-        resultsSection.style.display = 'block';
-        searchResults.innerHTML = `
-            <div class="loading-spinner">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
+        if (this.dom.resultsSection && this.dom.searchResults) {
+            this.dom.resultsSection.style.display = 'block';
+            this.dom.searchResults.innerHTML = `
+                <div class="loading-spinner" style="text-align:center; padding:40px;">
+                    <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;"></div>
+                    <p style="color: var(--texto-secundario); margin-top: 20px;">Buscando música...</p>
                 </div>
-                <p style="color: var(--texto-secundario); margin-top: 20px;">Buscando música...</p>
-            </div>
-        `;
+            `;
+        }
     }
 
-    /**
-     * Muestra notificación de error
-     * @param {string} message - Mensaje de error
-     */
     showError(message) {
-        // Crear y mostrar un toast de error
+        console.error("MusicManager Error:", message);
         const toast = document.createElement('div');
-        toast.className = 'toast error-toast';
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 9999;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-
-        toast.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-        `;
-
+        toast.className = 'toast error-toast'; // Usar clases para estilos si es posible
+        // Estilos básicos en línea, idealmente deberían estar en CSS
+        toast.style.cssText = `position:fixed; bottom:20px; right:20px; background:#dc3545; color:white; padding:15px 25px; border-radius:5px; z-index:9999; opacity:0; transition:all 0.3s ease; transform: translateY(20px);`;
+        toast.innerHTML = `<span>${message}</span>`; // Usar textContent si el mensaje no es HTML
         document.body.appendChild(toast);
-
-        // Animación de entrada
+        // Pequeño delay para asegurar que el elemento está en el DOM antes de la transición
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)';}, 10);
+        // Desaparecer y eliminar
         setTimeout(() => {
-            toast.style.transform = 'translateY(0)';
-            toast.style.opacity = '1';
-        }, 100);
-
-        // Eliminar después de 3 segundos
-        setTimeout(() => {
-            toast.style.transform = 'translateY(100px)';
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
+            toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)';
+            setTimeout(() => toast.remove(), 300); // Esperar a que termine la transición antes de remover
         }, 3000);
+    }
+    
+    showMessage(message) { // Mensaje de propósito general
+        const msgEl = document.createElement('div');
+        msgEl.className = 'player-message';
+        msgEl.style.cssText = `position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:10px 20px; border-radius:20px; z-index:1100; opacity:0; transition: opacity 0.3s;`;
+        msgEl.textContent = message;
+        document.body.appendChild(msgEl);
+        setTimeout(() => { msgEl.style.opacity = '1'; }, 10);
+        setTimeout(() => {
+            msgEl.style.opacity = '0';
+            setTimeout(() => msgEl.remove(), 300);
+        }, 2500);
+    }
+
+    addEmbedStyles() { // Estilos para elementos creados dinámicamente si no están en CSS
+        if (document.getElementById('musicmanager-dynamic-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'musicmanager-dynamic-styles';
+        style.textContent = `
+            /* Estilos para botones dentro de los controles del embed de Spotify (ej. botón de abrir en Spotify) */
+            .spotify-action-btn { 
+                background: #1DB954; border: none; color: white; width: 30px; height: 30px;
+                border-radius: 50%; cursor: pointer; font-size: 14px;
+                display: flex; align-items: center; justify-content: center;
+                transition: all 0.2s ease;
+            }
+            .spotify-action-btn:hover { background: #1ED760; transform: scale(1.1); }
+            /* Estilos para botones de bucle y aleatorio activos */
+            #loopBtn.active, #shuffleBtn.active { opacity: 1; color: #1ed760; }
+        `;
+        document.head.appendChild(style);
     }
 }
 
-// Inicializar cuando el DOM esté cargado
+// INICIALIZACIÓN GLOBAL
 document.addEventListener('DOMContentLoaded', () => {
+    // Asegurar que scripts dependientes como mostrarCanciones.js (para datos) estén cargados
+    // y la clase SpotifyManager esté definida.
+    if (typeof SpotifyManager === 'undefined') {
+        console.error("La clase SpotifyManager no está definida. Asegúrate que spotify-api.js se cargue ANTES que music-manager.js");
+        document.body.innerHTML = "<p style='color:red; font-size:18px; text-align:center; margin-top:50px;'>Error Crítico: SpotifyManager no definido. La aplicación no puede iniciar.</p>";
+        return;
+    }
+    if (typeof musicDatabase === 'undefined' || typeof displayLocalTracks === 'undefined' || typeof searchLocalTracks === 'undefined') {
+        console.error("Datos/funciones de música local no definidos. Asegúrate que mostrarCanciones.js se cargue ANTES que music-manager.js y provea musicDatabase, displayLocalTracks, searchLocalTracks.");
+        document.body.innerHTML = "<p style='color:red; font-size:18px; text-align:center; margin-top:50px;'>Error Crítico: Datos locales no definidos. La aplicación no puede iniciar.</p>";
+        return;
+    }
+
     window.musicManager = new MusicManager();
     
-    // Exponer función global para búsqueda por género
-    window.searchByGenre = function(genre) {
-        window.musicManager.searchByGenre(genre);
+    // Exponer searchByGenre globalmente SI ES NECESARIO por otras partes de tu sitio (ej. botones de género)
+    window.searchByGenreGlobal = function(genre) {
+        if (window.musicManager) {
+            window.musicManager.searchByGenre(genre);
+        } else {
+            console.warn("searchByGenreGlobal: musicManager no está listo todavía.");
+        }
     };
+    console.log("Instancia de MusicManager creada y adjuntada a window.");
 });
+
+console.log("music-manager.js cargado.");
