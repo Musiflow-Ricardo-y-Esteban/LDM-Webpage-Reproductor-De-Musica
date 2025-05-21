@@ -1,4 +1,14 @@
-// Inicializar animaciones AOS cuando el DOM esté cargado
+//Index.js - Funciones principales y efectos visuales para la página principal
+
+/**
+ * Este archivo contiene todas las funcionalidades de la página principal:
+ * - Efectos visuales y animaciones
+ * - Elementos interactivos
+ * - Carruseles y contadores
+ * - Validación de formularios
+ */
+
+// Inicializar animaciones cuando el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
     // Configuración de la biblioteca AOS para animaciones al hacer scroll
     AOS.init({
@@ -7,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         once: true
     });
 
-    // Inicializar todas las funciones
+    // Inicializar todas las funciones visuales y de interacción
     crearNotas();
     crearParticulas();
     iniciarCursorBrillante();
@@ -19,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     iniciarValidacionFormulario();
 });
 
-// Crear notas musicales flotantes
+/**
+ * Crea notas musicales flotantes decorativas
+ * Genera elementos animados aleatorios para el fondo
+ */
 function crearNotas() {
     const contenedorNotas = document.querySelector('.notes-container');
     if (!contenedorNotas) return;
@@ -41,7 +54,10 @@ function crearNotas() {
     }
 }
 
-// Crear partículas para la sección CTA
+/**
+ * Crea partículas decorativas para la sección CTA
+ * Genera elementos flotantes coloridos para fondos
+ */
 function crearParticulas() {
     const contenedorParticulas = document.querySelector('.particles-container');
     if (!contenedorParticulas) return;
@@ -76,7 +92,10 @@ function crearParticulas() {
     }
 }
 
-// Efecto de cursor brillante
+/**
+ * Crea un efecto de cursor brillante que sigue al ratón
+ * Añade un elemento visual que mejora la experiencia interactiva
+ */
 function iniciarCursorBrillante() {
     const cursor = document.querySelector('.glowing-cursor');
     if (!cursor) return;
@@ -94,7 +113,10 @@ function iniciarCursorBrillante() {
     });
 }
 
-// Animación del visualizador de audio
+/**
+ * Anima un visualizador de audio simulado
+ * Crea un efecto de ecualizador que responde al ritmo
+ */
 function animarVisualizador() {
     const barras = document.querySelectorAll('.visualizer-bar');
     if (barras.length === 0) return;
@@ -127,7 +149,10 @@ function animarVisualizador() {
     }, 300);
 }
 
-// Crear visualizador de espectro para el reproductor
+/**
+ * Crea y anima un visualizador de espectro para el reproductor
+ * Genera barras animadas que simulan un análisis de frecuencia
+ */
 function crearEspectroReproductor() {
     const espectroReproductor = document.querySelector('.player-spectrum');
     if (!espectroReproductor) return;
@@ -154,7 +179,10 @@ function crearEspectroReproductor() {
     }, 200);
 }
 
-// Animación para los contadores de estadísticas
+/**
+ * Anima contadores de estadísticas con efecto incremental
+ * Crea un efecto de conteo para números estadísticos
+ */
 function animarContadores() {
     const contadores = document.querySelectorAll('[data-counter]');
     if (contadores.length === 0) return;
@@ -207,7 +235,10 @@ function animarContadores() {
     });
 }
 
-// Funcionalidad del carrusel de testimonios
+/**
+ * Inicializa y gestiona el carrusel de testimonios
+ * Implementa navegación, rotación automática y efectos visuales
+ */
 function iniciarCarruselTestimonios() {
     const itemsTestimonio = document.querySelectorAll('.testimonial-item');
     const puntos = document.querySelectorAll('.testimonial-dots .dot');
@@ -261,7 +292,10 @@ function iniciarCarruselTestimonios() {
     }, 5000);
 }
 
-// Agregar efectos interactivos a botones y tarjetas
+/**
+ * Agrega efectos interactivos a botones y tarjetas
+ * Mejora la respuesta visual de elementos al interactuar con ellos
+ */
 function agregarEfectosInteractivos() {
     const elementosInteractivos = document.querySelectorAll('.btn, .feature-card, .stat-card, .social-icon, .album-card');
     
@@ -296,7 +330,10 @@ function agregarEfectosInteractivos() {
     });
 }
 
-// Validación de formularios
+/**
+ * Configura validación de formularios
+ * Implementa verificación de campos y feedback visual
+ */
 function iniciarValidacionFormulario() {
     const formularios = document.querySelectorAll('form');
     
@@ -355,7 +392,11 @@ function iniciarValidacionFormulario() {
     });
 }
 
-// Funciones auxiliares para validación de formularios
+/**
+ * Muestra mensaje de error en un campo de formulario
+ * @param {HTMLElement} input - Campo de entrada con error
+ * @param {string} mensaje - Mensaje de error a mostrar
+ */
 function mostrarErrorFormulario(input, mensaje) {
     const grupoForm = input.parentElement;
     const elementoError = grupoForm.querySelector('.invalid-feedback') || document.createElement('div');
@@ -374,11 +415,20 @@ function mostrarErrorFormulario(input, mensaje) {
     }, { once: true });
 }
 
+/**
+ * Valida formato de email
+ * @param {string} email - Email a validar
+ * @return {boolean} Resultado de la validación
+ */
 function esEmailValido(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
 }
 
+/**
+ * Muestra mensaje de éxito tipo toast
+ * @param {string} mensaje - Mensaje a mostrar
+ */
 function mostrarMensajeExito(mensaje) {
     // Crear una notificación tipo toast
     const contenedorToast = document.createElement('div');
@@ -460,7 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Función para agregar animación de scroll a elementos
+/**
+ * Añade animación de scroll suave a enlaces internos
+ * Mejora la navegación dentro de la página
+ */
 function agregarAnimacionScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(ancla => {
         ancla.addEventListener('click', function (e) {
@@ -476,7 +529,10 @@ function agregarAnimacionScroll() {
 // Inicializar animación de scroll después de cargar el DOM
 document.addEventListener('DOMContentLoaded', agregarAnimacionScroll);
 
-// Animación para el botón de play en el mockup del reproductor
+/**
+ * Añade efecto de ondas a botones de reproducción
+ * Crea efecto visual de interacción con los botones
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const botonesPlay = document.querySelectorAll('.btn-play');
     botonesPlay.forEach(boton => {
@@ -525,7 +581,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Efectos arcoíris para elementos clave
+/**
+ * Añade efectos especiales a elementos clave
+ * Mejora visual con bordes pulsantes y brillos
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const mejorarElementos = () => {
         // Agregar borde pulsante a elementos importantes
@@ -549,6 +608,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Agregar estos efectos después de un pequeño retraso para asegurar que todo esté cargado
     setTimeout(mejorarElementos, 1000);
-
-
 });

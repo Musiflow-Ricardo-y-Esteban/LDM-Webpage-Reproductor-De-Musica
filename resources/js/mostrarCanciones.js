@@ -1,4 +1,9 @@
-// Objeto para almacenar las canciones de muestra
+// mostrarCanciones.js - Sistema para mostrar y reproducir canciones
+
+/**
+ * Base de datos de canciones de muestra para la aplicación
+ * Contiene una colección de pistas con sus metadatos y rutas de audio
+ */
 const musicDatabase = {
     tracks: [
         {
@@ -65,19 +70,26 @@ const musicDatabase = {
 };
 
 // Variables globales para el reproductor de audio
-let currentAudio = null;
-let currentTrackId = null;
-let isPlaying = false;
-let progressInterval = null;
+let currentAudio = null;        // Objeto Audio actualmente en uso
+let currentTrackId = null;      // ID de la pista en reproducción
+let isPlaying = false;          // Estado de reproducción
+let progressInterval = null;    // Intervalo para actualizar la barra de progreso
 
-// Función para formatear el tiempo en minutos:segundos
+/**
+ * Formatea el tiempo en segundos a formato minutos:segundos
+ * @param {number} seconds - Tiempo en segundos
+ * @return {string} Tiempo formateado en "m:ss"
+ */
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 }
 
-// Función para actualizar el reproductor fijo
+/**
+ * Actualiza la información en el reproductor fijo
+ * @param {Object} track - Pista a mostrar en el reproductor
+ */
 function updateCurrentPlayer(track) {
     document.getElementById('currentTrackImage').src = track.cover;
     document.getElementById('currentTrackName').textContent = track.title;
@@ -93,7 +105,9 @@ function updateCurrentPlayer(track) {
     initVolumeControl();
 }
 
-// Función para iniciar la actualización de progreso
+/**
+ * Inicia la actualización periódica de la barra de progreso
+ */
 function startProgressUpdate() {
     // Limpiar cualquier intervalo existente
     if (progressInterval) {
@@ -107,7 +121,9 @@ function startProgressUpdate() {
     updateProgress();
 }
 
-// Función para detener la actualización de progreso
+/**
+ * Detiene la actualización periódica de la barra de progreso
+ */
 function stopProgressUpdate() {
     if (progressInterval) {
         clearInterval(progressInterval);
@@ -115,7 +131,10 @@ function stopProgressUpdate() {
     }
 }
 
-// Función para actualizar la barra de progreso y el tiempo transcurrido
+/**
+ * Actualiza la barra de progreso y el tiempo transcurrido
+ * Se ejecuta periódicamente mientras se reproduce audio
+ */
 function updateProgress() {
     if (!currentAudio || currentAudio.paused) {
         return;
@@ -138,12 +157,15 @@ function updateProgress() {
     progressBar.style.width = `${progressPercent}%`;
 }
 
-// Función para alternar reproducción de una pista
+/**
+ * Alterna entre reproducción y pausa de una pista
+ * @param {number} trackId - ID de la pista a reproducir o pausar
+ */
 function togglePlayTrack(trackId) {
     const track = musicDatabase.tracks.find(t => t.id === trackId);
     if (!track) return;
     
-    // Debug - ver qué está ocurriendo
+    // Registro de depuración
     console.log(`togglePlayTrack: trackId=${trackId}, currentTrackId=${currentTrackId}, isPlaying=${isPlaying}`);
     
     // Si ya hay una canción reproduciéndose, detenerla
@@ -260,7 +282,10 @@ function togglePlayTrack(trackId) {
     }
 }
 
-// Función para saltar a una posición específica en la reproducción
+/**
+ * Salta a una posición específica en la reproducción
+ * @param {number} percent - Porcentaje de progreso (0-100)
+ */
 function seekTo(percent) {
     if (!currentAudio) return;
     
@@ -284,7 +309,9 @@ function seekTo(percent) {
     }
 }
 
-// Inicializar el control de volumen
+/**
+ * Inicializa el control de volumen en la interfaz
+ */
 function initVolumeControl() {
     // Verificar si el control ya existe
     if (!document.getElementById('volumeControl')) {
@@ -331,7 +358,10 @@ function initVolumeControl() {
     }
 }
 
-// Actualizar el icono de volumen según el nivel
+/**
+ * Actualiza el icono de volumen según el nivel
+ * @param {number} volume - Nivel de volumen (0-1)
+ */
 function updateVolumeIcon(volume) {
     const volumeIcon = document.querySelector('.volume-icon i');
     if (!volumeIcon) return;
@@ -349,7 +379,9 @@ function updateVolumeIcon(volume) {
     }
 }
 
-// Función para silenciar/activar el sonido
+/**
+ * Alterna entre silenciar y restaurar el volumen
+ */
 function toggleMute() {
     if (!currentAudio) return;
     
@@ -371,7 +403,9 @@ function toggleMute() {
     }
 }
 
-// Reproducir pista anterior
+/**
+ * Reproduce la pista anterior en la lista
+ */
 function playPreviousTrack() {
     if (!currentTrackId) return;
     
@@ -382,7 +416,9 @@ function playPreviousTrack() {
     }
 }
 
-// Reproducir siguiente pista
+/**
+ * Reproduce la siguiente pista en la lista
+ */
 function playNextTrack() {
     if (!currentTrackId) return;
     
@@ -393,7 +429,11 @@ function playNextTrack() {
     }
 }
 
-// Búsqueda de canciones
+/**
+ * Busca canciones que coincidan con una consulta
+ * @param {string} query - Texto a buscar
+ * @return {Array} Lista de pistas que coinciden con la búsqueda
+ */
 function searchTracks(query) {
     if (!query) {
         return musicDatabase.tracks;
@@ -408,7 +448,10 @@ function searchTracks(query) {
     );
 }
 
-// Función para generar HTML de las canciones
+/**
+ * Genera HTML para mostrar las canciones en la interfaz
+ * @param {Array} tracks - Lista de pistas a mostrar
+ */
 function displayTracks(tracks) {
     const resultsContainer = document.getElementById('searchResults');
     
@@ -524,7 +567,7 @@ function displayTracks(tracks) {
         });
     });
     
-    // Like button functionality
+    // Funcionalidad de botones "Me gusta"
     document.querySelectorAll('.like-button').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -539,7 +582,7 @@ function displayTracks(tracks) {
         });
     });
     
-    // More options functionality (menú desplegable)
+    // Funcionalidad de botones "Más opciones"
     document.querySelectorAll('.more-button').forEach(button => {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -558,27 +601,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBarContainer = document.querySelector('.progress-bar-container');
     const progressBarElement = document.querySelector('.progress-bar');
 
-// Evento para hacer clic en la barra de progreso
-if (progressBarContainer) {
-    progressBarContainer.addEventListener('click', (e) => {
-        if (!currentAudio) return;
-        
-        console.log("Click en la barra de progreso");
-        
-        // Calcular la posición del clic respecto a la barra
-        const rect = progressBarElement.getBoundingClientRect();
-        const clickPos = e.clientX - rect.left;
-        const barWidth = rect.width;
-        const percentage = (clickPos / barWidth) * 100;
-        
-        console.log(`Buscando posición: ${percentage}%`);
-        
-        // Saltar a la posición correspondiente
-        seekTo(percentage);
-    });
-} else {
-    console.error("No se encontró el elemento de la barra de progreso (.progress-bar-container)");
-}
+    // Evento para hacer clic en la barra de progreso
+    if (progressBarContainer) {
+        progressBarContainer.addEventListener('click', (e) => {
+            if (!currentAudio) return;
+            
+            console.log("Click en la barra de progreso");
+            
+            // Calcular la posición del clic respecto a la barra
+            const rect = progressBarElement.getBoundingClientRect();
+            const clickPos = e.clientX - rect.left;
+            const barWidth = rect.width;
+            const percentage = (clickPos / barWidth) * 100;
+            
+            console.log(`Buscando posición: ${percentage}%`);
+            
+            // Saltar a la posición correspondiente
+            seekTo(percentage);
+        });
+    } else {
+        console.error("No se encontró el elemento de la barra de progreso (.progress-bar-container)");
+    }
 
     // Funcionalidad de búsqueda
     const searchInput = document.getElementById('searchInput');
@@ -657,3 +700,152 @@ if (progressBarContainer) {
     // Log para depuración
     console.log("Página inicializada correctamente con el reproductor actualizado");
 });
+
+function fixProgressBarError() {
+    console.log('Corrigiendo referencias a la barra de progreso...');
+    
+    // Verificar si los elementos ya existen
+    let progressContainer = document.querySelector('.progress-container');
+    let progressBar = document.querySelector('.progress-bar');
+    
+    // Si no existe el contenedor pero sí existe la barra (nuevo diseño)
+    if (!progressContainer && progressBar) {
+        // La barra existe pero con una estructura diferente, adaptar referencia
+        console.log('Ajustando referencia a contenedor de progreso para nuevo diseño');
+        
+        // Buscar contenedor padre adecuado
+        const progressBarContainer = document.querySelector('.progress-bar-container');
+        
+        if (progressBarContainer) {
+            // Usar el contenedor existente para los eventos
+            progressBarContainer.addEventListener('click', (e) => {
+                if (!window.currentAudio) return;
+                
+                console.log("Click en la barra de progreso");
+                
+                // Calcular la posición del clic respecto a la barra
+                const rect = progressBarContainer.getBoundingClientRect();
+                const clickPos = e.clientX - rect.left;
+                const barWidth = rect.width;
+                const percentage = (clickPos / barWidth) * 100;
+                
+                console.log(`Buscando posición: ${percentage}%`);
+                
+                // Usar la función seekTo
+                if (typeof seekTo === 'function') {
+                    seekTo(percentage);
+                } else if (window.musicManager && typeof window.musicManager.handleProgressBarClick === 'function') {
+                    // Alternativa: usar el musicManager si está disponible
+                    window.musicManager.handleProgressBarClick(e);
+                }
+            });
+            
+            console.log('Contenedor de progreso encontrado y configurado correctamente');
+        } else {
+            console.error('No se encontró ningún contenedor de progreso válido');
+            
+            // Crear un nuevo contenedor si no existe (solución alternativa)
+            createProgressElements();
+        }
+    } else if (!progressContainer && !progressBar) {
+        console.error('No se encontraron elementos de progreso, creando nuevos elementos');
+        
+        // Crear los elementos necesarios
+        createProgressElements();
+    } else {
+        console.log('Los elementos de la barra de progreso ya existen');
+    }
+    
+    /**
+     * Crea los elementos necesarios para la barra de progreso
+     * si no existen en el DOM
+     */
+    function createProgressElements() {
+        // Buscar el reproductor actual
+        const currentPlayer = document.getElementById('currentPlayer');
+        if (!currentPlayer) return;
+        
+        // Buscar la sección central donde debería estar la barra
+        let playerCenterSection = currentPlayer.querySelector('.player-center-section');
+        
+        // Si no existe, crearla
+        if (!playerCenterSection) {
+            playerCenterSection = document.createElement('div');
+            playerCenterSection.className = 'player-center-section';
+            
+            // Buscar una posición adecuada para insertarla
+            const trackInfo = currentPlayer.querySelector('.current-track-info');
+            if (trackInfo) {
+                currentPlayer.insertBefore(playerCenterSection, trackInfo.nextSibling);
+            } else {
+                currentPlayer.appendChild(playerCenterSection);
+            }
+        }
+        
+        // Crear los controles si no existen
+        if (!playerCenterSection.querySelector('.player-controls-current')) {
+            const controlsHtml = `
+                <div class="player-controls-current">
+                    <button class="control-btn-current" id="shuffleBtn" title="Shuffle">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="control-btn-current" id="prevBtn">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button class="control-btn-current play-btn-current" id="playPauseBtn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn-current" id="nextBtn">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button class="control-btn-current" id="loopBtn" title="Loop">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            `;
+            playerCenterSection.innerHTML = controlsHtml;
+        }
+        
+        // Crear el contenedor de la barra de progreso si no existe
+        if (!playerCenterSection.querySelector('.progress-bar-container')) {
+            const progressContainerHtml = `
+                <div class="progress-bar-container">
+                    <span id="currentTime">0:00</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="progressBar"></div>
+                    </div>
+                    <span id="totalTime">0:00</span>
+                </div>
+            `;
+            playerCenterSection.insertAdjacentHTML('beforeend', progressContainerHtml);
+            
+            // Configurar evento de clic para la nueva barra
+            const newProgressBarContainer = playerCenterSection.querySelector('.progress-bar-container');
+            if (newProgressBarContainer) {
+                newProgressBarContainer.addEventListener('click', (e) => {
+                    if (!window.currentAudio) return;
+                    
+                    console.log("Click en la barra de progreso");
+                    
+                    // Calcular la posición del clic respecto a la barra
+                    const rect = newProgressBarContainer.getBoundingClientRect();
+                    const clickPos = e.clientX - rect.left;
+                    const barWidth = rect.width;
+                    const percentage = (clickPos / barWidth) * 100;
+                    
+                    console.log(`Buscando posición: ${percentage}%`);
+                    
+                    // Usar la función seekTo
+                    if (typeof seekTo === 'function') {
+                        seekTo(percentage);
+                    }
+                });
+            }
+        }
+        
+        console.log('Elementos de progreso creados correctamente');
+    }
+}
+
+// Ejecutar la función cuando se cargue el DOM
+document.addEventListener('DOMContentLoaded', fixProgressBarError);

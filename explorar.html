@@ -6,53 +6,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Explorar</title>
 
-    <!-- Bootstrap 5 CSS -->
+    <!-- Importación de bibliotecas CSS externas -->
+    <!-- Bootstrap 5: Framework CSS para diseño responsivo -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- Font Awesome: Biblioteca de iconos vectoriales -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- AOS Animation Library -->
+    <!-- AOS: Biblioteca para animaciones al hacer scroll -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
 
-    <!-- CSS personalizado -->
-    <link href="resources/css/header.css" rel="stylesheet">
-    <link href="resources/css/main.css" rel="stylesheet">
-    <link href="resources/css/reproductor.css" rel="stylesheet">
-    <link href="resources/css/animaciones.css" rel="stylesheet">
-    <link href="resources/css/footer.css" rel="stylesheet">
-    <link href="resources/css/misc.css" rel="stylesheet">
-    <link href="resources/css/asistente.css" rel="stylesheet">
-    <link href="resources/css/explorar.css" rel="stylesheet">
-    <link rel="stylesheet" href="resources/css/estiloCanciones.css">
+    <!-- Importación de hojas de estilo CSS personalizadas con enfoque modular -->
+    <link href="resources/css/header.css" rel="stylesheet"> <!-- Estilos para cabeceras -->
+    <link href="resources/css/main.css" rel="stylesheet"> <!-- Estilos generales -->
+    <link href="resources/css/reproductor.css" rel="stylesheet"> <!-- Estilos del reproductor de música -->
+    <link href="resources/css/animaciones.css" rel="stylesheet"> <!-- Animaciones personalizadas -->
+    <link href="resources/css/footer.css" rel="stylesheet"> <!-- Estilos para el pie de página -->
+    <link href="resources/css/misc.css" rel="stylesheet"> <!-- Estilos misceláneos -->
+    <link href="resources/css/asistente.css" rel="stylesheet"> <!-- Estilos para el asistente musical -->
+    <link href="resources/css/explorar.css" rel="stylesheet"> <!-- Estilos específicos para la página de exploración -->
+    <link rel="stylesheet" href="resources/css/estiloCanciones.css"> <!-- Estilos para la visualización de canciones -->
     
+    <!-- Estilos adicionales específicos para esta página -->
     <style>
-        /* Styles for the loop and shuffle buttons */
+        /* Estilos para los botones de bucle y aleatorio */
         #loopBtn, #shuffleBtn {
-            opacity: 0.6;
-            transition: all 0.3s ease;
+            opacity: 0.6; /* Transparencia inicial para botones inactivos */
+            transition: all 0.3s ease; /* Transición suave */
         }
         
+        /* Estado activo de los botones de reproducción */
         #loopBtn.active, #shuffleBtn.active {
-            opacity: 1;
-            color: #1ed760;
+            opacity: 1; /* Totalmente opaco cuando está activo */
+            color: #1ed760; /* Verde de Spotify cuando está activo */
         }
         
-        /* Make Spotify controls more visible */
+        /* Controles específicos para la integración con Spotify */
         .spotify-controls {
             position: absolute;
             top: 10px;
             right: 10px;
             display: flex;
             gap: 10px;
-            z-index: 1002;
+            z-index: 1002; /* Sobre otros elementos */
         }
         
+        /* Botones de acción para Spotify */
         .spotify-action-btn {
-            background: #1DB954;
+            background: #1DB954; /* Verde de Spotify */
             color: white;
             border: none;
             width: 32px;
             height: 32px;
-            border-radius: 50%;
+            border-radius: 50%; /* Forma circular */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -61,11 +65,12 @@
             transition: all 0.2s ease;
         }
         
+        /* Efecto hover para botones de Spotify */
         .spotify-action-btn:hover {
             transform: scale(1.1);
         }
         
-        /* Player message style */
+        /* Estilo para mensajes flotantes del reproductor */
         .player-message {
             position: fixed;
             bottom: 100px;
@@ -82,22 +87,29 @@
 </head>
 
 <body>
-    <!-- Efecto de cursor brillante -->
+    <!-- Efecto de cursor con brillo que sigue al puntero -->
     <div class="glowing-cursor"></div>
 
-    <!-- Navegación -->
+    <!-- Barra de navegación principal fija en la parte superior -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
+            <!-- Logo/nombre de la aplicación -->
             <a class="navbar-brand" href="index.html">MusiFlow</a>
+            
+            <!-- Botón hamburguesa para menú móvil -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Elementos de navegación colapsables -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Enlaces de navegación principal -->
                     <li class="nav-item">
                         <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a>
                     </li>
+                    <!-- Enlace a la página actual (resaltado) -->
                     <li class="nav-item">
                         <a class="nav-link active" href="explorar.html"><i class="fas fa-compass"></i> Explorar</a>
                     </li>
@@ -107,6 +119,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="premium.html"><i class="fas fa-crown"></i> Premium</a>
                     </li>
+                    <!-- Botón de inicio de sesión (se actualiza dinámicamente si el usuario está autenticado) -->
                     <li class="nav-item">
                         <a class="nav-link" href="login.html" id="loginLink"><i class="fas fa-sign-in-alt"></i>
                             Ingresar</a>
@@ -116,24 +129,24 @@
         </div>
     </nav>
 
-    <!-- Header de Explorar -->
+    <!-- Cabecera de la página de exploración -->
     <section class="explore-header">
         <div class="container">
             <div class="row">
                 <div class="col-12 text-center">
                     <h1 class="hero-title">Explora nueva música</h1>
                     <p class="hero-subtitle">Descubre canciones, artistas y géneros que te encantarán</p>
-
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Sección de Búsqueda -->
+    <!-- Sección de búsqueda con campo de texto y botón -->
     <section class="search-section">
         <div class="container">
             <div class="row">
                 <div class="col-12">
+                    <!-- Caja de búsqueda principal -->
                     <div class="search-box">
                         <input type="text" class="search-input" id="searchInput"
                             placeholder="Busca canciones, artistas o álbumes...">
@@ -141,6 +154,7 @@
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
+                    <!-- Texto informativo sobre la búsqueda -->
                     <div class="text-center mt-3">
                         <small class="text-muted">
                             <i class="fas fa-info-circle me-1"></i>
@@ -152,17 +166,21 @@
         </div>
     </section>
 
-    <!-- Selector de modo -->
+    <!-- Selector de modo: Local o Spotify -->
     <div class="container mt-3">
         <div class="source-selector">
+            <!-- Grupo de botones para cambiar el modo -->
             <div class="btn-group" role="group">
+                <!-- Botón de modo local (activo por defecto) -->
                 <button type="button" class="btn btn-dark active" id="localModeBtn">
                     <i class="fas fa-music"></i> Modo Local
                 </button>
+                <!-- Botón de modo Spotify -->
                 <button type="button" class="btn btn-dark" id="spotifyModeBtn">
                     <i class="fab fa-spotify"></i> Modo Spotify
                 </button>
             </div>
+            <!-- Indicador de estado de la conexión a Spotify (oculto inicialmente) -->
             <div id="spotifyStatus" class="ms-3" style="display: none;">
                 <div class="alert alert-warning d-inline-block">
                     <small id="statusText">Conectando a Spotify...</small>
@@ -171,17 +189,20 @@
         </div>
     </div>
     
+    <!-- Sección donde se mostrarán los resultados de búsqueda (inicialmente oculta) -->
     <section class="results-section" id="resultsSection">
         <div class="container">
             <h2 class="section-title">Resultados</h2>
+            <!-- Contenedor donde se cargarán los resultados de la búsqueda -->
             <div id="searchResults">
-                <!-- Las canciones se cargarán aquí automáticamente -->
+                <!-- Las canciones se cargarán aquí dinámicamente -->
             </div>
         </div>
     </section>
 
-    <!-- Reproductor Fijo -->
+    <!-- Reproductor fijo en la parte inferior (para modo local) -->
     <div class="current-player" id="currentPlayer">
+        <!-- Información de la pista actual -->
         <div class="current-track-info">
             <img src="resources/album covers/placeholder.png" alt="Track" class="current-track-image" id="currentTrackImage">
             <div class="current-track-details">
@@ -190,61 +211,83 @@
             </div>
         </div>
 
+        <!-- Sección central: controles y barra de progreso -->
         <div class="player-center-section">
+            <!-- Botones de control de reproducción -->
             <div class="player-controls-current">
+                <!-- Botón de reproducción aleatoria -->
                 <button class="control-btn-current" id="shuffleBtn" title="Shuffle">
                     <i class="fas fa-random"></i>
                 </button>
+                <!-- Botón de pista anterior -->
                 <button class="control-btn-current" id="prevBtn">
                     <i class="fas fa-step-backward"></i>
                 </button>
+                <!-- Botón de reproducir/pausar -->
                 <button class="control-btn-current play-btn-current" id="playPauseBtn">
                     <i class="fas fa-play"></i>
                 </button>
+                <!-- Botón de siguiente pista -->
                 <button class="control-btn-current" id="nextBtn">
                     <i class="fas fa-step-forward"></i>
                 </button>
+                <!-- Botón de repetición -->
                 <button class="control-btn-current" id="loopBtn" title="Loop">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
+            
+            <!-- Barra de progreso de la reproducción -->
             <div class="progress-bar-container">
+                <!-- Tiempo transcurrido -->
                 <span id="currentTime">0:00</span>
+                <!-- Barra gráfica de progreso -->
                 <div class="progress-bar">
                     <div class="progress" id="progressBar"></div>
                 </div>
+                <!-- Duración total -->
                 <span id="totalTime">0:00</span>
             </div>
         </div>
 
+        <!-- Controles adicionales: volumen -->
         <div class="player-actions">
+            <!-- Contenedor del control de volumen -->
             <div class="volume-container" id="volumeContainer">
+                <!-- Botón de volumen -->
                 <button class="volume-icon">
                     <i class="fas fa-volume-up"></i>
                 </button>
+                <!-- Deslizador de volumen -->
                 <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeControl">
             </div>
         </div>
     </div>
 
-    <!-- Floating chat button -->
+    <!-- Botón flotante para acceder al asistente musical -->
     <div class="music-assistant-button" id="musicAssistantButton">
         <i>🎵</i>
     </div>
 
-    <!-- Chat modal -->
+    <!-- Ventana modal del asistente musical MusicGPT -->
     <div class="music-assistant-modal" id="musicAssistantModal">
+        <!-- Elementos decorativos del asistente -->
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="sparkle-effect"></div>
+        
+        <!-- Cabecera del asistente -->
         <div class="assistant-header">
             <h1 class="assistant-title">MusicGPT</h1>
             <p class="assistant-description">Tu asistente musical inteligente</p>
             <button class="close-button" id="closeButton">×</button>
         </div>
+        
+        <!-- Contenedor de mensajes del chat -->
         <div class="assistant-chat-container">
             <div class="assistant-chat-messages" id="chatMessages"></div>
+            <!-- Indicador de que el asistente está escribiendo -->
             <div class="typing-indicator" id="typingIndicator">
                 <div class="typing-indicator-content">
                     <span>MusicGPT está escribiendo</span>
@@ -252,20 +295,25 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Área de entrada de texto para el usuario -->
         <div class="assistant-input-area">
             <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
             <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Pie de página con enlaces e información -->
     <footer class="footer">
         <div class="container">
             <div class="row">
+                <!-- Información sobre la aplicación -->
                 <div class="col-md-6 mb-4">
                     <h5 class="footer-title">MusiFlow</h5>
                     <p>La mejor plataforma para descubrir música nueva.</p>
                 </div>
+                
+                <!-- Enlaces rápidos -->
                 <div class="col-md-6 mb-4">
                     <h5 class="footer-title">Enlaces</h5>
                     <ul class="footer-links">
@@ -276,26 +324,29 @@
                     </ul>
                 </div>
             </div>
+            
+            <!-- Texto de copyright -->
             <div class="copyright">
                 <p>&copy; 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- Importación de scripts JavaScript -->
+    <!-- Bootstrap JS Bundle (incluye Popper) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <!-- AOS Animation Library -->
+    <!-- Biblioteca de animaciones -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 
-    <!-- Load Firebase first -->
+    <!-- Carga de Firebase para autenticación y almacenamiento -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
-    <!-- Initialize Firebase before other scripts -->
+    <!-- Inicialización de Firebase con la configuración del proyecto -->
     <script>
-    // Initialize Firebase directly in explorar.html
+    // Configuración de Firebase para la página de exploración
     const firebaseConfig = {
         apiKey: "AIzaSyBCtn83ZMoWCZaL1QSuzTpOv-hJmXI-o8k",
         authDomain: "musiflow-42411.firebaseapp.com",
@@ -307,14 +358,15 @@
         measurementId: "G-FFVMTR5LVM"
     };
 
-    // Initialize Firebase
+    // Inicialización de Firebase si aún no se ha hecho
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         console.log("Firebase initialized for explorar.html");
     }
 
-    // Create authentication interface
+    // Creación de interfaz de autenticación para uso global
     window.firebaseAuth = {
+        // Función para obtener el usuario actual con datos adicionales
         getCurrentUser: function() {
             return new Promise((resolve, reject) => {
                 const user = firebase.auth().currentUser;
@@ -324,7 +376,7 @@
                     return;
                 }
                 
-                // Get additional user data from database
+                // Obtener datos adicionales del usuario desde la base de datos
                 firebase.database().ref('users/' + user.uid).once('value')
                     .then(snapshot => {
                         const userData = snapshot.val() || {};
@@ -350,14 +402,16 @@
             });
         },
         
+        // Función para verificar si el usuario está autenticado
         isUserLoggedIn: function() {
             return !!firebase.auth().currentUser;
         },
         
+        // Observador de cambios en el estado de autenticación
         onAuthStateChanged: function(callback) {
             return firebase.auth().onAuthStateChanged(user => {
                 if (user) {
-                    // User is signed in
+                    // Usuario ha iniciado sesión
                     firebase.database().ref('users/' + user.uid).once('value')
                         .then(snapshot => {
                             const userData = snapshot.val() || {};
@@ -387,7 +441,7 @@
                             });
                         });
                 } else {
-                    // User is signed out
+                    // Usuario ha cerrado sesión
                     callback({
                         user: null,
                         loggedIn: false
@@ -397,12 +451,12 @@
         }
     };
 
-    // Update login link based on authentication state
+    // Actualización del enlace de inicio de sesión según el estado de autenticación
     firebase.auth().onAuthStateChanged(user => {
         const loginLink = document.getElementById('loginLink');
         
         if (user && loginLink) {
-            // User is logged in
+            // Usuario ha iniciado sesión
             const displayName = user.displayName || user.email.split('@')[0];
             loginLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
             loginLink.href = 'account.html';
@@ -410,12 +464,12 @@
     });
     </script>
 
-    <!-- Now load the other scripts after Firebase is initialized -->
-    <script src="resources/js/login.js"></script>
-    <script src="resources/js/asistente.js"></script>
-    <script src="resources/js/spotify-api.js"></script>
-    <script src="resources/js/mostrarCanciones.js"></script>
-    <script src="resources/js/music-manager.js"></script>
+    <!-- Scripts específicos para la funcionalidad de la página -->
+    <script src="resources/js/login.js"></script> <!-- Gestión de inicio de sesión -->
+    <script src="resources/js/asistente.js"></script> <!-- Funcionalidad del asistente musical -->
+    <script src="resources/js/spotify-api.js"></script> <!-- Integración con la API de Spotify -->
+    <script src="resources/js/mostrarCanciones.js"></script> <!-- Visualización de canciones -->
+    <script src="resources/js/music-manager.js"></script> <!-- Gestión de reproducción musical -->
 </body>
 
 </html>

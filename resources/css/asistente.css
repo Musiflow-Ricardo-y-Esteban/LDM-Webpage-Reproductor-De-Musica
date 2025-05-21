@@ -172,7 +172,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* Custom scrollbar */
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) var(--background-color);
 }
@@ -190,7 +189,6 @@ body {
     border-radius: 2px;
 }
 
-/* Message styles */
 .message {
     max-width: 85%;
     padding: 10px 12px;
@@ -220,7 +218,6 @@ body {
     color: var(--text-color);
 }
 
-/* Typing indicator */
 .typing-indicator {
     display: none;
     align-self: flex-start;
@@ -264,7 +261,6 @@ body {
     animation: pulse 1.5s infinite 0.6s;
 }
 
-/* Input area */
 .assistant-input-area {
     display: flex;
     padding: 10px;
@@ -317,7 +313,7 @@ body {
         0 0 20px rgba(0, 128, 64, 0.3);
 }
 
-/* Animations */
+/* Animaciones */
 @keyframes borderGlow {
     0% { box-shadow: 0 0 20px var(--shadow-color), 0 0 40px var(--secondary-shadow); }
     50% { box-shadow: 0 0 25px rgba(0, 255, 127, 0.5), 0 0 50px rgba(0, 128, 64, 0.3); }
@@ -378,7 +374,6 @@ body {
     }
 }
 
-/* Sparkle Effect */
 .sparkle-effect {
     position: absolute;
     top: 0;

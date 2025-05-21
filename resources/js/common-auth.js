@@ -1,12 +1,22 @@
-// common-auth.js - Load this script before all other scripts on every page
+// common-auth.js - Sistema central de autenticación para todas las páginas
+
+/**
+ * Este archivo se carga antes que cualquier otro script en cada página
+ * Proporciona una capa de autenticación consistente y gestiona:
+ * - Inicialización de Firebase 
+ * - Redirección a login para páginas protegidas
+ * - Actualización automática de la interfaz según estado de sesión
+ */
+
+// Ejecutar cuando el DOM está completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if Firebase is already loaded
+    // Comprobar si Firebase ya está cargado e inicializarlo
     initializeFirebase()
         .then(() => {
             console.log('Firebase initialized and auth ready');
-            // Initialize UI based on auth state
+            // Inicializar UI basada en estado de autenticación
             updateUIForAuthState();
-            // Set up auth state listener
+            // Configurar observador de cambios de autenticación
             setupAuthStateListener();
         })
         .catch(error => {
@@ -14,11 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
-// Initialize Firebase and authentication
+/**
+ * Inicializa Firebase y sus servicios de autenticación
+ * @return {Promise} Promesa que se resuelve cuando Firebase está listo
+ */
 function initializeFirebase() {
     return new Promise((resolve, reject) => {
         try {
-            // Firebase configuration
+            // Configuración de Firebase
             const firebaseConfig = {
                 apiKey: "AIzaSyBCtn83ZMoWCZaL1QSuzTpOv-hJmXI-o8k",
                 authDomain: "musiflow-42411.firebaseapp.com",
@@ -30,20 +43,20 @@ function initializeFirebase() {
                 measurementId: "G-FFVMTR5LVM"
             };
 
-            // Initialize Firebase if not already initialized
+            // Inicializar Firebase si no está ya inicializado
             if (typeof firebase !== 'undefined') {
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
                 
-                // Create auth interface if not exists
+                // Crear interfaz de autenticación si no existe
                 if (!window.firebaseAuth) {
                     setupFirebaseAuthInterface();
                 }
                 
                 resolve(true);
             } else {
-                // Load Firebase scripts dynamically
+                // Cargar scripts de Firebase dinámicamente
                 loadFirebaseScripts()
                     .then(() => {
                         firebase.initializeApp(firebaseConfig);
@@ -60,7 +73,10 @@ function initializeFirebase() {
     });
 }
 
-// Load Firebase scripts dynamically
+/**
+ * Carga los scripts de Firebase dinámicamente si no están ya cargados
+ * @return {Promise} Promesa que se resuelve cuando todos los scripts han cargado
+ */
 function loadFirebaseScripts() {
     return new Promise((resolve, reject) => {
         const scripts = [
@@ -99,13 +115,17 @@ function loadFirebaseScripts() {
     });
 }
 
-// Set up Firebase auth interface
+/**
+ * Configura la interfaz global de autenticación de Firebase
+ * Proporciona métodos unificados para gestionar usuarios
+ */
 function setupFirebaseAuthInterface() {
     const auth = firebase.auth();
     const database = firebase.database();
     
+    // Objeto global con métodos de autenticación disponibles para toda la aplicación
     window.firebaseAuth = {
-        // Get current user
+        // Obtener usuario actual con datos adicionales de la base de datos
         getCurrentUser: function() {
             return new Promise((resolve, reject) => {
                 const user = auth.currentUser;
@@ -115,7 +135,7 @@ function setupFirebaseAuthInterface() {
                     return;
                 }
                 
-                // Get additional user data from database
+                // Obtener datos adicionales del usuario desde la base de datos
                 database.ref('users/' + user.uid).once('value')
                     .then(snapshot => {
                         const userData = snapshot.val() || {};
@@ -141,31 +161,31 @@ function setupFirebaseAuthInterface() {
             });
         },
         
-        // Register new user
+        // Registrar nuevo usuario
         registerUser: async function(email, password, username) {
             try {
-                // Show loading spinner
+                // Mostrar indicador de carga
                 showLoading(true);
                 
-                // Create user with email and password
+                // Crear usuario con email y contraseña
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Save additional user data to Firebase Realtime Database
+                // Guardar datos adicionales en Firebase Realtime Database
                 await database.ref('users/' + user.uid).set({
-                    username: username || email.split('@')[0], // Default username is email prefix
+                    username: username || email.split('@')[0], // Nombre por defecto es prefijo del email
                     email: email,
                     profile_picture: '',
                     created_at: new Date().toISOString(),
                     last_login: new Date().toISOString()
                 });
                 
-                // Update profile
+                // Actualizar perfil
                 await user.updateProfile({
                     displayName: username || email.split('@')[0]
                 });
                 
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -173,7 +193,7 @@ function setupFirebaseAuthInterface() {
                     user: user
                 };
             } catch (error) {
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -183,27 +203,27 @@ function setupFirebaseAuthInterface() {
             }
         },
         
-        // Login user
+        // Iniciar sesión
         loginUser: async function(email, password) {
             try {
-                // Show loading spinner
+                // Mostrar indicador de carga
                 showLoading(true);
                 
-                // Sign in with email and password
+                // Iniciar sesión con email y contraseña
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Update last login timestamp
+                // Actualizar timestamp de último login
                 await database.ref('users/' + user.uid + '/last_login').set(new Date().toISOString());
                 
-                // Store auth state in localStorage for persistence
+                // Guardar estado de autenticación en localStorage para persistencia
                 localStorage.setItem('musiflow_auth_user', JSON.stringify({
                     uid: user.uid,
                     email: user.email,
                     displayName: user.displayName
                 }));
                 
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -211,7 +231,7 @@ function setupFirebaseAuthInterface() {
                     user: user
                 };
             } catch (error) {
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -221,26 +241,26 @@ function setupFirebaseAuthInterface() {
             }
         },
         
-        // Logout user
+        // Cerrar sesión de usuario
         logoutUser: async function() {
             try {
-                // Show loading spinner
+                // Mostrar indicador de carga
                 showLoading(true);
                 
-                // Sign out
+                // Cerrar sesión
                 await auth.signOut();
                 
-                // Clear auth state from localStorage
+                // Limpiar estado de autenticación de localStorage
                 localStorage.removeItem('musiflow_auth_user');
                 
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
                     success: true
                 };
             } catch (error) {
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -250,7 +270,7 @@ function setupFirebaseAuthInterface() {
             }
         },
         
-        // Update user profile
+        // Actualizar perfil de usuario
         updateUserProfile: async function(displayName, photoURL) {
             try {
                 const user = auth.currentUser;
@@ -259,29 +279,29 @@ function setupFirebaseAuthInterface() {
                     throw new Error('No user logged in');
                 }
                 
-                // Show loading spinner
+                // Mostrar indicador de carga
                 showLoading(true);
                 
-                // Update auth profile
+                // Actualizar perfil en Auth
                 await user.updateProfile({
                     displayName: displayName,
                     photoURL: photoURL
                 });
                 
-                // Update database profile
+                // Actualizar perfil en Database
                 await database.ref('users/' + user.uid).update({
                     username: displayName,
                     profile_picture: photoURL
                 });
                 
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
                     success: true
                 };
             } catch (error) {
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -291,22 +311,22 @@ function setupFirebaseAuthInterface() {
             }
         },
         
-        // Reset password
+        // Restablecer contraseña
         resetPassword: async function(email) {
             try {
-                // Show loading spinner
+                // Mostrar indicador de carga
                 showLoading(true);
                 
                 await auth.sendPasswordResetEmail(email);
                 
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
                     success: true
                 };
             } catch (error) {
-                // Hide loading spinner
+                // Ocultar indicador de carga
                 showLoading(false);
                 
                 return {
@@ -316,16 +336,16 @@ function setupFirebaseAuthInterface() {
             }
         },
         
-        // Check if user is logged in
+        // Verificar si el usuario está autenticado
         isUserLoggedIn: function() {
             return !!auth.currentUser;
         },
         
-        // Auth state observer
+        // Observador de cambios de estado de autenticación
         onAuthStateChanged: function(callback) {
             return auth.onAuthStateChanged(user => {
                 if (user) {
-                    // User is signed in
+                    // Usuario autenticado
                     database.ref('users/' + user.uid).once('value')
                         .then(snapshot => {
                             const userData = snapshot.val() || {};
@@ -355,7 +375,7 @@ function setupFirebaseAuthInterface() {
                             });
                         });
                 } else {
-                    // User is signed out
+                    // Usuario no autenticado
                     callback({
                         user: null,
                         loggedIn: false
@@ -366,7 +386,10 @@ function setupFirebaseAuthInterface() {
     };
 }
 
-// Update UI based on authentication state
+/**
+ * Actualiza la interfaz según el estado de autenticación
+ * Modifica enlaces de login y protege páginas que requieren autenticación
+ */
 function updateUIForAuthState() {
     const auth = firebase.auth();
     
@@ -374,22 +397,22 @@ function updateUIForAuthState() {
         const loginLinks = document.querySelectorAll('.nav-link[href*="login"], .nav-link[data-bs-target="#loginModal"]');
         
         if (user) {
-            // User is logged in
-            // Update login links to show user's name and redirect to account page
+            // Usuario autenticado
+            // Actualizar enlaces de login para mostrar nombre de usuario y redirigir a página de cuenta
             loginLinks.forEach(link => {
                 const displayName = user.displayName || user.email.split('@')[0];
                 link.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
                 link.setAttribute('href', 'account.html');
                 
-                // Remove modal attributes if present
+                // Eliminar atributos de modal si existen
                 link.removeAttribute('data-bs-toggle');
                 link.removeAttribute('data-bs-target');
             });
             
-            // Check if we're on pages that require login
+            // Verificar si estamos en páginas que requieren login
             const currentPage = window.location.pathname.split('/').pop();
             
-            // If on account page but can't authenticate, show loading first
+            // Si estamos en página de cuenta pero no podemos autenticar, mostrar carga primero
             if (currentPage === 'account.html') {
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 if (loadingOverlay) {
@@ -397,31 +420,31 @@ function updateUIForAuthState() {
                 }
             }
         } else {
-            // User is not logged in
-            // Reset login links
+            // Usuario no autenticado
+            // Resetear enlaces de login
             loginLinks.forEach(link => {
                 if (link.href.includes('account.html')) {
-                    // Reset account links to login link/modal
+                    // Convertir enlaces de cuenta a enlaces de login
                     if (document.getElementById('loginModal')) {
-                        // If login modal exists, set up modal trigger
+                        // Si existe el modal de login, configurar como disparador del modal
                         link.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
                         link.setAttribute('href', '#');
                         link.setAttribute('data-bs-toggle', 'modal');
                         link.setAttribute('data-bs-target', '#loginModal');
                     } else {
-                        // Otherwise link to login page
+                        // De lo contrario, enlazar a página de login
                         link.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
                         link.setAttribute('href', 'login.html');
                     }
                 }
             });
             
-            // Redirect to login page if on protected pages
+            // Redirigir a login si estamos en páginas protegidas
             const currentPage = window.location.pathname.split('/').pop();
             const protectedPages = ['account.html']; 
             
             if (protectedPages.includes(currentPage)) {
-                // Store current page as redirect destination after login
+                // Guardar página actual como destino de redirección después del login
                 localStorage.setItem('redirect_after_login', currentPage);
                 window.location.href = 'login.html';
             }
@@ -429,27 +452,33 @@ function updateUIForAuthState() {
     });
 }
 
-// Set up auth state change listener
+/**
+ * Configura el observador de cambios de estado de autenticación
+ * Dispara un evento personalizado cuando cambia el estado
+ */
 function setupAuthStateListener() {
     firebase.auth().onAuthStateChanged(user => {
-        // Dispatch a custom event when auth state changes
+        // Emitir un evento personalizado cuando cambia el estado de autenticación
         const event = new CustomEvent('authStateChanged', { detail: { user } });
         document.dispatchEvent(event);
     });
 }
 
-// Helper function to show/hide loading overlay
+/**
+ * Muestra u oculta el indicador de carga (overlay)
+ * @param {boolean} show - Indica si mostrar (true) u ocultar (false)
+ */
 function showLoading(show) {
     let loadingOverlay = document.getElementById('loadingOverlay');
     
-    // Create loading overlay if doesn't exist
+    // Crear el overlay de carga si no existe
     if (!loadingOverlay) {
         loadingOverlay = document.createElement('div');
         loadingOverlay.id = 'loadingOverlay';
         loadingOverlay.className = 'loading-overlay';
         loadingOverlay.innerHTML = '<div class="spinner"></div>';
         
-        // Add styles if needed
+        // Añadir estilos si son necesarios
         if (!document.getElementById('loading-styles')) {
             const style = document.createElement('style');
             style.id = 'loading-styles';
@@ -491,7 +520,7 @@ function showLoading(show) {
         document.body.appendChild(loadingOverlay);
     }
     
-    // Show or hide
+    // Mostrar u ocultar
     if (show) {
         loadingOverlay.classList.add('show');
     } else {

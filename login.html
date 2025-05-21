@@ -5,43 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Iniciar Sesión</title>
     
-    <!-- Bootstrap 5 CSS -->
+    <!-- Importación de bibliotecas CSS externas -->
+    <!-- Bootstrap 5: Framework CSS para diseño responsivo -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- Font Awesome: Biblioteca de iconos vectoriales -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- AOS Animation Library -->
+    <!-- AOS: Biblioteca para animaciones al hacer scroll -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
     
-    <!-- CSS personalizado - Enfoque modular -->
-    <link href="resources/css/header.css" rel="stylesheet">
-    <link href="resources/css/main.css" rel="stylesheet">
-    <link href="resources/css/reproductor.css" rel="stylesheet">
-    <link href="resources/css/animaciones.css" rel="stylesheet">
-    <link href="resources/css/footer.css" rel="stylesheet">
-    <link href="resources/css/misc.css" rel="stylesheet">
-    <link href="resources/css/asistente.css" rel="stylesheet">
+    <!-- Importación de hojas de estilo CSS personalizadas con enfoque modular -->
+    <link href="resources/css/header.css" rel="stylesheet"> <!-- Estilos para cabeceras -->
+    <link href="resources/css/main.css" rel="stylesheet"> <!-- Estilos generales -->
+    <link href="resources/css/reproductor.css" rel="stylesheet"> <!-- Estilos del reproductor -->
+    <link href="resources/css/animaciones.css" rel="stylesheet"> <!-- Animaciones personalizadas -->
+    <link href="resources/css/footer.css" rel="stylesheet"> <!-- Estilos para el pie de página -->
+    <link href="resources/css/misc.css" rel="stylesheet"> <!-- Estilos misceláneos -->
+    <link href="resources/css/asistente.css" rel="stylesheet"> <!-- Estilos para el asistente musical -->
 
+    <!-- Estilos específicos para la página de inicio de sesión -->
     <style>
+        /* Estructura principal de la página */
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            min-height: 100vh; /* Altura mínima igual a la altura de la ventana */
         }
+        
+        /* Sección principal de inicio de sesión */
         .login-page-section {
-            flex-grow: 1;
+            flex-grow: 1; /* Ocupa el espacio disponible */
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-top: 80px; /* Ajustar según altura del navbar */
+            padding-top: 80px; /* Espacio para la barra de navegación fija */
             padding-bottom: 40px;
             background: radial-gradient(circle at center, #2a2a2a 0%, var(--oscuro-primario) 100%);
-            position: relative; /* Para las notas musicales */
+            position: relative; /* Para posicionamiento de elementos decorativos */
         }
+        
+        /* Formulario de inicio de sesión */
         .login-page-section .login-form {
             width: 100%;
             max-width: 450px; /* Ancho máximo para el formulario */
             /* Los estilos de .login-form de header.css se aplicarán aquí */
         }
+        
+        /* Logotipo destacado en página de login */
         .login-page-section .navbar-brand-login {
             font-weight: 700;
             font-size: 2.5rem; /* Más grande para la página de login */
@@ -53,6 +62,8 @@
             text-align: center;
             margin-bottom: 2rem;
         }
+        
+        /* Efecto de brillo detrás del logotipo */
         .login-page-section .navbar-brand-login::after {
             content: '';
             position: absolute;
@@ -66,19 +77,19 @@
             z-index: -1;
         }
 
-        /* Asegurar que el contenido no se solape con el navbar fijo */
+        /* Espacio para evitar solapamiento con la barra de navegación fija */
         .content-pusher {
              padding-top: 70px; /* Altura aproximada del navbar */
         }
 
-         /* Estilo para el contenedor principal de la página de login */
+        /* Contenedor principal que ocupa todo el espacio vertical disponible */
         .login-main-container {
             flex-grow: 1; /* Hace que este contenedor ocupe el espacio disponible */
             display: flex;
             flex-direction: column;
         }
 
-        /* Loading overlay styles */
+        /* Capa de carga para operaciones asíncronas */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -94,10 +105,14 @@
             opacity: 0;
             transition: all 0.3s ease;
         }
+        
+        /* Estado visible de la capa de carga */
         .loading-overlay.show {
             visibility: visible;
             opacity: 1;
         }
+        
+        /* Indicador giratorio de carga */
         .spinner {
             width: 50px;
             height: 50px;
@@ -106,12 +121,18 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
+        /* Animación de giro para el spinner */
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Animación de sacudida para indicar error */
         .shake {
             animation: shake 0.5s;
         }
+        
+        /* Definición de la animación de sacudida */
         @keyframes shake {
             0%, 50%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -120,18 +141,24 @@
     </style>
 </head>
 <body>
-    <!-- Efecto de cursor brillante -->
+    <!-- Efecto de cursor con brillo que sigue al puntero -->
     <div class="glowing-cursor"></div>
     
-    <!-- Navegación -->
+    <!-- Barra de navegación principal fija en la parte superior -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
+            <!-- Logo/nombre de la aplicación -->
             <a class="navbar-brand" href="index.html">MusiFlow</a>
+            
+            <!-- Botón hamburguesa para menú móvil -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Elementos de navegación colapsables -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Enlaces de navegación principal -->
                     <li class="nav-item">
                         <a class="nav-link active" href="index.html"><i class="fas fa-home"></i> Inicio</a>
                     </li>
@@ -153,43 +180,62 @@
         </div>
     </nav>
     
-    <!-- Notas musicales flotantes -->
+    <!-- Contenedor para notas musicales decorativas flotantes -->
     <div class="notes-container"></div>
     
+    <!-- Contenedor principal de la página con espaciado para la barra fija -->
     <div class="login-main-container content-pusher">
-        <!-- Sección de Login -->
+        <!-- Sección principal de inicio de sesión -->
         <section class="login-page-section">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-12"> 
+                        <!-- Formulario de inicio de sesión con animación de entrada -->
                         <div class="login-form shadow" data-aos="fade-up">
+                            <!-- Logotipo destacado -->
                             <a class="navbar-brand-login" href="index.html">MusiFlow</a>
                             <h3 class="mb-4 text-center">Inicia sesión en tu cuenta</h3>
+                            
+                            <!-- Formulario de inicio de sesión -->
                             <form>
+                                <!-- Campo de correo electrónico -->
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Correo electrónico</label>
                                     <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com" required>
                                 </div>
+                                
+                                <!-- Campo de contraseña -->
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Contraseña</label>
                                     <input type="password" class="form-control" id="password" placeholder="Tu contraseña" required>
                                 </div>
+                                
+                                <!-- Opción recordar datos -->
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" id="rememberMe">
                                     <label class="form-check-label" for="rememberMe">Recordarme</label>
                                 </div>
+                                
+                                <!-- Botón de inicio de sesión -->
                                 <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                                
+                                <!-- Enlace para recuperar contraseña -->
                                 <div class="mt-3 text-center">
                                     <a href="#" class="text-decoration-none" id="forgotPasswordLink">¿Olvidaste tu contraseña?</a>
                                 </div>
                             </form>
+                            
                             <hr class="my-4">
+                            
+                            <!-- Opciones de inicio de sesión con terceros -->
                             <p class="text-center mb-2">O inicia sesión con</p>
                             <div class="d-flex justify-content-center mb-3">
                                 <button class="btn btn-outline-light me-2"><i class="fab fa-google me-1"></i> Google</button>
                                 <button class="btn btn-outline-light me-2"><i class="fab fa-facebook-f me-1"></i> Facebook</button>
                                 <button class="btn btn-outline-light"><i class="fab fa-apple me-1"></i> Apple</button>
                             </div>
+                            
+                            <!-- Enlace para registro de nuevos usuarios -->
                             <p class="text-center mb-0">¿No tienes cuenta? <a href="#register" class="text-decoration-none fw-bold" id="registerLink">Regístrate aquí</a></p>
                         </div>
                     </div>
@@ -198,24 +244,30 @@
         </section>
     </div>
 
-    <!-- Floating chat button -->
+    <!-- Botón flotante para acceder al asistente musical -->
     <div class="music-assistant-button" id="musicAssistantButton">
         <i>🎵</i>
     </div>
 
-    <!-- Chat modal -->
+    <!-- Ventana modal del asistente musical MusicGPT -->
     <div class="music-assistant-modal" id="musicAssistantModal">
+        <!-- Elementos decorativos del asistente -->
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="sparkle-effect"></div>
+        
+        <!-- Cabecera del asistente -->
         <div class="assistant-header">
             <h1 class="assistant-title">MusicGPT</h1>
             <p class="assistant-description">Tu asistente musical inteligente</p>
             <button class="close-button" id="closeButton">×</button>
         </div>
+        
+        <!-- Contenedor de mensajes del chat -->
         <div class="assistant-chat-container">
             <div class="assistant-chat-messages" id="chatMessages"></div>
+            <!-- Indicador de que el asistente está escribiendo -->
             <div class="typing-indicator" id="typingIndicator">
                 <div class="typing-indicator-content">
                     <span>MusicGPT está escribiendo</span>
@@ -223,24 +275,29 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Área de entrada de texto para el usuario -->
         <div class="assistant-input-area">
             <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
             <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Overlay de carga para operaciones asíncronas -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
 
-    <!-- Footer -->
+    <!-- Pie de página con información y enlaces -->
     <footer class="footer mt-auto"> <!-- mt-auto para empujar el footer hacia abajo si el contenido es corto -->
         <div class="container">
             <div class="row">
+                <!-- Columna de información de la empresa -->
                 <div class="col-md-4 mb-4">
                     <h5 class="footer-title">MusiFlow</h5>
                     <p>La mejor plataforma para descubrir, compartir y disfrutar de música en alta calidad con una experiencia única y personalizada.</p>
+                    
+                    <!-- Enlaces a redes sociales -->
                     <div class="social-links">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
@@ -249,6 +306,8 @@
                         <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
+                
+                <!-- Enlaces organizados por categorías -->
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Compañía</h5>
                     <ul class="footer-links">
@@ -257,6 +316,7 @@
                         <li><a href="#">Prensa</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Comunidad</h5>
                     <ul class="footer-links">
@@ -265,6 +325,7 @@
                         <li><a href="#">Publicidad</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Enlaces</h5>
                     <ul class="footer-links">
@@ -272,6 +333,7 @@
                         <li><a href="#">App móvil</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Legal</h5>
                     <ul class="footer-links">
@@ -281,31 +343,40 @@
                     </ul>
                 </div>
             </div>
+            
+
             <div class="copyright">
                 <p>© 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
-        <script src="resources/js/common-auth.js"></script>
+    
+    <!-- Scripts de JavaScript -->
+    <!-- Script para autenticación común en todas las páginas -->
+    <script src="resources/js/common-auth.js"></script>
+    
     <!-- Firebase Initialization -->
     <script src="resources/js/firebase-init.js"></script>
     
-    <!-- Scripts -->
-    <script src="resources/js/login.js"></script>
-    <script src="resources/js/asistente.js"></script>
+    <!-- Scripts específicos para la funcionalidad -->
+    <script src="resources/js/login.js"></script> <!-- Gestión de inicio de sesión -->
+    <script src="resources/js/asistente.js"></script> <!-- Funcionalidad del asistente musical -->
+    
+    <!-- Bibliotecas JS externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     
+    <!-- Script para inicializar efectos visuales y funcionalidades -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize AOS
+            // Inicializar animaciones AOS
             AOS.init({
                 duration: 800,
                 easing: 'ease-in-out',
                 once: true
             });
             
-            // Special event handlers not covered by the login.js system
+            // Manejar eventos especiales no cubiertos por el sistema login.js
             const forgotPasswordLink = document.getElementById('forgotPasswordLink');
             if (forgotPasswordLink) {
                 forgotPasswordLink.addEventListener('click', (e) => {
@@ -326,7 +397,7 @@
                 });
             }
             
-            // Create floating notes animation
+            // Crear animación de notas musicales flotantes
             const notesContainer = document.querySelector('.notes-container');
             if (notesContainer) {
                 const notes = ['♪', '♫', '𝅘𝅥𝅮', '𝅘𝅥', '𝅘𝅥𝅯', '𝅗𝅥', '𝄞'];
@@ -345,7 +416,7 @@
                 }
             }
             
-            // Initialize glowing cursor
+            // Inicializar efecto de cursor brillante
             const cursor = document.querySelector('.glowing-cursor');
             if (cursor) {
                 document.addEventListener('mousemove', (e) => {

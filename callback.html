@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Autorización completada</title>
+    
+    <!-- Estilos CSS en línea para la página de callback -->
     <style>
+        /* Estilos básicos para el cuerpo de la página */
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -12,18 +15,24 @@
             text-align: center;
             padding-top: 100px;
         }
+        
+        /* Contenedor principal con apariencia de tarjeta */
         .container {
             max-width: 600px;
             margin: 0 auto;
             padding: 30px;
-            background-color: #181818;
-            border-radius: 10px;
+            background-color: #181818; 
+            border-radius: 10px; 
         }
+        
+        /* Icono de éxito */
         .success-icon {
-            color: #1DB954;
+            color: #1DB954; 
             font-size: 48px;
             margin-bottom: 20px;
         }
+        
+        /* Estilo del botón de cierre */
         button {
             background-color: #1DB954;
             color: white;
@@ -37,15 +46,23 @@
     </style>
 </head>
 <body>
+    <!-- Contenedor principal con mensaje de autorización exitosa -->
     <div class="container">
+        <!-- Icono de confirmación -->
         <div class="success-icon">✓</div>
+        
+        <!-- Mensajes informativos -->
         <h2>Autorización completada</h2>
         <p>Puedes cerrar esta ventana y volver a MusiFlow.</p>
+        
+        <!-- Botón para cerrar la ventana -->
         <button onclick="window.close()">Cerrar ventana</button>
     </div>
     
+    <!-- Script para procesar el token de acceso de Spotify -->
     <script>
         // Extraer el token de acceso de la URL si existe
+        // La API de Spotify devuelve el token como un fragmento de URL después del símbolo #
         const params = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = params.get('access_token');
         
@@ -53,7 +70,7 @@
             // Guardar token en localStorage para usarlo en la app principal
             localStorage.setItem('spotify_access_token', accessToken);
             
-            // Si la ventana fue abierta por la app principal
+            // Si la ventana fue abierta por la app principal, comunicar el token
             if (window.opener) {
                 window.opener.spotifyTokenReceived(accessToken);
                 window.close();

@@ -1,33 +1,49 @@
 // login.js - Sistema de autenticación integrado con Firebase
+
+/**
+ * Clase AuthSystem: Gestiona todo el sistema de autenticación de la aplicación
+ * - Maneja el registro de usuarios
+ * - Procesa inicios de sesión
+ * - Permite recuperación de contraseñas
+ * - Gestiona la interfaz visual según el estado de autenticación
+ */
 class AuthSystem {
     constructor() {
         this.init();
     }
 
+    /**
+     * Inicializa el sistema de autenticación
+     * Configura formularios y verifica estado de login
+     */
     init() {
-        // Bind login forms
+        // Vincular formularios de login
         this.bindLoginForms();
         
-        // Check if user is already logged in
+        // Verificar si el usuario ya está logueado
         this.checkLoginStatus();
         
-        // Add loading overlay if not exists
+        // Añadir overlay de carga si no existe
         this.ensureLoadingOverlayExists();
     }
 
+    /**
+     * Vincula todos los formularios de inicio de sesión de la aplicación
+     * Configura eventos para cada tipo de formulario
+     */
     bindLoginForms() {
-        // Hero form on homepage
+        // Hero form en la página principal
         const heroForm = document.querySelector('.hero form');
         if (heroForm) {
             heroForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
 
-        // Modal form
+        // Formulario del modal
         const modalForm = document.querySelector('#loginModal form');
         if (modalForm) {
             modalForm.addEventListener('submit', (e) => this.handleLogin(e));
             
-            // Add registration option if not exists
+            // Añadir opción de registro si no existe
             if (!document.getElementById('registerBtn')) {
                 const registerBtn = document.createElement('button');
                 registerBtn.id = 'registerBtn';
@@ -43,12 +59,12 @@ class AuthSystem {
             }
         }
 
-        // Login page form
+        // Formulario en página de login
         const loginPageForm = document.querySelector('.login-page-section form');
         if (loginPageForm) {
             loginPageForm.addEventListener('submit', (e) => this.handleLogin(e));
             
-            // Add registration link if on login page
+            // Añadir link de registro en página de login
             const registerLink = loginPageForm.querySelector('a[href="#register"]');
             if (registerLink) {
                 registerLink.addEventListener('click', (e) => {
@@ -57,7 +73,7 @@ class AuthSystem {
                 });
             }
             
-            // Add forgot password link
+            // Añadir link de contraseña olvidada
             const forgotPasswordLink = loginPageForm.querySelector('a[href*="forgot"]');
             if (forgotPasswordLink) {
                 forgotPasswordLink.addEventListener('click', (e) => {
@@ -68,6 +84,10 @@ class AuthSystem {
         }
     }
 
+    /**
+     * Maneja el proceso de inicio de sesión
+     * Valida credenciales y se comunica con Firebase
+     */
     async handleLogin(e) {
         e.preventDefault();
         
@@ -76,57 +96,61 @@ class AuthSystem {
         const password = form.querySelector('input[type="password"]').value;
         const submitBtn = form.querySelector('button[type="submit"]');
         
-        // Validate inputs
+        // Validar inputs
         if (!email || !password) {
             this.showError('Por favor, introduce tu correo electrónico y contraseña.');
             return;
         }
         
-        // Show loading state
+        // Mostrar estado de carga
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
         submitBtn.disabled = true;
 
-        // Call Firebase login
+        // Llamar a Firebase para login
         const result = await window.firebaseAuth.loginUser(email, password);
         
         if (result.success) {
-            // Login successful
+            // Login exitoso
             this.showSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
             
-            // Get redirect URL from query parameter or localStorage
+            // Obtener URL de redirección desde parámetro o localStorage
             const urlParams = new URLSearchParams(window.location.search);
             const redirectUrl = urlParams.get('redirect') || 
                                 localStorage.getItem('redirectAfterLogin') || 
                                 'index.html';
             
-            // Clear redirect URL
+            // Limpiar URL de redirección
             localStorage.removeItem('redirectAfterLogin');
             
-            // Redirect after a short delay
+            // Redireccionar después de un breve retraso
             setTimeout(() => {
                 window.location.href = redirectUrl;
             }, 1500);
         } else {
-            // Login failed
+            // Login fallido
             this.showError(result.error || 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
             
-            // Add error animation
+            // Añadir animación de error
             form.classList.add('shake');
             setTimeout(() => form.classList.remove('shake'), 500);
         }
     }
 
+    /**
+     * Verifica si el usuario ya está autenticado
+     * Actualiza la interfaz según el estado
+     */
     checkLoginStatus() {
-        // Set up auth state observer
+        // Configurar observador de estado de autenticación
         window.firebaseAuth.onAuthStateChanged((authState) => {
             if (authState.loggedIn && authState.user) {
-                // User is logged in
+                // Usuario logueado
                 this.updateUIForLoggedInUser(authState.user);
                 
-                // If on login page, redirect to account
+                // Si estamos en página de login, redirigir a cuenta
                 if (window.location.pathname.includes('login.html')) {
                     window.location.href = 'account.html';
                 }
@@ -134,8 +158,12 @@ class AuthSystem {
         });
     }
 
+    /**
+     * Actualiza la interfaz para usuario autenticado
+     * Cambia enlaces de login por nombre de usuario
+     */
     updateUIForLoggedInUser(user) {
-        // Update navigation
+        // Actualizar navegación
         const loginLinks = document.querySelectorAll('a[data-bs-target="#loginModal"], .nav-link[href*="login"]');
         loginLinks.forEach(link => {
             const displayName = user.displayName || user.username || user.email.split('@')[0];
@@ -145,8 +173,12 @@ class AuthSystem {
         });
     }
 
+    /**
+     * Muestra el modal de registro de nuevos usuarios
+     * Crea y configura formulario de registro
+     */
     showRegistrationModal() {
-        // Create modal if not exists
+        // Crear modal si no existe
         if (!document.getElementById('registerModal')) {
             const modalHtml = `
                 <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
@@ -189,10 +221,10 @@ class AuthSystem {
                 </div>
             `;
             
-            // Append modal to body
+            // Añadir modal al body
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
-            // Set up form submission
+            // Configurar envío del formulario
             document.getElementById('registerForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -202,7 +234,7 @@ class AuthSystem {
                 const confirmPassword = document.getElementById('registerConfirmPassword').value;
                 const terms = document.getElementById('registerTerms').checked;
                 
-                // Validate inputs
+                // Validar inputs
                 if (!username || !email || !password) {
                     this.showError('Por favor, completa todos los campos.');
                     return;
@@ -223,29 +255,29 @@ class AuthSystem {
                     return;
                 }
                 
-                // Submit button loading state
+                // Estado de carga del botón
                 const submitBtn = document.querySelector('#registerForm button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registrando...';
                 submitBtn.disabled = true;
                 
-                // Register user with Firebase
+                // Registrar usuario con Firebase
                 const result = await window.firebaseAuth.registerUser(email, password, username);
                 
                 if (result.success) {
-                    // Registration successful
+                    // Registro exitoso
                     this.showSuccess('¡Registro exitoso! Redirigiendo a tu cuenta...');
                     
-                    // Close modal
+                    // Cerrar modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
                     modal.hide();
                     
-                    // Redirect to account page after a short delay
+                    // Redirigir a página de cuenta
                     setTimeout(() => {
                         window.location.href = 'account.html';
                     }, 1500);
                 } else {
-                    // Registration failed
+                    // Registro fallido
                     this.showError(result.error || 'Error al registrar. Por favor, inténtalo de nuevo.');
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
@@ -253,20 +285,24 @@ class AuthSystem {
             });
         }
         
-        // Close login modal if open
+        // Cerrar modal de login si está abierto
         const loginModal = document.getElementById('loginModal');
         if (loginModal) {
             const bsLoginModal = bootstrap.Modal.getInstance(loginModal);
             if (bsLoginModal) bsLoginModal.hide();
         }
         
-        // Show registration modal
+        // Mostrar modal de registro
         const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
         registerModal.show();
     }
 
+    /**
+     * Muestra el modal de recuperación de contraseña
+     * Permite solicitar link de reseteo por email
+     */
     showForgotPasswordModal() {
-        // Create modal if not exists
+        // Crear modal si no existe
         if (!document.getElementById('forgotPasswordModal')) {
             const modalHtml = `
                 <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
@@ -294,39 +330,39 @@ class AuthSystem {
                 </div>
             `;
             
-            // Append modal to body
+            // Añadir modal al body
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
-            // Set up form submission
+            // Configurar envío del formulario
             document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const email = document.getElementById('resetEmail').value.trim();
                 
-                // Validate email
+                // Validar email
                 if (!email) {
                     this.showError('Por favor, introduce tu correo electrónico.');
                     return;
                 }
                 
-                // Submit button loading state
+                // Estado de carga del botón
                 const submitBtn = document.querySelector('#forgotPasswordForm button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
                 submitBtn.disabled = true;
                 
-                // Call Firebase reset password
+                // Llamar a Firebase para reset de contraseña
                 const result = await window.firebaseAuth.resetPassword(email);
                 
                 if (result.success) {
-                    // Reset email sent
+                    // Email enviado
                     this.showSuccess('Se ha enviado un enlace de recuperación a tu correo electrónico.');
                     
-                    // Close modal
+                    // Cerrar modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
                     modal.hide();
                 } else {
-                    // Reset failed
+                    // Reset fallido
                     this.showError(result.error || 'Error al enviar el enlace. Verifica tu correo electrónico.');
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
@@ -334,25 +370,29 @@ class AuthSystem {
             });
         }
         
-        // Close login modal if open
+        // Cerrar modal de login si está abierto
         const loginModal = document.getElementById('loginModal');
         if (loginModal) {
             const bsLoginModal = bootstrap.Modal.getInstance(loginModal);
             if (bsLoginModal) bsLoginModal.hide();
         }
         
-        // Show forgot password modal
+        // Mostrar modal de recuperación
         const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
         forgotPasswordModal.show();
     }
 
+    /**
+     * Cierra la sesión del usuario actual
+     * Llama a Firebase y actualiza la interfaz
+     */
     logout() {
         window.firebaseAuth.logoutUser()
             .then(result => {
                 if (result.success) {
                     this.showSuccess('Has cerrado sesión correctamente.');
                     
-                    // Reload page
+                    // Recargar página
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
@@ -362,14 +402,25 @@ class AuthSystem {
             });
     }
 
+    /**
+     * Muestra mensaje de éxito
+     */
     showSuccess(message) {
         this.showToast(message, 'success');
     }
 
+    /**
+     * Muestra mensaje de error
+     */
     showError(message) {
         this.showToast(message, 'error');
     }
 
+    /**
+     * Muestra notificación tipo toast
+     * @param {string} message - Mensaje a mostrar
+     * @param {string} type - Tipo de toast ('success' o 'error')
+     */
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -398,13 +449,13 @@ class AuthSystem {
         
         document.body.appendChild(toast);
         
-        // Animate in
+        // Animar entrada
         setTimeout(() => {
             toast.style.transform = 'translateY(0)';
             toast.style.opacity = '1';
         }, 100);
         
-        // Remove after 3 seconds
+        // Eliminar después de 3 segundos
         setTimeout(() => {
             toast.style.transform = 'translateY(100px)';
             toast.style.opacity = '0';
@@ -412,7 +463,10 @@ class AuthSystem {
         }, 3000);
     }
     
-    // Create loading overlay if doesn't exist
+    /**
+     * Crea el overlay de carga si no existe
+     * Añade estilos y HTML necesarios
+     */
     ensureLoadingOverlayExists() {
         if (!document.getElementById('loadingOverlay')) {
             const loadingHtml = `
@@ -421,10 +475,10 @@ class AuthSystem {
                 </div>
             `;
             
-            // Append to body
+            // Añadir al body
             document.body.insertAdjacentHTML('beforeend', loadingHtml);
             
-            // Add styles if not already defined
+            // Añadir estilos si no están definidos
             if (!document.getElementById('loadingStyles')) {
                 const style = document.createElement('style');
                 style.id = 'loadingStyles';
@@ -474,15 +528,15 @@ class AuthSystem {
     }
 }
 
-// Initialize when DOM is loaded
+// Inicializar cuando el DOM está cargado
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if Firebase auth is available
+    // Comprobar si Firebase auth está disponible
     if (typeof window.firebaseAuth === 'undefined') {
-        console.error('Firebase Auth not initialized. Loading scripts...');
+        console.error('Firebase Auth no inicializado. Cargando scripts...');
         
-        // Load Firebase scripts if not already loaded
+        // Cargar scripts de Firebase si no están cargados
         const loadFirebaseScripts = () => {
-            // Load Firebase scripts
+            // Cargar scripts de Firebase
             const scripts = [
                 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
                 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js',
@@ -499,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 script.onload = () => {
                     scriptsLoaded++;
                     if (scriptsLoaded === scripts.length) {
-                        // All scripts loaded, initialize auth system
+                        // Todos los scripts cargados, inicializar sistema de auth
                         window.authSystem = new AuthSystem();
                     }
                 };
@@ -509,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         loadFirebaseScripts();
     } else {
-        // Firebase Auth already loaded, initialize auth system
+        // Firebase Auth ya cargado, inicializar sistema de auth
         window.authSystem = new AuthSystem();
     }
 });

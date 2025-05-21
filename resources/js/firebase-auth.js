@@ -1,58 +1,69 @@
-// Firebase Authentication Service
-// This file handles all Firebase authentication functions
+// Firebase-auth.js - Gestión centralizada de autenticación con Firebase
 
-// Initialize Firebase with your specific configuration
+/**
+ * Configuración de Firebase para la aplicación
+ * Contiene las claves y endpoints necesarios para conectar con los servicios
+ */
 const firebaseConfig = {
   apiKey: "AIzaSyBCtn83ZMoWCZaL1QSuzTpOv-hJmXI-o8k",
   authDomain: "musiflow-42411.firebaseapp.com",
   databaseURL: "https://musiflow-42411-default-rtdb.firebaseio.com",
   projectId: "musiflow-42411",
-  storageBucket: "musiflow-42411.appspot.com", // Fixed storage bucket URL
+  storageBucket: "musiflow-42411.appspot.com", // URL del bucket corregida
   messagingSenderId: "619733935410",
   appId: "1:619733935410:web:11cb4a60a7de4fcd30a32b",
   measurementId: "G-FFVMTR5LVM"
 };
 
-// Initialize Firebase - using proper compatibility mode initialization
+/**
+ * Inicialización de Firebase usando modo de compatibilidad
+ * Previene inicializaciones duplicadas verificando si ya existe una instancia
+ */
 if (typeof firebase !== 'undefined') {
   if (!firebase.apps || !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   } else {
-    firebase.app(); // Use existing app if already initialized
+    firebase.app(); // Usa la app existente si ya está inicializada
   }
 } else {
   console.error("Firebase SDK not loaded. Please check your script inclusions.");
 }
 
-// Get the Auth service
+// Obtener servicios de Firebase
 const auth = firebase.auth();
 const database = firebase.database();
 
-// User registration function
+/**
+ * Registra un nuevo usuario en Firebase
+ * @param {string} email - Correo electrónico del usuario
+ * @param {string} password - Contraseña del usuario
+ * @param {string} username - Nombre de usuario (opcional)
+ * @return {Object} Resultado de la operación
+ */
 async function registerUser(email, password, username) {
   try {
-    // Show loading spinner
+    // Mostrar indicador de carga
     showLoading(true);
     
-    // Create user with email and password
+    // Crear usuario con email y contraseña
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const user = userCredential.user;
     
-    // Save additional user data to Firebase Realtime Database
+    // Guardar datos adicionales en Firebase Realtime Database
     await database.ref('users/' + user.uid).set({
-      username: username || email.split('@')[0], // Default username is email prefix
+      username: username || email.split('@')[0], // Nombre por defecto es prefijo de email
       email: email,
       profile_picture: '',
       created_at: new Date().toISOString(),
       last_login: new Date().toISOString()
     });
     
-    // Update profile
+    // Actualizar perfil
     await user.updateProfile({
       displayName: username || email.split('@')[0]
     });
     
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -60,7 +71,7 @@ async function registerUser(email, password, username) {
       user: user
     };
   } catch (error) {
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -70,20 +81,25 @@ async function registerUser(email, password, username) {
   }
 }
 
-// User login function
+/**
+ * Inicia sesión de un usuario existente
+ * @param {string} email - Correo electrónico del usuario
+ * @param {string} password - Contraseña del usuario
+ * @return {Object} Resultado de la operación
+ */
 async function loginUser(email, password) {
   try {
-    // Show loading spinner
+    // Mostrar indicador de carga
     showLoading(true);
     
-    // Sign in with email and password
+    // Iniciar sesión con email y contraseña
     const userCredential = await auth.signInWithEmailAndPassword(email, password);
     const user = userCredential.user;
     
-    // Update last login timestamp
+    // Actualizar fecha de último login
     await database.ref('users/' + user.uid + '/last_login').set(new Date().toISOString());
     
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -91,7 +107,7 @@ async function loginUser(email, password) {
       user: user
     };
   } catch (error) {
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -101,23 +117,26 @@ async function loginUser(email, password) {
   }
 }
 
-// Logout function
+/**
+ * Cierra la sesión del usuario actual
+ * @return {Object} Resultado de la operación
+ */
 async function logoutUser() {
   try {
-    // Show loading spinner
+    // Mostrar indicador de carga
     showLoading(true);
     
-    // Sign out
+    // Cerrar sesión
     await auth.signOut();
     
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
       success: true
     };
   } catch (error) {
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -127,7 +146,10 @@ async function logoutUser() {
   }
 }
 
-// Get current user data including DB profile
+/**
+ * Obtiene los datos del usuario actual incluyendo su perfil de la base de datos
+ * @return {Promise<Object|null>} Datos completos del usuario o null si no hay sesión
+ */
 async function getCurrentUser() {
   return new Promise((resolve, reject) => {
     const user = auth.currentUser;
@@ -137,7 +159,7 @@ async function getCurrentUser() {
       return;
     }
     
-    // Get additional user data from database
+    // Obtener datos adicionales de usuario desde la base de datos
     database.ref('users/' + user.uid).once('value')
       .then(snapshot => {
         const userData = snapshot.val();
@@ -156,7 +178,12 @@ async function getCurrentUser() {
   });
 }
 
-// Update user profile
+/**
+ * Actualiza el perfil del usuario
+ * @param {string} displayName - Nombre a mostrar del usuario
+ * @param {string} photoURL - URL de la imagen de perfil
+ * @return {Object} Resultado de la operación
+ */
 async function updateUserProfile(displayName, photoURL) {
   try {
     const user = auth.currentUser;
@@ -165,29 +192,29 @@ async function updateUserProfile(displayName, photoURL) {
       throw new Error('No user logged in');
     }
     
-    // Show loading spinner
+    // Mostrar indicador de carga
     showLoading(true);
     
-    // Update auth profile
+    // Actualizar perfil en Authentication
     await user.updateProfile({
       displayName: displayName,
       photoURL: photoURL
     });
     
-    // Update database profile
+    // Actualizar perfil en Database
     await database.ref('users/' + user.uid).update({
       username: displayName,
       profile_picture: photoURL
     });
     
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
       success: true
     };
   } catch (error) {
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -197,16 +224,23 @@ async function updateUserProfile(displayName, photoURL) {
   }
 }
 
-// Check if user is logged in
+/**
+ * Verifica si hay un usuario con sesión activa
+ * @return {boolean} true si hay un usuario logueado
+ */
 function isUserLoggedIn() {
   return !!auth.currentUser;
 }
 
-// Auth state observer
+/**
+ * Observador de cambios en el estado de autenticación
+ * @param {Function} callback - Función a llamar cuando cambia el estado
+ * @return {Function} Función para eliminar el observador
+ */
 function onAuthStateChanged(callback) {
   return auth.onAuthStateChanged(user => {
     if (user) {
-      // User is signed in
+      // Usuario conectado
       database.ref('users/' + user.uid).once('value')
         .then(snapshot => {
           const userData = snapshot.val();
@@ -236,7 +270,7 @@ function onAuthStateChanged(callback) {
           });
         });
     } else {
-      // User is signed out
+      // Usuario desconectado
       callback({
         user: null,
         loggedIn: false
@@ -245,22 +279,26 @@ function onAuthStateChanged(callback) {
   });
 }
 
-// Reset password
+/**
+ * Envía un correo para restablecer la contraseña
+ * @param {string} email - Correo electrónico del usuario
+ * @return {Object} Resultado de la operación
+ */
 async function resetPassword(email) {
   try {
-    // Show loading spinner
+    // Mostrar indicador de carga
     showLoading(true);
     
     await auth.sendPasswordResetEmail(email);
     
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
       success: true
     };
   } catch (error) {
-    // Hide loading spinner
+    // Ocultar indicador de carga
     showLoading(false);
     
     return {
@@ -270,7 +308,10 @@ async function resetPassword(email) {
   }
 }
 
-// Helper function to show/hide loading overlay
+/**
+ * Muestra u oculta el indicador de carga
+ * @param {boolean} show - Indica si mostrar u ocultar
+ */
 function showLoading(show) {
   const loadingOverlay = document.getElementById('loadingOverlay');
   if (!loadingOverlay) return;
@@ -282,7 +323,7 @@ function showLoading(show) {
   }
 }
 
-// Export the functions
+// Exportar las funciones para uso global
 window.firebaseAuth = {
   registerUser,
   loginUser,

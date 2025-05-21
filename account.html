@@ -5,35 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Mi Cuenta</title>
     
-    <!-- Bootstrap 5 CSS -->
+    <!-- Importación de bibliotecas CSS externas -->
+    <!-- Bootstrap 5: Framework CSS para diseño responsivo -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- Font Awesome: Biblioteca de iconos vectoriales -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- AOS Animation Library -->
+    <!-- AOS: Biblioteca para animaciones al hacer scroll -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
     
-    <!-- CSS personalizado - Enfoque modular -->
-    <link href="resources/css/header.css" rel="stylesheet">
-    <link href="resources/css/main.css" rel="stylesheet">
-    <link href="resources/css/reproductor.css" rel="stylesheet">
-    <link href="resources/css/animaciones.css" rel="stylesheet">
-    <link href="resources/css/footer.css" rel="stylesheet">
-    <link href="resources/css/misc.css" rel="stylesheet">
-    <link href="resources/css/asistente.css" rel="stylesheet">
+    <!-- Importación de hojas de estilo CSS personalizadas con enfoque modular -->
+    <link href="resources/css/header.css" rel="stylesheet"> <!-- Estilos para cabeceras -->
+    <link href="resources/css/main.css" rel="stylesheet"> <!-- Estilos generales -->
+    <link href="resources/css/reproductor.css" rel="stylesheet"> <!-- Estilos del reproductor de música -->
+    <link href="resources/css/animaciones.css" rel="stylesheet"> <!-- Animaciones personalizadas -->
+    <link href="resources/css/footer.css" rel="stylesheet"> <!-- Estilos para el pie de página -->
+    <link href="resources/css/misc.css" rel="stylesheet"> <!-- Estilos misceláneos -->
+    <link href="resources/css/asistente.css" rel="stylesheet"> <!-- Estilos para el asistente musical -->
 
+    <!-- Estilos específicos para la página de cuenta -->
     <style>
+        /* Estructura principal de la página */
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            min-height: 100vh; /* Altura mínima igual a la altura de la ventana */
         }
+        
+        /* Sección principal de la cuenta */
         .account-page-section {
-            flex-grow: 1;
-            padding-top: 100px; /* Ajustar según altura del navbar */
+            flex-grow: 1; /* Ocupa el espacio disponible */
+            padding-top: 100px; /* Espacio para la barra de navegación fija */
             padding-bottom: 40px;
             background: radial-gradient(circle at center, #2a2a2a 0%, var(--oscuro-primario) 100%);
-            position: relative; /* Para las notas musicales */
+            position: relative; /* Para posicionamiento de elementos decorativos */
         }
+        
+        /* Tarjeta del perfil de usuario */
         .profile-card {
             background-color: rgba(18, 18, 18, 0.8);
             border-radius: 15px;
@@ -44,11 +51,15 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        /* Cabecera del perfil con avatar y datos básicos */
         .profile-header {
             display: flex;
             align-items: center;
             margin-bottom: 30px;
         }
+        
+        /* Avatar del usuario */
         .profile-avatar {
             width: 100px;
             height: 100px;
@@ -61,6 +72,8 @@
             font-size: 40px;
             color: white;
         }
+        
+        /* Información básica del perfil */
         .profile-info h2 {
             margin: 0;
             margin-bottom: 5px;
@@ -69,12 +82,16 @@
             color: var(--texto-secundario);
             margin: 0;
         }
+        
+        /* Estadísticas de la cuenta (cuadrícula) */
         .account-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
+        
+        /* Caja individual de estadísticas */
         .stat-box {
             background-color: rgba(30, 30, 30, 0.6);
             border-radius: 10px;
@@ -82,10 +99,14 @@
             text-align: center;
             transition: all 0.3s ease;
         }
+        
+        /* Efecto hover para cajas de estadísticas */
         .stat-box:hover {
             transform: translateY(-5px);
             background-color: rgba(40, 40, 40, 0.8);
         }
+        
+        /* Número destacado en estadísticas */
         .stat-number {
             font-size: 2rem;
             font-weight: 700;
@@ -94,13 +115,19 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        
+        /* Etiqueta en estadísticas */
         .stat-label {
             color: var(--texto-secundario);
             font-size: 0.9rem;
         }
+        
+        /* Contenedor de acciones de cuenta */
         .account-actions {
             margin-top: 20px;
         }
+        
+        /* Tarjeta de configuración */
         .settings-card {
             background-color: rgba(18, 18, 18, 0.8);
             border-radius: 15px;
@@ -111,23 +138,33 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        /* Sección individual de configuración */
         .settings-section {
             margin-bottom: 25px;
         }
+        
+        /* Título de sección de configuración */
         .settings-title {
             font-size: 1.2rem;
             margin-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 10px;
         }
+        
+        /* Personalización de interruptores de configuración */
         .form-switch .form-check-input {
             background-color: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.1);
         }
+        
+        /* Estado activo de interruptores */
         .form-switch .form-check-input:checked {
             background-color: var(--acento-actual);
             border-color: var(--acento-actual);
         }
+        
+        /* Insignia de usuario premium */
         .premium-badge {
             background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
             color: white;
@@ -136,9 +173,13 @@
             border-radius: 20px;
             margin-left: 10px;
         }
+        
+        /* Botón de cierre de sesión */
         #logoutBtn {
             margin-top: 20px;
         }
+        
+        /* Sección de reproducción reciente */
         .recently-played {
             background-color: rgba(18, 18, 18, 0.8);
             border-radius: 15px;
@@ -148,6 +189,8 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        /* Elemento individual de canción */
         .song-item {
             display: flex;
             align-items: center;
@@ -155,32 +198,46 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
         }
+        
+        /* Efecto hover para elementos de canción */
         .song-item:hover {
             background-color: rgba(255, 255, 255, 0.05);
             padding-left: 10px;
         }
+        
+        /* Portada de canción en miniatura */
         .song-cover {
             width: 50px;
             height: 50px;
             border-radius: 5px;
             margin-right: 15px;
         }
+        
+        /* Detalles de la canción */
         .song-details {
             flex-grow: 1;
         }
+        
+        /* Título de la canción */
         .song-title {
             margin: 0;
             font-size: 1rem;
         }
+        
+        /* Artista de la canción */
         .song-artist {
             color: var(--texto-secundario);
             font-size: 0.9rem;
             margin: 0;
         }
+        
+        /* Tiempo de reproducción de la canción */
         .song-time {
             color: var(--texto-secundario);
             font-size: 0.8rem;
         }
+        
+        /* Capa de carga para operaciones asíncronas */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -196,10 +253,14 @@
             opacity: 0;
             transition: all 0.3s ease;
         }
+        
+        /* Estado visible de la capa de carga */
         .loading-overlay.show {
             visibility: visible;
             opacity: 1;
         }
+        
+        /* Indicador giratorio de carga */
         .spinner {
             width: 50px;
             height: 50px;
@@ -208,24 +269,32 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
+        /* Animación de giro para el spinner */
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Efecto de cursor brillante -->
+    <!-- Efecto de cursor con brillo que sigue al puntero -->
     <div class="glowing-cursor"></div>
     
-    <!-- Navegación -->
+    <!-- Barra de navegación principal fija en la parte superior -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
+            <!-- Logo/nombre de la aplicación -->
             <a class="navbar-brand" href="index.html">MusiFlow</a>
+            
+            <!-- Botón burger para menú móvil -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Elementos de navegación colapsables -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Enlaces de navegación principal -->
                     <li class="nav-item">
                         <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a>
                     </li>
@@ -238,6 +307,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="premium.html"><i class="fas fa-crown"></i> Premium</a>
                     </li>
+                    <!-- Enlace a la página actual (resaltado) -->
                     <li class="nav-item">
                         <a class="nav-link active" href="account.html"><i class="fas fa-user"></i> Mi Cuenta</a>
                     </li>
@@ -246,20 +316,23 @@
         </div>
     </nav>
     
-    <!-- Notas musicales flotantes -->
+    <!-- Contenedor para notas musicales decorativas flotantes -->
     <div class="notes-container"></div>
     
-    <!-- Página de cuenta -->
+    <!-- Sección principal: información y configuración de la cuenta -->
     <section class="account-page-section">
         <div class="container">
             <div class="row">
-                <!-- Columna del perfil -->
+                <!-- Columna izquierda: perfil y configuración -->
                 <div class="col-lg-4 mb-4">
+                    <!-- Tarjeta de perfil con información básica -->
                     <div class="profile-card">
                         <div class="profile-header">
+                            <!-- Avatar del usuario (se carga dinámicamente) -->
                             <div class="profile-avatar" id="profileAvatar">
                                 <i class="fas fa-user"></i>
                             </div>
+                            <!-- Información básica del perfil -->
                             <div class="profile-info">
                                 <h2 id="profileName">Cargando...</h2>
                                 <p id="profileEmail">Cargando...</p>
@@ -267,34 +340,43 @@
                             </div>
                         </div>
                         
+                        <!-- Estadísticas de la cuenta del usuario -->
                         <div class="account-stats">
+                            <!-- Número de playlists -->
                             <div class="stat-box">
                                 <div class="stat-number">0</div>
                                 <div class="stat-label">Playlists</div>
                             </div>
+                            <!-- Número de canciones guardadas -->
                             <div class="stat-box">
                                 <div class="stat-number">0</div>
                                 <div class="stat-label">Canciones guardadas</div>
                             </div>
+                            <!-- Número de artistas seguidos -->
                             <div class="stat-box">
                                 <div class="stat-number">0</div>
                                 <div class="stat-label">Artistas seguidos</div>
                             </div>
                         </div>
                         
+                        <!-- Botones de acción para el perfil -->
                         <div class="account-actions">
+                            <!-- Botón de editar perfil -->
                             <button id="editProfileBtn" class="btn btn-outline-light btn-sm">
                                 <i class="fas fa-edit me-2"></i> Editar perfil
                             </button>
+                            <!-- Botón de cierre de sesión -->
                             <button id="logoutBtn" class="btn btn-outline-danger btn-sm w-100">
                                 <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
                             </button>
                         </div>
                     </div>
                     
+                    <!-- Tarjeta de configuración de la cuenta -->
                     <div class="settings-card">
                         <h3>Configuración</h3>
                         
+                        <!-- Sección de tipo de cuenta -->
                         <div class="settings-section">
                             <h4 class="settings-title">Cuenta <span class="premium-badge">Gratuita</span></h4>
                             <p>Disfruta de MusiFlow con funciones básicas.</p>
@@ -303,19 +385,23 @@
                             </a>
                         </div>
                         
+                        <!-- Sección de preferencias del usuario -->
                         <div class="settings-section">
                             <h4 class="settings-title">Preferencias</h4>
                             
+                            <!-- Interruptor para modo oscuro -->
                             <div class="mb-3 form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
                                 <label class="form-check-label" for="darkModeSwitch">Modo oscuro</label>
                             </div>
                             
+                            <!-- Interruptor para notificaciones -->
                             <div class="mb-3 form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="notificationsSwitch" checked>
                                 <label class="form-check-label" for="notificationsSwitch">Notificaciones</label>
                             </div>
                             
+                            <!-- Interruptor para reproducción automática -->
                             <div class="mb-3 form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="autoplaySwitch" checked>
                                 <label class="form-check-label" for="autoplaySwitch">Reproducción automática</label>
@@ -324,12 +410,15 @@
                     </div>
                 </div>
                 
-                <!-- Columna de contenido -->
+                <!-- Columna derecha: historial de reproducción -->
                 <div class="col-lg-8">
+                    <!-- Sección de canciones escuchadas recientemente -->
                     <div class="recently-played">
                         <h3>Escuchado recientemente</h3>
                         
+                        <!-- Lista de canciones escuchadas recientemente (se carga dinámicamente) -->
                         <div id="recentlyPlayedList">
+                            <!-- Elementos de ejemplo que se reemplazarán con datos reales -->
                             <div class="song-item">
                                 <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
                                 <div class="song-details">
@@ -339,41 +428,7 @@
                                 <div class="song-time">Hace 2 horas</div>
                             </div>
                             
-                            <div class="song-item">
-                                <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
-                                <div class="song-details">
-                                    <h5 class="song-title">Locked Out of Heaven</h5>
-                                    <p class="song-artist">Bruno Mars</p>
-                                </div>
-                                <div class="song-time">Hace 3 horas</div>
-                            </div>
-                            
-                            <div class="song-item">
-                                <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
-                                <div class="song-details">
-                                    <h5 class="song-title">SOS</h5>
-                                    <p class="song-artist">Rihanna</p>
-                                </div>
-                                <div class="song-time">Hace 1 día</div>
-                            </div>
-                            
-                            <div class="song-item">
-                                <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
-                                <div class="song-details">
-                                    <h5 class="song-title">Judas</h5>
-                                    <p class="song-artist">Lady Gaga</p>
-                                </div>
-                                <div class="song-time">Hace 2 días</div>
-                            </div>
-                            
-                            <div class="song-item">
-                                <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
-                                <div class="song-details">
-                                    <h5 class="song-title">The Line</h5>
-                                    <p class="song-artist">Twenty One Pilots</p>
-                                </div>
-                                <div class="song-time">Hace 3 días</div>
-                            </div>
+                            <!-- Más elementos de ejemplo... -->
                         </div>
                     </div>
                 </div>
@@ -381,24 +436,30 @@
         </div>
     </section>
 
-    <!-- Floating chat button -->
+    <!-- Botón flotante para acceder al asistente musical -->
     <div class="music-assistant-button" id="musicAssistantButton">
         <i>🎵</i>
     </div>
 
-    <!-- Chat modal -->
+    <!-- Ventana modal del asistente musical MusicGPT -->
     <div class="music-assistant-modal" id="musicAssistantModal">
+        <!-- Elementos decorativos del asistente -->
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="sparkle-effect"></div>
+        
+        <!-- Cabecera del asistente -->
         <div class="assistant-header">
             <h1 class="assistant-title">MusicGPT</h1>
             <p class="assistant-description">Tu asistente musical inteligente</p>
             <button class="close-button" id="closeButton">×</button>
         </div>
+        
+        <!-- Contenedor de mensajes del chat -->
         <div class="assistant-chat-container">
             <div class="assistant-chat-messages" id="chatMessages"></div>
+            <!-- Indicador de que el asistente está escribiendo -->
             <div class="typing-indicator" id="typingIndicator">
                 <div class="typing-indicator-content">
                     <span>MusicGPT está escribiendo</span>
@@ -406,24 +467,28 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Área de entrada de texto para el usuario -->
         <div class="assistant-input-area">
             <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
             <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Overlay de carga para operaciones asíncronas -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
 
-    <!-- Footer -->
+    <!-- Pie de página con información y enlaces -->
     <footer class="footer mt-auto">
         <div class="container">
             <div class="row">
+                <!-- Columna de información de la empresa -->
                 <div class="col-md-4 mb-4">
                     <h5 class="footer-title">MusiFlow</h5>
                     <p>La mejor plataforma para descubrir, compartir y disfrutar de música en alta calidad con una experiencia única y personalizada.</p>
+                    <!-- Enlaces a redes sociales -->
                     <div class="social-links">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
@@ -432,6 +497,8 @@
                         <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
+                
+                <!-- Enlaces organizados por categorías -->
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Compañía</h5>
                     <ul class="footer-links">
@@ -440,6 +507,7 @@
                         <li><a href="#">Prensa</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Comunidad</h5>
                     <ul class="footer-links">
@@ -448,6 +516,7 @@
                         <li><a href="#">Publicidad</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Enlaces</h5>
                     <ul class="footer-links">
@@ -455,6 +524,7 @@
                         <li><a href="#">App móvil</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 col-6 mb-4">
                     <h5 class="footer-title">Legal</h5>
                     <ul class="footer-links">
@@ -464,22 +534,29 @@
                     </ul>
                 </div>
             </div>
+            
+
             <div class="copyright">
                 <p>© 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
 
+    <!-- Scripts de JavaScript -->
+    <!-- Script para autenticación común en todas las páginas -->
     <script src="resources/js/common-auth.js"></script>
-    <!-- Scripts -->
+    
+    <!-- Bibliotecas JS externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    
+    <!-- Script para el asistente musical -->
     <script src="resources/js/asistente.js"></script>
     
-    <!-- Firebase Initialization -->
+    <!-- Inicialización de Firebase -->
     <script src="resources/js/firebase-init.js"></script>
     
-    <!-- Account JS -->
+    <!-- Script específico para la página de cuenta -->
     <script src="resources/js/account.js"></script>
 </body>
 </html>

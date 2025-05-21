@@ -1,6 +1,16 @@
 // spotify-api.js - Integración con la API de Spotify para GitHub Pages
 
+/**
+ * Clase SpotifyManager: Gestiona toda la integración con la API de Spotify
+ * - Maneja la autenticación
+ * - Realiza búsquedas
+ * - Obtiene recomendaciones
+ * - Formatea los datos para la interfaz
+ */
 class SpotifyManager {
+    /**
+     * Constructor: inicializa propiedades y claves de la API
+     */
     constructor() {
         this.clientId = '9eb0fbc4e8ad415ea22dcfa6293dd28f'; 
         this.clientSecret = '8a3c19ac8356486586af8762cd043477'; 
@@ -14,6 +24,12 @@ class SpotifyManager {
         this.statusTextElement = document.getElementById('statusText');
     }
 
+    /**
+     * Inicializa la conexión con Spotify
+     * - Verifica token existente o solicita uno nuevo
+     * - Actualiza la interfaz con el estado de conexión
+     * @return {Promise<boolean>} Éxito de la inicialización
+     */
     async init() {
         try {
             // Mostrar estado de conexión
@@ -55,6 +71,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Actualiza el indicador de estado de Spotify en la interfaz
+     * @param {string} type - Tipo de alerta ('warning', 'success', 'danger')
+     * @param {string} message - Mensaje a mostrar
+     */
     updateStatus(type, message) {
         if (this.statusElement && this.statusTextElement) {
             this.statusTextElement.textContent = message;
@@ -63,6 +84,10 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene o renueva el token de acceso para la API de Spotify
+     * @return {Promise<string>} Token de acceso
+     */
     async getAccessToken() {
         // Verificar si ya tenemos un token válido
         if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
@@ -97,6 +122,12 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Busca pistas en Spotify según una consulta
+     * @param {string} query - Texto a buscar
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de pistas formateadas
+     */
     async searchTracks(query, limit = 20) {
         try {
             await this.getAccessToken();
@@ -125,6 +156,12 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Busca pistas por género musical
+     * @param {string} genre - Género musical a buscar
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de pistas formateadas
+     */
     async searchByGenre(genre, limit = 20) {
         // Géneros populares para Spotify
         const genreQueries = {
@@ -140,6 +177,12 @@ class SpotifyManager {
         return await this.searchTracks(query, limit);
     }
 
+    /**
+     * Obtiene recomendaciones basadas en géneros
+     * @param {Array<string>} seedGenres - Géneros semilla para recomendaciones
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de pistas recomendadas
+     */
     async getRecommendations(seedGenres, limit = 20) {
         try {
             await this.getAccessToken();
@@ -167,6 +210,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene los nuevos lanzamientos en Spotify
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de álbumes nuevos
+     */
     async getNewReleases(limit = 20) {
         try {
             await this.getAccessToken();
@@ -193,6 +241,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene las listas de reproducción destacadas
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de playlists destacadas
+     */
     async getFeaturedPlaylists(limit = 10) {
         try {
             await this.getAccessToken();
@@ -227,6 +280,12 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene las pistas de una playlist
+     * @param {string} playlistId - ID de la playlist
+     * @param {number} limit - Límite de resultados
+     * @return {Promise<Array>} Lista de pistas de la playlist
+     */
     async getPlaylistTracks(playlistId, limit = 50) {
         try {
             await this.getAccessToken();
@@ -253,6 +312,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene información de un artista
+     * @param {string} artistId - ID del artista
+     * @return {Promise<Object>} Datos del artista
+     */
     async getArtist(artistId) {
         try {
             await this.getAccessToken();
@@ -285,6 +349,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Obtiene las pistas más populares de un artista
+     * @param {string} artistId - ID del artista
+     * @return {Promise<Array>} Lista de pistas populares
+     */
     async getArtistTopTracks(artistId) {
         try {
             await this.getAccessToken();
@@ -310,6 +379,11 @@ class SpotifyManager {
         }
     }
 
+    /**
+     * Formatea pistas de Spotify al formato estándar de la aplicación
+     * @param {Array} spotifyTracks - Pistas en formato de la API de Spotify
+     * @return {Array} Pistas en formato estandarizado para la aplicación
+     */
     formatTracks(spotifyTracks) {
         return spotifyTracks.map(track => ({
             id: track.id,
@@ -329,6 +403,11 @@ class SpotifyManager {
         }));
     }
 
+    /**
+     * Formatea duración en milisegundos a formato "minutos:segundos"
+     * @param {number} milliseconds - Duración en milisegundos
+     * @return {string} Duración formateada (e.g. "3:45")
+     */
     formatDuration(milliseconds) {
         if (!milliseconds) return '0:00';
         const minutes = Math.floor(milliseconds / 60000);
@@ -336,7 +415,10 @@ class SpotifyManager {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Método para ofrecer login con Spotify (implementación futura)
+    /**
+     * Inicia el proceso de login de usuario con Spotify (implementación futura)
+     * Abre ventana de autorización para permisos extendidos
+     */
     initiateUserLogin() {
         const scopes = 'user-read-private user-read-email user-library-read user-top-read';
         const authUrl = new URL('https://accounts.spotify.com/authorize');
@@ -359,7 +441,9 @@ class SpotifyManager {
         };
     }
 
-    // Limpiar la sesión
+    /**
+     * Cierra la sesión y elimina el token de acceso
+     */
     logout() {
         this.accessToken = null;
         this.tokenExpiry = null;

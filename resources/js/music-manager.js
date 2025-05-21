@@ -1,8 +1,14 @@
-// music-manager.js - Gestión de los diferentes modos de música (local y Spotify)
+// music-manager.js - Gestión unificada de reproducción musical (local y Spotify)
 
+/**
+ * Clase MusicManager: Gestiona todos los modos de reproducción musical
+ * - Permite cambiar entre modo local y Spotify
+ * - Proporciona una interfaz unificada para búsqueda y reproducción
+ * - Maneja controles de reproducción, listas y opciones avanzadas
+ */
 class MusicManager {
     constructor() {
-        this.currentMode = 'local'; // 'local' o 'spotify'
+        this.currentMode = 'local'; // Modo inicial: 'local' o 'spotify'
         this.spotify = new SpotifyManager();
         this.currentAudio = null;
         this.currentTrack = null;
@@ -24,6 +30,10 @@ class MusicManager {
     // INICIALIZACIÓN Y CONFIGURACIÓN
     //=======================================================
     
+    /**
+     * Inicializa el gestor de música
+     * Configura eventos y carga contenido inicial
+     */
     async init() {
         // Inicializar interfaz
         this.bindEventListeners();
@@ -32,6 +42,10 @@ class MusicManager {
         this.loadLocalTracks();
     }
 
+    /**
+     * Configura todos los event listeners para la interfaz
+     * Conecta botones y controles con sus funciones
+     */
     bindEventListeners() {
         // Botones para cambiar entre modos
         const localModeBtn = document.getElementById('localModeBtn');
@@ -96,6 +110,10 @@ class MusicManager {
         }
     }
 
+    /**
+     * Cambia entre los modos de reproducción (local/Spotify)
+     * Actualiza la interfaz y carga contenido apropiado
+     */
     async setMode(mode) {
         if (mode === this.currentMode) return;
         
@@ -148,7 +166,10 @@ class MusicManager {
     // GESTIÓN DE REPRODUCCIÓN
     //=======================================================
     
-    // Detener cualquier reproducción actual
+    /**
+     * Detiene cualquier reproducción actual
+     * Pausa audio y reestablece estado
+     */
     stopPlayback() {
         // Detener audio local si está reproduciendo
         if (this.currentAudio) {
@@ -171,6 +192,10 @@ class MusicManager {
         }
     }
 
+    /**
+     * Muestra pantalla de bienvenida para modo Spotify
+     * Incluye información y sugerencias para el usuario
+     */
     showSpotifyWelcome() {
         const resultsSection = document.getElementById('resultsSection');
         const searchResults = document.getElementById('searchResults');
@@ -192,11 +217,19 @@ class MusicManager {
     // CARGA Y BÚSQUEDA DE CANCIONES
     //=======================================================
     
+    /**
+     * Carga las pistas locales desde la base de datos
+     * Utiliza la función existente para mostrarlas
+     */
     loadLocalTracks() {
         // Usamos la función existente de mostrarCanciones.js
         displayTracks(musicDatabase.tracks);
     }
 
+    /**
+     * Gestiona la búsqueda de música en el modo actual
+     * Realiza búsquedas en local o Spotify según modo
+     */
     async handleSearch() {
         const query = document.getElementById('searchInput').value.trim();
         if (!query) return;
@@ -236,6 +269,10 @@ class MusicManager {
         }
     }
 
+    /**
+     * Busca música por género en el modo actual
+     * @param {string} genre - Género musical a buscar
+     */
     async searchByGenre(genre) {
         this.showLoading();
         
@@ -273,6 +310,10 @@ class MusicManager {
     // VISUALIZACIÓN DE RESULTADOS
     //=======================================================
     
+    /**
+     * Muestra resultados de Spotify en la interfaz
+     * @param {Array} tracks - Pistas a mostrar
+     */
     displaySpotifyResults(tracks) {
         if (!tracks || tracks.length === 0) {
             const searchResults = document.getElementById('searchResults');
@@ -413,6 +454,10 @@ class MusicManager {
     // REPRODUCCIÓN DE CANCIONES
     //=======================================================
     
+    /**
+     * Reproduce una pista musical
+     * @param {Object} track - Pista a reproducir
+     */
     playTrack(track) {
         // Detener cualquier reproducción actual
         this.stopPlayback();
@@ -475,6 +520,10 @@ class MusicManager {
             });
     }
 
+    /**
+     * Muestra el reproductor embed de Spotify para una pista
+     * @param {string} trackId - ID de la pista de Spotify
+     */
     showSpotifyEmbed(trackId) {
         // Asegurarse de que cualquier reproducción local se detenga
         if (this.currentAudio) {
@@ -558,6 +607,9 @@ class MusicManager {
         this.isPlaying = true;
     }
 
+    /**
+     * Oculta el reproductor embed de Spotify
+     */
     hideSpotifyEmbed() {
         const embedContainer = document.getElementById('spotifyEmbed');
         if (embedContainer) {
@@ -578,6 +630,9 @@ class MusicManager {
     // CONTROLES DEL REPRODUCTOR
     //=======================================================
     
+    /**
+     * Activa/desactiva el modo de reproducción en bucle
+     */
     toggleLoop() {
         if (this.currentMode === 'local') {
             // Para canciones locales
@@ -598,6 +653,9 @@ class MusicManager {
         }
     }
 
+    /**
+     * Activa/desactiva el modo de reproducción aleatoria
+     */
     toggleShuffle() {
         this.isShuffleEnabled = !this.isShuffleEnabled;
         
@@ -613,7 +671,10 @@ class MusicManager {
         }
     }
 
-    // Mostrar un mensaje temporal
+    /**
+     * Muestra un mensaje temporal en la interfaz
+     * @param {string} message - Mensaje a mostrar
+     */
     showMessage(message) {
         const messageEl = document.createElement('div');
         messageEl.className = 'player-message';
@@ -648,6 +709,9 @@ class MusicManager {
     // ESTILOS Y ELEMENTOS VISUALES
     //=======================================================
     
+    /**
+     * Añade estilos CSS para los elementos del embed
+     */
     addEmbedStyles() {
         // Si el estilo ya existe, no hacer nada
         if (document.getElementById('embed-styles')) return;
@@ -724,6 +788,10 @@ class MusicManager {
         document.head.appendChild(style);
     }
 
+    /**
+     * Actualiza los elementos visuales de la lista de pistas
+     * Destaca la pista actual y actualiza estados de botones
+     */
     updateTrackListUI() {
         // Solo ejecutar esto en modo local
         if (this.currentMode !== 'local') return;
@@ -755,6 +823,10 @@ class MusicManager {
         }
     }
 
+    /**
+     * Alterna entre reproducción y pausa
+     * Solo funciona en modo local
+     */
     togglePlayPause() {
         // Solo para modo local
         if (this.currentMode !== 'local' || !this.currentTrack) return;
@@ -787,6 +859,10 @@ class MusicManager {
     // NAVEGACIÓN DE CANCIONES
     //=======================================================
     
+    /**
+     * Reproduce la siguiente pista en la lista
+     * Incluye soporte para modo aleatorio
+     */
     playNext() {
         // Solo para modo local
         if (this.currentMode !== 'local' || !this.currentTrack) return;
@@ -816,6 +892,9 @@ class MusicManager {
         this.playTrack(this.localPlaylist[nextIndex]);
     }
 
+    /**
+     * Reproduce la pista anterior en la lista
+     */
     playPrevious() {
         // Solo para modo local
         if (this.currentMode !== 'local' || !this.currentTrack) return;
@@ -836,6 +915,9 @@ class MusicManager {
     // CONTROL DE PROGRESO
     //=======================================================
     
+    /**
+     * Inicia la actualización periódica de la barra de progreso
+     */
     startProgressUpdate() {
         // Limpiar cualquier intervalo existente
         this.stopProgressUpdate();
@@ -847,6 +929,9 @@ class MusicManager {
         this.updateProgress();
     }
 
+    /**
+     * Detiene la actualización periódica de la barra de progreso
+     */
     stopProgressUpdate() {
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
@@ -854,6 +939,9 @@ class MusicManager {
         }
     }
 
+    /**
+     * Actualiza la barra de progreso y el tiempo transcurrido
+     */
     updateProgress() {
         if (!this.currentAudio || this.currentAudio.paused) {
             return;
@@ -878,12 +966,21 @@ class MusicManager {
         progressBar.style.width = `${progressPercent}%`;
     }
 
+    /**
+     * Formatea segundos a formato "minutos:segundos"
+     * @param {number} seconds - Tiempo en segundos
+     * @return {string} Tiempo formateado
+     */
     formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     }
 
+    /**
+     * Maneja clics en la barra de progreso para saltar a una posición
+     * @param {Event} e - Evento de clic
+     */
     handleProgressBarClick(e) {
         if (!this.currentAudio || this.currentMode !== 'local') return;
         
@@ -899,6 +996,10 @@ class MusicManager {
         this.updateProgress();
     }
 
+    /**
+     * Actualiza la interfaz del reproductor con información de la pista
+     * @param {Object} track - Pista a mostrar
+     */
     updatePlayerUI(track) {
         document.getElementById('currentTrackImage').src = track.image;
         document.getElementById('currentTrackName').textContent = track.title;
@@ -911,6 +1012,9 @@ class MusicManager {
         this.updateTrackListUI();
     }
 
+    /**
+     * Inicializa el control de volumen
+     */
     initVolumeControl() {
         const volumeControl = document.getElementById('volumeControl');
         if (!volumeControl) return;
@@ -926,6 +1030,9 @@ class MusicManager {
     // FEEDBACK Y NOTIFICACIONES
     //=======================================================
     
+    /**
+     * Muestra indicador de carga durante búsquedas
+     */
     showLoading() {
         const searchResults = document.getElementById('searchResults');
         const resultsSection = document.getElementById('resultsSection');
@@ -941,6 +1048,10 @@ class MusicManager {
         `;
     }
 
+    /**
+     * Muestra notificación de error
+     * @param {string} message - Mensaje de error
+     */
     showError(message) {
         // Crear y mostrar un toast de error
         const toast = document.createElement('div');

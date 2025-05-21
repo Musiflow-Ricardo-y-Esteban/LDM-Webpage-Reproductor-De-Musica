@@ -5,35 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusiFlow - Reproductor de Música</title>
     
-    <!-- Bootstrap 5 CSS -->
+    <!-- Importación de bibliotecas CSS externas -->
+    <!-- Bootstrap 5: Framework CSS para diseño responsivo -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- Font Awesome: Biblioteca de iconos vectoriales -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- AOS Animation Library -->
+    <!-- AOS: Biblioteca para animaciones al hacer scroll -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
     
-    <!-- CSS personalizado - Enfoque modular -->
-    <link href="resources/css/header.css" rel="stylesheet">
-    <link href="resources/css/main.css" rel="stylesheet">
-    <link href="resources/css/reproductor.css" rel="stylesheet">
-    <link href="resources/css/animaciones.css" rel="stylesheet">
-    <link href="resources/css/footer.css" rel="stylesheet">
-    <link href="resources/css/misc.css" rel="stylesheet">
-    <link href="resources/css/asistente.css" rel="stylesheet">
+    <!-- Importación de hojas de estilo CSS personalizadas con enfoque modular -->
+    <link href="resources/css/header.css" rel="stylesheet"> <!-- Estilos para cabeceras -->
+    <link href="resources/css/main.css" rel="stylesheet"> <!-- Estilos generales -->
+    <link href="resources/css/reproductor.css" rel="stylesheet"> <!-- Estilos del reproductor -->
+    <link href="resources/css/animaciones.css" rel="stylesheet"> <!-- Animaciones personalizadas -->
+    <link href="resources/css/footer.css" rel="stylesheet"> <!-- Estilos para el pie de página -->
+    <link href="resources/css/misc.css" rel="stylesheet"> <!-- Estilos misceláneos -->
+    <link href="resources/css/asistente.css" rel="stylesheet"> <!-- Estilos para el asistente musical -->
 </head>
 <body>
-    <!-- Efecto de cursor brillante -->
+    <!-- Efecto de cursor con brillo que sigue al puntero -->
     <div class="glowing-cursor"></div>
     
-    <!-- Navegación -->
+    <!-- Barra de navegación principal fija en la parte superior -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
+            <!-- Logo/nombre de la aplicación -->
             <a class="navbar-brand" href="#">MusiFlow</a>
+            
+            <!-- Botón hamburguesa para menú móvil -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Elementos de navegación colapsables -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Enlaces de navegación principal -->
                     <li class="nav-item">
                         <a class="nav-link active" href="#"><i class="fas fa-home"></i> Inicio</a>
                     </li>
@@ -46,6 +53,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="premium.html"><i class="fas fa-crown"></i> Premium</a>
                     </li>
+                    <!-- Enlace de inicio de sesión (se actualiza dinámicamente si el usuario está autenticado) -->
                     <li class="nav-item">
                         <a class="nav-link" href="#" id="loginNavLink" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
                     </li>
@@ -54,42 +62,59 @@
         </div>
     </nav>
     
-    <!-- Notas musicales flotantes -->
+    <!-- Contenedor para notas musicales decorativas flotantes -->
     <div class="notes-container"></div>
     
-    <!-- Sección Hero -->
+    <!-- Sección principal (Hero) con llamada a la acción -->
     <section class="hero">
         <div class="container">
             <div class="row align-items-center">
+                <!-- Columna izquierda: título y botones de acción -->
                 <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-delay="200">
                     <h1 class="hero-title flotante">Tu música, tu estilo.</h1>
                     <p class="hero-subtitle">Una experiencia de audio inmersiva con canciones de alta calidad.</p>
+                    <!-- Botones de llamada a la acción -->
                     <button class="btn btn-primary btn-lg me-3 mb-3" data-bs-toggle="modal" data-bs-target="#loginModal">
                         <i class="fas fa-play me-2"></i> Comenzar ahora
                     </button>
                     <button class="btn btn-outline-light btn-lg mb-3">Descubrir más</button>
                 </div>
+                
+                <!-- Columna derecha: formulario de inicio de sesión -->
                 <div class="col-lg-6" data-aos="fade-left" data-aos-delay="400">
                     <div class="login-form shadow">
                         <h3 class="mb-4">Inicia sesión</h3>
+                        <!-- Formulario de inicio de sesión -->
                         <form id="heroLoginForm">
+                            <!-- Campo de correo electrónico -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo electrónico</label>
                                 <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com" required>
                             </div>
+                            
+                            <!-- Campo de contraseña -->
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña</label>
                                 <input type="password" class="form-control" id="password" placeholder="Tu contraseña" required>
                             </div>
+                            
+                            <!-- Opción recordar datos -->
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="rememberMe">
                                 <label class="form-check-label" for="rememberMe">Recordarme</label>
                             </div>
+                            
+                            <!-- Botón de inicio de sesión -->
                             <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                            
+                            <!-- Enlace para recuperar contraseña -->
                             <div class="mt-3 text-center">
                                 <a href="#" id="forgotPasswordLink" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
                             </div>
+                            
                             <hr>
+                            
+                            <!-- Opción para crear cuenta -->
                             <p class="text-center mb-0">¿No tienes cuenta?</p>
                             <button type="button" id="heroCreateAccountBtn" class="btn btn-outline-light w-100 mt-2">Crear cuenta</button>
                         </form>
@@ -98,8 +123,9 @@
             </div>
         </div>
         
-        <!-- Visualizador de audio -->
+        <!-- Visualizador de audio decorativo en la parte inferior -->
         <div class="visualizer-container">
+            <!-- Barras individuales del visualizador -->
             <div class="visualizer-bar"></div>
             <div class="visualizer-bar"></div>
             <div class="visualizer-bar"></div>
@@ -117,11 +143,15 @@
         </div>
     </section>
     
-    <!-- Sección de Características -->
+    <!-- Sección de características principales del servicio -->
     <section class="features">
         <div class="container">
+            <!-- Título de la sección con animación -->
             <h2 class="section-title text-center" data-aos="fade-up">Características</h2>
+            
+            <!-- Rejilla de características con tarjetas -->
             <div class="row g-4">
+                <!-- Característica 1: Música sin límites -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -131,6 +161,8 @@
                         <p>Accede a millones de canciones en alta definición, sin anuncios y con posibilidad de descarga para escuchar sin conexión.</p>
                     </div>
                 </div>
+                
+                <!-- Característica 2: Podcasts exclusivos -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -140,6 +172,8 @@
                         <p>Disfruta de podcasts originales y exclusivos sobre temas que te interesan, con episodios nuevos cada semana.</p>
                     </div>
                 </div>
+                
+                <!-- Característica 3: Recomendaciones personalizadas -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -149,6 +183,8 @@
                         <p>Nuestro algoritmo aprende de tus gustos para ofrecerte recomendaciones que realmente te encantarán.</p>
                     </div>
                 </div>
+                
+                <!-- Característica 4: Comunidad musical -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -158,6 +194,8 @@
                         <p>Comparte tus listas de reproducción, comenta tus canciones favoritas y conecta con otros amantes de la música.</p>
                     </div>
                 </div>
+                
+                <!-- Característica 5: Multi-dispositivo -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -167,6 +205,8 @@
                         <p>Reproduce tu música en cualquier dispositivo: móvil, tablet, ordenador, altavoces inteligentes y más.</p>
                     </div>
                 </div>
+                
+                <!-- Característica 6: Ecualización avanzada -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -180,12 +220,16 @@
         </div>
     </section>
     
-    <!-- Sección de Álbumes Destacados -->
+    <!-- Sección de álbumes destacados -->
     <section class="top-albums">
         <div class="container">
+            <!-- Título de la sección con animación -->
             <h2 class="section-title text-center" data-aos="fade-up">Álbumes Destacados</h2>
+            
+            <!-- Carrusel de álbumes destacados -->
             <div class="album-carousel" data-aos="fade-up">
                 <div class="row g-4">
+                    <!-- Álbum 1 -->
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
@@ -198,6 +242,8 @@
                             <p class="album-artist">Neon Riders</p>
                         </div>
                     </div>
+                    
+                    <!-- Álbum 2 -->
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
@@ -210,6 +256,8 @@
                             <p class="album-artist">Lunar Collective</p>
                         </div>
                     </div>
+                    
+                    <!-- Álbum 3 -->
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
@@ -222,6 +270,8 @@
                             <p class="album-artist">Quantum Pulse</p>
                         </div>
                     </div>
+                    
+                    <!-- Álbum 4 -->
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
@@ -235,6 +285,8 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Controles de navegación del carrusel -->
                 <div class="carousel-controls">
                     <button class="carousel-control prev"><i class="fas fa-chevron-left"></i></button>
                     <button class="carousel-control next"><i class="fas fa-chevron-right"></i></button>
@@ -242,29 +294,38 @@
             </div>
         </div>
     </section>
-    <!-- Sección del Reproductor -->
+    
+    <!-- Sección del reproductor con vista previa -->
     <section class="player-preview">
         <div class="container">
+            <!-- Título de la sección con animación -->
             <h2 class="section-title text-center" data-aos="fade-up">Nuestro Reproductor</h2>
+            
             <div class="row align-items-center">
+                <!-- Columna izquierda: mockup del reproductor -->
                 <div class="col-lg-6" data-aos="fade-right">
                     <div class="player-mockup borde-arcoiris">
                         <div class="player-interface">
+                            <!-- Cabecera del reproductor con información de la canción actual -->
                             <div class="player-header">
                                 <div class="now-playing-info">
                                     <div class="song-thumbnail">
-                                        <img src="/api/placeholder/80/80" alt="Reproduciendo" class="img-fluid">
+                                        <img src="/resources/album covers/darkhorse.jpg" alt="Reproduciendo" class="img-fluid">
                                     </div>
                                     <div class="song-details">
-                                        <h5 class="song-title">Electric Dreams</h5>
-                                        <p class="song-artist">Neon Riders</p>
+                                        <h5 class="song-title">Dark Horse</h5>
+                                        <p class="song-artist">Katy Perry</p>
                                     </div>
                                 </div>
+                                
+                                <!-- Controles de reproducción -->
                                 <div class="player-controls">
                                     <button class="control-btn"><i class="fas fa-step-backward"></i></button>
                                     <button class="control-btn play-btn brillante"><i class="fas fa-play"></i></button>
                                     <button class="control-btn"><i class="fas fa-step-forward"></i></button>
                                 </div>
+                                
+                                <!-- Control de volumen -->
                                 <div class="volume-control">
                                     <i class="fas fa-volume-up"></i>
                                     <div class="volume-slider">
@@ -272,6 +333,8 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Barra de progreso de la canción -->
                             <div class="progress-container">
                                 <span class="current-time">1:45</span>
                                 <div class="song-progress">
@@ -279,6 +342,8 @@
                                 </div>
                                 <span class="total-time">4:30</span>
                             </div>
+                            
+                            <!-- Visualizador de espectro de audio -->
                             <div class="player-visualizer">
                                 <div class="player-spectrum">
                                     <!-- Las barras del espectro se generan con JavaScript -->
@@ -287,8 +352,11 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Columna derecha: características del reproductor -->
                 <div class="col-lg-6" data-aos="fade-left">
                     <div class="player-features">
+                        <!-- Característica 1: Visualizador avanzado -->
                         <div class="player-feature">
                             <div class="feature-icon">
                                 <i class="fas fa-wave-square"></i>
@@ -298,6 +366,8 @@
                                 <p>Disfruta de una experiencia visual que se sincroniza con tu música favorita.</p>
                             </div>
                         </div>
+                        
+                        <!-- Característica 2: Ecualización personalizada -->
                         <div class="player-feature">
                             <div class="feature-icon">
                                 <i class="fas fa-sliders-h"></i>
@@ -307,6 +377,8 @@
                                 <p>Ajusta cada frecuencia para obtener el sonido perfecto para tu música y tus oídos.</p>
                             </div>
                         </div>
+                        
+                        <!-- Característica 3: Calidad de audio HD -->
                         <div class="player-feature">
                             <div class="feature-icon">
                                 <i class="fas fa-compact-disc"></i>
@@ -316,6 +388,8 @@
                                 <p>Disfruta de audio sin pérdidas con nuestra reproducción en alta definición.</p>
                             </div>
                         </div>
+                        
+                        <!-- Característica 4: Modos de audio 3D -->
                         <div class="player-feature">
                             <div class="feature-icon">
                                 <i class="fas fa-headphones"></i>
@@ -331,29 +405,39 @@
         </div>
     </section>
     
-    <!-- Sección de Estadísticas -->
+    <!-- Sección de estadísticas -->
     <section class="stats">
         <div class="container">
+            <!-- Título de la sección con animación -->
             <h2 class="section-title text-center" data-aos="fade-up">¿Por qué nos eligen?</h2>
+            
+            <!-- Estadísticas en tarjetas -->
             <div class="row g-4">
+                <!-- Estadística 1: Canciones disponibles -->
                 <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
                     <div class="stat-card">
                         <div class="stat-number" data-counter="50">50M+</div>
                         <div class="stat-text">Canciones disponibles</div>
                     </div>
                 </div>
+                
+                <!-- Estadística 2: Usuarios activos -->
                 <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
                     <div class="stat-card">
                         <div class="stat-number" data-counter="10">10M+</div>
                         <div class="stat-text">Usuarios activos</div>
                     </div>
                 </div>
+                
+                <!-- Estadística 3: Países con cobertura -->
                 <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
                     <div class="stat-card">
                         <div class="stat-number" data-counter="190">190+</div>
                         <div class="stat-text">Países</div>
                     </div>
                 </div>
+                
+                <!-- Estadística 4: Calificación promedio -->
                 <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
                     <div class="stat-card">
                         <div class="stat-number" data-counter="4.8">4.8</div>
@@ -364,11 +448,15 @@
         </div>
     </section>
     
-    <!-- Sección de Testimonios -->
+    <!-- Sección de testimonios de usuarios -->
     <section class="testimonials">
         <div class="container">
+            <!-- Título de la sección con animación -->
             <h2 class="section-title text-center" data-aos="fade-up">Lo que dicen nuestros usuarios</h2>
+            
+            <!-- Carrusel de testimonios -->
             <div class="testimonial-carousel" data-aos="fade-up">
+                <!-- Testimonio 1 (activo inicialmente) -->
                 <div class="testimonial-item active">
                     <div class="testimonial-content">
                         <div class="testimonial-quote">
@@ -377,7 +465,7 @@
                         <p class="testimonial-text">MusiFlow ha transformado completamente mi experiencia musical. La calidad de sonido es impresionante y las recomendaciones siempre dan en el clavo.</p>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                                <img src="/resources/img/profile placeholder.jpg" alt="Avatar de Usuario" class="img-fluid rounded-circle">
                             </div>
                             <div class="author-info">
                                 <h5 class="author-name">Carlos Martínez</h5>
@@ -386,6 +474,8 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Testimonio 2 -->
                 <div class="testimonial-item">
                     <div class="testimonial-content">
                         <div class="testimonial-quote">
@@ -394,7 +484,7 @@
                         <p class="testimonial-text">No puedo creer que viví tanto tiempo sin MusiFlow. El visualizador y las funciones de ecualización son exactamente lo que necesitaba para mi estudio.</p>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                                <img src="/resources/img/profile placeholder.jpg" alt="Avatar de Usuario" class="img-fluid rounded-circle">
                             </div>
                             <div class="author-info">
                                 <h5 class="author-name">Laura González</h5>
@@ -403,6 +493,8 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Testimonio 3 -->
                 <div class="testimonial-item">
                     <div class="testimonial-content">
                         <div class="testimonial-quote">
@@ -411,7 +503,7 @@
                         <p class="testimonial-text">La interfaz es increíblemente intuitiva y el sonido es cristalino. He descubierto tantos artistas nuevos gracias a sus recomendaciones personalizadas.</p>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/api/placeholder/50/50" alt="Avatar de Usuario" class="img-fluid rounded-circle">
+                                <img src="/resources/img/profile placeholder.jpg" alt="Avatar de Usuario" class="img-fluid rounded-circle">
                             </div>
                             <div class="author-info">
                                 <h5 class="author-name">Miguel Ruiz</h5>
@@ -420,12 +512,17 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Controles del carrusel de testimonios -->
                 <div class="testimonial-controls">
+                    <!-- Indicadores de posición (dots) -->
                     <div class="testimonial-dots">
                         <span class="dot active"></span>
                         <span class="dot"></span>
                         <span class="dot"></span>
                     </div>
+                    
+                    <!-- Flechas de navegación -->
                     <div class="testimonial-arrows">
                         <button class="arrow-prev"><i class="fas fa-chevron-left"></i></button>
                         <button class="arrow-next"><i class="fas fa-chevron-right"></i></button>
@@ -438,9 +535,12 @@
     <!-- Sección CTA (Call to Action) -->
     <section class="cta">
         <div class="container">
+            <!-- Contenido de llamada a la acción -->
             <div class="cta-content" data-aos="zoom-in">
                 <h2 class="cta-title flotante">¿Listo para empezar?</h2>
                 <p class="cta-text">Únete a millones de personas que ya están disfrutando de la mejor experiencia musical. Prueba MusiFlow gratis durante 30 días, sin compromiso.</p>
+                
+                <!-- Botones de acción -->
                 <button class="btn btn-primary btn-lg me-3" data-bs-toggle="modal" data-bs-target="#loginModal">
                     <i class="fas fa-headphones me-2"></i> Probar gratis
                 </button>
@@ -448,36 +548,37 @@
             </div>
         </div>
         
-        <!-- Partículas flotantes -->
+        <!-- Partículas decorativas flotantes -->
         <div class="particles-container"></div>
     </section>
     
-    <!-- Floating chat button -->
+    <!-- Botón flotante para acceder al asistente musical -->
     <div class="music-assistant-button" id="musicAssistantButton">
         <i>🎵</i>
     </div>
 
-    <!-- Chat modal -->
+    <!-- Ventana modal del asistente musical MusicGPT -->
     <div class="music-assistant-modal" id="musicAssistantModal">
-        <!-- Decorative elements -->
+        <!-- Elementos decorativos del asistente -->
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="neon-decoration"></div>
         <div class="sparkle-effect"></div>
         
-        <!-- Modal header -->
+        <!-- Cabecera del asistente -->
         <div class="assistant-header">
             <h1 class="assistant-title">MusicGPT</h1>
             <p class="assistant-description">Tu asistente musical inteligente</p>
             <button class="close-button" id="closeButton">×</button>
         </div>
         
-        <!-- Chat container -->
+        <!-- Contenedor de mensajes del chat -->
         <div class="assistant-chat-container">
             <div class="assistant-chat-messages" id="chatMessages">
-                <!-- Messages will be added here dynamically -->
+                <!-- Los mensajes se agregarán dinámicamente -->
             </div>
             
+            <!-- Indicador de que el asistente está escribiendo -->
             <div class="typing-indicator" id="typingIndicator">
                 <div class="typing-indicator-content">
                     <span>MusicGPT está escribiendo</span>
@@ -488,7 +589,7 @@
             </div>
         </div>
         
-        <!-- Input area -->
+        <!-- Área de entrada de texto para el usuario -->
         <div class="assistant-input-area">
             <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
             <button class="assistant-send-button" id="sendButton">
@@ -497,13 +598,16 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Pie de página con información y enlaces -->
     <footer class="footer">
         <div class="container">
             <div class="row">
+                <!-- Columna de información de la empresa -->
                 <div class="col-md-4 mb-4">
                     <h5 class="footer-title">MusiFlow</h5>
                     <p>La mejor plataforma para descubrir, compartir y disfrutar de música en alta calidad con una experiencia única y personalizada.</p>
+                    
+                    <!-- Enlaces a redes sociales -->
                     <div class="social-links">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
@@ -512,6 +616,8 @@
                         <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
+                
+                <!-- Enlaces organizados por categorías -->
                 <div class="col-md-2 mb-4">
                     <h5 class="footer-title">Compañía</h5>
                     <ul class="footer-links">
@@ -522,6 +628,7 @@
                         <li><a href="#">Contacto</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 mb-4">
                     <h5 class="footer-title">Comunidad</h5>
                     <ul class="footer-links">
@@ -532,6 +639,7 @@
                         <li><a href="#">Proveedores</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 mb-4">
                     <h5 class="footer-title">Enlaces</h5>
                     <ul class="footer-links">
@@ -542,6 +650,7 @@
                         <li><a href="#">Última versión</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-md-2 mb-4">
                     <h5 class="footer-title">Legal</h5>
                     <ul class="footer-links">
@@ -553,39 +662,55 @@
                     </ul>
                 </div>
             </div>
+            
+            <!-- Texto de copyright -->
             <div class="copyright">
                 <p>&copy; 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
     
-    <!-- Modal de Inicio de Sesión -->
+    <!-- Modal de inicio de sesión -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content bg-dark text-white">
+                <!-- Cabecera del modal -->
                 <div class="modal-header border-0">
                     <h5 class="modal-title" id="loginModalLabel">Inicia sesión en MusiFlow</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                
+                <!-- Cuerpo del modal con formulario -->
                 <div class="modal-body">
                     <form id="modalLoginForm">
+                        <!-- Campo de correo electrónico -->
                         <div class="mb-3">
                             <label for="modalEmail" class="form-label">Correo electrónico</label>
                             <input type="email" class="form-control" id="modalEmail" placeholder="nombre@ejemplo.com" required>
                         </div>
+                        
+                        <!-- Campo de contraseña -->
                         <div class="mb-3">
                             <label for="modalPassword" class="form-label">Contraseña</label>
                             <input type="password" class="form-control" id="modalPassword" placeholder="Tu contraseña" required>
                         </div>
+                        
+                        <!-- Opción recordar datos -->
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="modalRememberMe">
                             <label class="form-check-label" for="modalRememberMe">Recordarme</label>
                         </div>
+                        
+                        <!-- Botón de inicio de sesión -->
                         <button type="submit" class="btn btn-primary w-100">Entrar</button>
                     </form>
+                    
+                    <!-- Enlace para recuperar contraseña -->
                     <div class="mt-3 text-center">
                         <a href="#" id="modalForgotPasswordLink" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
                     </div>
+                    
+                    <!-- Opciones de inicio de sesión con terceros -->
                     <div class="mt-3">
                         <p class="text-center mb-2">O inicia sesión con</p>
                         <div class="d-flex justify-content-center">
@@ -595,6 +720,8 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Pie del modal con enlace para registro -->
                 <div class="modal-footer border-0 justify-content-center">
                     <p class="mb-0">¿No tienes cuenta? <a href="#" id="modalRegisterLink" class="text-decoration-none">Regístrate</a></p>
                 </div>
@@ -602,13 +729,16 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Overlay de carga para operaciones asíncronas -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
 
+    <!-- Scripts de JavaScript -->
+    <!-- Script para autenticación común en todas las páginas -->
     <script src="resources/js/common-auth.js"></script>
-    <!-- Asistente IA -->
+    
+    <!-- Script para el asistente musical -->
     <script src="resources/js/asistente.js"></script>
     
     <!-- Firebase Initialization -->
@@ -622,13 +752,14 @@
     <!-- Biblioteca de animaciones AOS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     
-    <!-- Firebase Auth JS -->
+    <!-- Scripts para la autenticación con Firebase -->
     <script src="resources/js/firebase-init.js"></script>
     <script src="resources/js/login.js"></script>
     
-    <!-- JS -->
+    <!-- Script específico para la página principal -->
     <script src="resources/js/index.js"></script>
     
+    <!-- Script para configurar el sistema de autenticación -->
     <script>
     // Configuración del sistema de autenticación personalizado
     document.addEventListener('DOMContentLoaded', () => {
@@ -641,6 +772,7 @@
         
         // Agregar estilos para loading overlay y animaciones
         const styles = `
+            /* Capa de carga transparente que cubre toda la pantalla */
             .loading-overlay {
                 position: fixed;
                 top: 0;
@@ -656,10 +788,12 @@
                 opacity: 0;
                 transition: all 0.3s ease;
             }
+            /* Estado visible de la capa de carga */
             .loading-overlay.show {
                 visibility: visible;
                 opacity: 1;
             }
+            /* Indicador giratorio de carga */
             .spinner {
                 width: 50px;
                 height: 50px;
@@ -668,12 +802,15 @@
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             }
+            /* Animación de giro para el spinner */
             @keyframes spin {
                 to { transform: rotate(360deg); }
             }
+            /* Animación de sacudida para indicar error */
             .shake {
                 animation: shake 0.5s;
             }
+            /* Definición de la animación de sacudida */
             @keyframes shake {
                 0%, 50%, 100% { transform: translateX(0); }
                 25% { transform: translateX(-5px); }
@@ -681,6 +818,7 @@
             }
         `;
         
+        // Agregar los estilos al documento si no existen
         if (!document.getElementById('animation-styles')) {
             const styleSheet = document.createElement('style');
             styleSheet.id = 'animation-styles';
