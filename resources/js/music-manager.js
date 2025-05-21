@@ -331,7 +331,7 @@ class MusicManager {
                     </div>
                 </div>
                 <div class="track-album">${track.album}</div>
-                <div class="track-duration"> {/* Corregido: class en vez de class. */}
+                <div class="track-duration">
                     <span>${track.duration}</span>
                     <div class="track-actions">
                         <button class="action-button" title="Abrir en Spotify" onclick="window.open('${track.externalUrl}', '_blank')">
