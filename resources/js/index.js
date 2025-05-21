@@ -27,7 +27,335 @@ document.addEventListener('DOMContentLoaded', () => {
     iniciarCarruselTestimonios();
     agregarEfectosInteractivos();
     iniciarValidacionFormulario();
+        
+    // Agregar estilos para loading overlay y animaciones
+    const styles = `
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .loading-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--acento-actual);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 50%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    
+    if (!document.getElementById('animation-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'animation-styles';
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    }
+    
+    // Manejar botones de creación de cuenta
+    const handleCreateAccountClick = (e) => {
+        e.preventDefault();
+        // Si authSystem está disponible, usarlo
+        if (window.authSystem) {
+            window.authSystem.showRegistrationModal();
+        } else {
+            // Verificar si firebase-auth está cargado
+            if (typeof firebase !== 'undefined') {
+                // Firebase está disponible pero authSystem no
+                // Cargar login.js e inicializar authSystem
+                const script = document.createElement('script');
+                script.src = 'resources/js/login.js';
+                script.onload = () => {
+                    // Inicializar authSystem después de cargar script
+                    if (typeof AuthSystem !== 'undefined') {
+                        window.authSystem = new AuthSystem();
+                        setTimeout(() => {
+                            window.authSystem.showRegistrationModal();
+                        }, 100);
+                    } else {
+                        console.error('AuthSystem no está disponible después de cargar login.js');
+                        alert('Error al cargar el sistema de autenticación. Por favor, recarga la página.');
+                    }
+                };
+                script.onerror = () => {
+                    console.error('Error al cargar login.js');
+                    alert('Error al cargar el sistema de autenticación. Por favor, recarga la página.');
+                };
+                document.body.appendChild(script);
+            } else {
+                // Firebase no está disponible todavía
+                console.error('Firebase no está inicializado');
+                alert('El sistema de autenticación se está cargando. Por favor, inténtalo de nuevo en unos segundos.');
+            }
+        }
+    };
+    
+    // Asignar evento al botón de Crear Cuenta en la sección hero
+    const heroCreateAccountBtn = document.getElementById('heroCreateAccountBtn');
+    if (heroCreateAccountBtn) {
+        heroCreateAccountBtn.addEventListener('click', handleCreateAccountClick);
+    }
+    
+    // Asignar evento al enlace de registro en el modal de login
+    const modalRegisterLink = document.getElementById('modalRegisterLink');
+    if (modalRegisterLink) {
+        modalRegisterLink.addEventListener('click', handleCreateAccountClick);
+    }
+    
+    // Manejar eventos de olvido de contraseña
+    const handleForgotPassword = (e) => {
+        e.preventDefault();
+        if (window.authSystem) {
+            window.authSystem.showForgotPasswordModal();
+        } else {
+            alert('El sistema de autenticación se está cargando. Por favor, inténtalo de nuevo en unos segundos.');
+        }
+    };
+    
+    // Asignar evento a los enlaces de olvido de contraseña
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', handleForgotPassword);
+    }
+    
+    const modalForgotPasswordLink = document.getElementById('modalForgotPasswordLink');
+    if (modalForgotPasswordLink) {
+        modalForgotPasswordLink.addEventListener('click', handleForgotPassword);
+    }
+    
+    // Formularios de login
+    const heroLoginForm = document.getElementById('heroLoginForm');
+    const modalLoginForm = document.getElementById('modalLoginForm');
+    
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const emailInput = form.querySelector('input[type="email"]');
+        const passwordInput = form.querySelector('input[type="password"]');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        if (!emailInput || !passwordInput || !submitBtn) {
+            console.error('Formulario incompleto');
+            return;
+        }
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (!email || !password) {
+            showToast('Por favor, introduce tu correo electrónico y contraseña.', 'error');
+            return;
+        }
+        
+        // Mostrar estado de carga
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
+        submitBtn.disabled = true;
+        
+        // Usar Firebase Auth si está disponible
+        if (window.firebaseAuth) {
+            try {
+                const result = await window.firebaseAuth.loginUser(email, password);
+                
+                if (result.success) {
+                    showToast('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                    
+                    // Cerrar modal si está abierto
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    if (loginModal) {
+                        loginModal.hide();
+                    }
+                    
+                    // Redirigir a la cuenta
+                    setTimeout(() => {
+                        window.location.href = 'account.html';
+                    }, 1500);
+                } else {
+                    showToast(result.error || 'Credenciales inválidas.', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Efecto de error
+                    form.classList.add('shake');
+                    setTimeout(() => form.classList.remove('shake'), 500);
+                }
+            } catch (error) {
+                console.error('Error de login:', error);
+                showToast('Error al iniciar sesión. Inténtalo de nuevo.', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        } else {
+            // Firebase no disponible, usar sistema local
+            // Simular delay de API
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            if (email === 'admin@gmail.com' && password === 'admin') {
+                // Login exitoso
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userEmail', email);
+                
+                showToast('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                
+                // Cerrar modal si está abierto
+                const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                if (loginModal) {
+                    loginModal.hide();
+                }
+                
+                // Redirigir
+                setTimeout(() => {
+                    window.location.href = 'account.html';
+                }, 1500);
+            } else {
+                showToast('Credenciales inválidas. Usa admin@gmail.com/admin para la demo.', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Efecto de error
+                form.classList.add('shake');
+                setTimeout(() => form.classList.remove('shake'), 500);
+            }
+        }
+    };
+    
+    // Asignar eventos a formularios de login
+    if (heroLoginForm) {
+        heroLoginForm.addEventListener('submit', handleLoginSubmit);
+    }
+    
+    if (modalLoginForm) {
+        modalLoginForm.addEventListener('submit', handleLoginSubmit);
+    }
+    
+    // Verificar estado de autenticación para actualizar UI
+    const checkAuthState = () => {
+        // Si Firebase Auth está disponible, usarlo
+        if (window.firebaseAuth) {
+            window.firebaseAuth.onAuthStateChanged((authState) => {
+                if (authState.loggedIn && authState.user) {
+                    updateUIForLoggedInUser(authState.user);
+                }
+            });
+        } else {
+            // Usar localStorage como fallback
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (isLoggedIn && userEmail) {
+                updateUIForLoggedInUser({ email: userEmail });
+            }
+        }
+    };
+    
+    // Actualizar UI para un usuario logueado
+    const updateUIForLoggedInUser = (user) => {
+        const displayName = user.displayName || user.username || user.email.split('@')[0];
+        
+        // Actualizar enlace de login en la barra de navegación
+        const loginNavLink = document.getElementById('loginNavLink');
+        if (loginNavLink) {
+            loginNavLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
+            loginNavLink.removeAttribute('data-bs-toggle');
+            loginNavLink.removeAttribute('data-bs-target');
+            loginNavLink.href = 'account.html';
+        }
+        
+        // Ocultar formulario de login en hero si está visible
+        const heroLoginForm = document.querySelector('.hero .login-form');
+        if (heroLoginForm) {
+            heroLoginForm.innerHTML = `
+                <div class="text-center">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3 class="mb-3">¡Bienvenido de nuevo!</h3>
+                    <p class="mb-4">${displayName}</p>
+                    <a href="account.html" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-user-cog me-2"></i> Mi cuenta
+                    </a>
+                    <a href="explorar.html" class="btn btn-outline-light w-100">
+                        <i class="fas fa-compass me-2"></i> Explorar música
+                    </a>
+                </div>
+            `;
+        }
+    };
+    
+    // Verificar estado de autenticación al cargar
+    checkAuthState();
 });
+
+// Función para mostrar notificaciones toast
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 9999;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animar entrada
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 100);
+    
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+        toast.style.transform = 'translateY(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+};
+
+
 
 /**
  * Crea notas musicales flotantes decorativas
@@ -608,4 +936,242 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Agregar estos efectos después de un pequeño retraso para asegurar que todo esté cargado
     setTimeout(mejorarElementos, 1000);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Album data - You would normally get this from a database
+    const albumData = [
+        {
+            id: 'arcane',
+            title: 'ARCANE',
+            artist: 'ARCANE',
+            cover: '/resources/album covers/ARCANE.jpg',
+            tracks: [
+                {
+                    title: 'The Line',
+                    artist: 'Twenty One Pilots, Arcane, League of Legends',
+                    file: 'resources/audio/the line.mp3'
+                }
+            ]
+        },
+        {
+            id: 'bornthisway',
+            title: 'Born This Way',
+            artist: 'Lady Gaga',
+            cover: '/resources/album covers/BornThisWay.jpg',
+            tracks: [
+                {
+                    title: 'Judas',
+                    artist: 'Lady Gaga',
+                    file: 'resources/audio/Judas.mp3'
+                }
+            ]
+        },
+        {
+            id: 'decide',
+            title: 'DECIDE',
+            artist: 'Djo',
+            cover: '/resources/album covers/DECIDE.png',
+            tracks: [
+                {
+                    title: 'End of Beginning',
+                    artist: 'Djo',
+                    file: 'resources/audio/EndOfBeginning.mp3'
+                }
+            ]
+        },
+        {
+            id: 'prism',
+            title: 'PRISM',
+            artist: 'Katy Perry',
+            cover: '/resources/album covers/darkhorse.jpg',
+            tracks: [
+                {
+                    title: 'Dark Horse',
+                    artist: 'Katy Perry',
+                    file: 'resources/audio/DarkHorse.mp3'
+                }
+            ]
+        }
+    ];
+
+    // DOM Elements
+    const floatingPlayer = document.getElementById('floating-player');
+    const audioPlayer = document.getElementById('audio-player');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-fill');
+    const progressContainer = document.querySelector('.player-progress-bar');
+    const currentTimeDisplay = document.getElementById('current-time');
+    const totalTimeDisplay = document.getElementById('total-time');
+    const volumeBtn = document.getElementById('volume-btn');
+    const volumeBar = document.getElementById('volume-fill');
+    const volumeSlider = document.querySelector('.player-volume-slider');
+    const closePlayerBtn = document.getElementById('close-player-btn');
+    const albumCover = document.getElementById('player-album-cover');
+    const songTitle = document.getElementById('player-song-title');
+    const artistName = document.getElementById('player-artist-name');
+    const albumPlayButtons = document.querySelectorAll('.btn-play');
+
+    // Player state
+    let isPlaying = false;
+    let currentAlbumIndex = 0;
+    let currentTrackIndex = 0;
+    let volume = 0.7;
+
+    // Set initial volume
+    audioPlayer.volume = volume;
+
+    // Add click event to all album play buttons
+    albumPlayButtons.forEach((button, index) => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentAlbumIndex = index;
+            currentTrackIndex = 0;
+            loadTrack(currentAlbumIndex, currentTrackIndex);
+            floatingPlayer.classList.remove('d-none');
+            floatingPlayer.classList.add('show');
+            playTrack();
+        });
+    });
+
+    // Load track function
+    function loadTrack(albumIndex, trackIndex) {
+        const album = albumData[albumIndex];
+        const track = album.tracks[trackIndex];
+        
+        audioPlayer.src = track.file;
+        albumCover.src = album.cover;
+        songTitle.textContent = track.title;
+        artistName.textContent = track.artist;
+        
+        // Reset progress
+        progressBar.style.width = '0%';
+        currentTimeDisplay.textContent = '0:00';
+        
+        // Update total time when metadata is loaded
+        audioPlayer.addEventListener('loadedmetadata', function() {
+            totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+        });
+    }
+
+    // Play/Pause toggle
+    playPauseBtn.addEventListener('click', function() {
+        if (isPlaying) {
+            pauseTrack();
+        } else {
+            playTrack();
+        }
+    });
+
+    // Previous track
+    prevBtn.addEventListener('click', function() {
+        currentTrackIndex--;
+        if (currentTrackIndex < 0) {
+            currentTrackIndex = albumData[currentAlbumIndex].tracks.length - 1;
+        }
+        loadTrack(currentAlbumIndex, currentTrackIndex);
+        if (isPlaying) playTrack();
+    });
+
+    // Next track
+    nextBtn.addEventListener('click', function() {
+        currentTrackIndex++;
+        if (currentTrackIndex >= albumData[currentAlbumIndex].tracks.length) {
+            currentTrackIndex = 0;
+        }
+        loadTrack(currentAlbumIndex, currentTrackIndex);
+        if (isPlaying) playTrack();
+    });
+
+    // Update progress bar as the track plays
+    audioPlayer.addEventListener('timeupdate', function() {
+        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        progressBar.style.width = progress + '%';
+        currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+    });
+
+    // Change progress when user clicks on progress bar
+    progressContainer.addEventListener('click', function(e) {
+        const width = this.clientWidth;
+        const clickX = e.offsetX;
+        const duration = audioPlayer.duration;
+        audioPlayer.currentTime = (clickX / width) * duration;
+    });
+
+    // Toggle mute/unmute
+    volumeBtn.addEventListener('click', function() {
+        if (audioPlayer.volume > 0) {
+            audioPlayer.volume = 0;
+            volumeBar.style.width = '0%';
+            volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        } else {
+            audioPlayer.volume = volume;
+            volumeBar.style.width = (volume * 100) + '%';
+            updateVolumeIcon();
+        }
+    });
+
+    // Change volume when user clicks on volume slider
+    volumeSlider.addEventListener('click', function(e) {
+        const width = this.clientWidth;
+        const clickX = e.offsetX;
+        volume = clickX / width;
+        audioPlayer.volume = volume;
+        volumeBar.style.width = (volume * 100) + '%';
+        updateVolumeIcon();
+    });
+
+    // Update volume icon based on current volume
+    function updateVolumeIcon() {
+        if (volume > 0.6) {
+            volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        } else if (volume > 0) {
+            volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+        } else {
+            volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        }
+    }
+
+    // Close player
+    closePlayerBtn.addEventListener('click', function() {
+        floatingPlayer.classList.add('hide');
+        pauseTrack();
+        setTimeout(() => {
+            floatingPlayer.classList.remove('show', 'hide');
+            floatingPlayer.classList.add('d-none');
+        }, 500);
+    });
+
+    // Format time in mm:ss
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' + sec : sec}`;
+    }
+
+    // Play track
+    function playTrack() {
+        audioPlayer.play();
+        isPlaying = true;
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    }
+
+    // Pause track
+    function pauseTrack() {
+        audioPlayer.pause();
+        isPlaying = false;
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+
+    // When track ends
+    audioPlayer.addEventListener('ended', function() {
+        currentTrackIndex++;
+        if (currentTrackIndex >= albumData[currentAlbumIndex].tracks.length) {
+            currentTrackIndex = 0;
+        }
+        loadTrack(currentAlbumIndex, currentTrackIndex);
+        playTrack();
+    });
 });

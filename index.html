@@ -233,13 +233,13 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
-                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <img src="/resources/album covers/ARCANE.jpg" alt="Portada ARCANE" class="img-fluid">
                                 <div class="album-overlay">
                                     <button class="btn-play"><i class="fas fa-play"></i></button>
                                 </div>
                             </div>
-                            <h4 class="album-title">Synthwave Dreams</h4>
-                            <p class="album-artist">Neon Riders</p>
+                            <h4 class="album-title">ARCANE</h4>
+                            <p class="album-artist">ARCANE</p>
                         </div>
                     </div>
                     
@@ -247,13 +247,13 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
-                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <img src="/resources/album covers/BornThisWay.jpg" alt="Portada Born This Way" class="img-fluid">
                                 <div class="album-overlay">
                                     <button class="btn-play"><i class="fas fa-play"></i></button>
                                 </div>
                             </div>
-                            <h4 class="album-title">Midnight Echo</h4>
-                            <p class="album-artist">Lunar Collective</p>
+                            <h4 class="album-title">Born This Way</h4>
+                            <p class="album-artist">Lady Gaga</p>
                         </div>
                     </div>
                     
@@ -261,13 +261,13 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
-                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <img src="/resources/album covers/DECIDE.png" alt="Portada DECIDE" class="img-fluid">
                                 <div class="album-overlay">
                                     <button class="btn-play"><i class="fas fa-play"></i></button>
                                 </div>
                             </div>
-                            <h4 class="album-title">Electric Horizon</h4>
-                            <p class="album-artist">Quantum Pulse</p>
+                            <h4 class="album-title">DECIDE</h4>
+                            <p class="album-artist">Djo</p>
                         </div>
                     </div>
                     
@@ -275,13 +275,13 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="album-card efecto-brillo">
                             <div class="album-cover">
-                                <img src="/api/placeholder/300/300" alt="Portada Álbum" class="img-fluid">
+                                <img src="/resources/album covers/darkhorse.jpg" alt="Portada PRISM" class="img-fluid">
                                 <div class="album-overlay">
                                     <button class="btn-play"><i class="fas fa-play"></i></button>
                                 </div>
                             </div>
-                            <h4 class="album-title">Astral Journey</h4>
-                            <p class="album-artist">Cosmic Voyagers</p>
+                            <h4 class="album-title">PRISM</h4>
+                            <p class="album-artist">Katy Perry</p>
                         </div>
                     </div>
                 </div>
@@ -734,8 +734,6 @@
         <div class="spinner"></div>
     </div>
 
-    <!-- Scripts de JavaScript -->
-    <!-- Script para autenticación común en todas las páginas -->
     <script src="resources/js/common-auth.js"></script>
     
     <!-- Script para el asistente musical -->
@@ -759,7 +757,6 @@
     <!-- Script específico para la página principal -->
     <script src="resources/js/index.js"></script>
     
-    <!-- Script para configurar el sistema de autenticación -->
     <script>
     // Configuración del sistema de autenticación personalizado
     document.addEventListener('DOMContentLoaded', () => {
@@ -772,7 +769,6 @@
         
         // Agregar estilos para loading overlay y animaciones
         const styles = `
-            /* Capa de carga transparente que cubre toda la pantalla */
             .loading-overlay {
                 position: fixed;
                 top: 0;
@@ -788,12 +784,10 @@
                 opacity: 0;
                 transition: all 0.3s ease;
             }
-            /* Estado visible de la capa de carga */
             .loading-overlay.show {
                 visibility: visible;
                 opacity: 1;
             }
-            /* Indicador giratorio de carga */
             .spinner {
                 width: 50px;
                 height: 50px;
@@ -802,15 +796,12 @@
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             }
-            /* Animación de giro para el spinner */
             @keyframes spin {
                 to { transform: rotate(360deg); }
             }
-            /* Animación de sacudida para indicar error */
             .shake {
                 animation: shake 0.5s;
             }
-            /* Definición de la animación de sacudida */
             @keyframes shake {
                 0%, 50%, 100% { transform: translateX(0); }
                 25% { transform: translateX(-5px); }
@@ -818,7 +809,6 @@
             }
         `;
         
-        // Agregar los estilos al documento si no existen
         if (!document.getElementById('animation-styles')) {
             const styleSheet = document.createElement('style');
             styleSheet.id = 'animation-styles';
