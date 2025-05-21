@@ -35,7 +35,7 @@
         .account-page-section {
             flex-grow: 1; /* Ocupa el espacio disponible */
             padding-top: 100px; /* Espacio para la barra de navegación fija */
-            padding-bottom: 40px;
+            padding-bottom: 100px; /* Espacio para el reproductor fijo */
             background: radial-gradient(circle at center, #2a2a2a 0%, var(--oscuro-primario) 100%);
             position: relative; /* Para posicionamiento de elementos decorativos */
         }
@@ -98,6 +98,7 @@
             padding: 15px;
             text-align: center;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         /* Efecto hover para cajas de estadísticas */
@@ -180,7 +181,7 @@
         }
         
         /* Sección de reproducción reciente */
-        .recently-played {
+        .recently-played, .liked-songs, .user-playlists {
             background-color: rgba(18, 18, 18, 0.8);
             border-radius: 15px;
             padding: 30px;
@@ -188,6 +189,7 @@
             position: relative;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
         }
         
         /* Elemento individual de canción */
@@ -197,6 +199,7 @@
             padding: 10px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         /* Efecto hover para elementos de canción */
@@ -211,6 +214,7 @@
             height: 50px;
             border-radius: 5px;
             margin-right: 15px;
+            object-fit: cover;
         }
         
         /* Detalles de la canción */
@@ -235,6 +239,113 @@
         .song-time {
             color: var(--texto-secundario);
             font-size: 0.8rem;
+        }
+        
+        /* Acciones para canción en lista */
+        .song-actions {
+            margin-left: 10px;
+            display: none;
+        }
+        
+        .song-item:hover .song-actions {
+            display: flex;
+        }
+        
+        .song-action-btn {
+            background: none;
+            border: none;
+            color: var(--texto-secundario);
+            font-size: 0.9rem;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .song-action-btn:hover {
+            color: var(--acento-actual);
+        }
+        
+        /* Playlist item específico */
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(30, 30, 30, 0.6);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .playlist-item:hover {
+            background-color: rgba(40, 40, 40, 0.8);
+            transform: translateY(-2px);
+        }
+        
+        .playlist-cover {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
+            margin-right: 15px;
+            object-fit: cover;
+            background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4));
+        }
+        
+        .playlist-title {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .playlist-info {
+            color: var(--texto-secundario);
+            font-size: 0.8rem;
+            margin: 5px 0 0 0;
+        }
+        
+        /* Header con opciones */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            margin: 0;
+        }
+        
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Modal para crear playlist */
+        .modal-dark .modal-content {
+            background-color: rgba(18, 18, 18, 0.95);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .btn-close {
+            color: white;
+            filter: invert(1);
+        }
+        
+        /* Reproductor en la cuenta */
+        .account-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
         }
         
         /* Capa de carga para operaciones asíncronas */
@@ -274,6 +385,70 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Filtro de vista en playlists */
+        .view-filters {
+            display: flex;
+            background-color: rgba(30, 30, 30, 0.6);
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .view-filter {
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .view-filter.active {
+            background-color: var(--acento-actual);
+            color: white;
+        }
+        
+        /* Estado de like en canciones */
+        .song-like {
+            margin-left: 15px;
+            color: var(--texto-secundario);
+        }
+        
+        .song-like.active {
+            color: var(--acento-actual);
+        }
+        
+        /* Estilo para la fuente de la canción (Local/Spotify) */
+        .song-source {
+            font-size: 0.7rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .song-source.spotify {
+            background-color: rgba(29, 185, 84, 0.2);
+            color: #1DB954;
+        }
+        
+        .song-source.local {
+            background-color: rgba(255, 68, 68, 0.2);
+            color: #FF4444;
+        }
+
+/* Evitar que el placeholder ocupe demasiado espacio */
+.current-track-image {
+    max-width: 60px !important;
+    max-height: 60px !important;
+}
+
+/* Ocultar el reproductor cuando no hay contenido */
+.current-player:not(.playing) {
+    height: auto;
+    max-height: 60px;
+}
+
     </style>
 </head>
 <body>
@@ -323,7 +498,7 @@
     <section class="account-page-section">
         <div class="container">
             <div class="row">
-                <!-- Columna izquierda: perfil y configuración -->
+                <!-- Columna izquierda: perfil, configuración y playlists -->
                 <div class="col-lg-4 mb-4">
                     <!-- Tarjeta de perfil con información básica -->
                     <div class="profile-card">
@@ -343,18 +518,18 @@
                         <!-- Estadísticas de la cuenta del usuario -->
                         <div class="account-stats">
                             <!-- Número de playlists -->
-                            <div class="stat-box">
-                                <div class="stat-number">0</div>
+                            <div class="stat-box" id="playlistsStatBox">
+                                <div class="stat-number" id="playlistsCount">0</div>
                                 <div class="stat-label">Playlists</div>
                             </div>
                             <!-- Número de canciones guardadas -->
-                            <div class="stat-box">
-                                <div class="stat-number">0</div>
+                            <div class="stat-box" id="likedSongsStatBox">
+                                <div class="stat-number" id="likedSongsCount">0</div>
                                 <div class="stat-label">Canciones guardadas</div>
                             </div>
                             <!-- Número de artistas seguidos -->
-                            <div class="stat-box">
-                                <div class="stat-number">0</div>
+                            <div class="stat-box" id="followedArtistsStatBox">
+                                <div class="stat-number" id="followedArtistsCount">0</div>
                                 <div class="stat-label">Artistas seguidos</div>
                             </div>
                         </div>
@@ -408,33 +583,153 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Sección de playlists del usuario -->
+                    <div class="user-playlists">
+                        <div class="section-header">
+                            <h3>Mis Playlists</h3>
+                            <div class="section-actions">
+                                <button id="createPlaylistBtn" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-plus"></i> Nueva
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtros de vista para playlists -->
+                        <div class="view-filters">
+                            <div class="view-filter active" data-filter="all">Todas</div>
+                            <div class="view-filter" data-filter="created">Creadas</div>
+                            <div class="view-filter" data-filter="followed">Seguidas</div>
+                        </div>
+                        
+                        <!-- Lista de playlists del usuario (se carga dinámicamente) -->
+                        <div id="userPlaylistsList">
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-music fa-2x mb-3"></i>
+                                <p>Aún no tienes playlists.</p>
+                                <button class="btn btn-sm btn-outline-light" id="createFirstPlaylistBtn">
+                                    <i class="fas fa-plus me-2"></i> Crear mi primera playlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Columna derecha: historial de reproducción -->
+                <!-- Columna derecha: contenido musical -->
                 <div class="col-lg-8">
+                    <!-- Sección de canciones favoritas -->
+                    <div class="liked-songs">
+                        <div class="section-header">
+                            <h3>Canciones que me gustan</h3>
+                            <div class="section-actions">
+                                <button id="playAllLikedBtn" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-play me-1"></i> Reproducir todo
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de canciones favoritas (se carga dinámicamente) -->
+                        <div id="likedSongsList">
+                            <div class="text-center py-4 text-muted">
+                                <i class="far fa-heart fa-2x mb-3"></i>
+                                <p>Aún no has marcado canciones como favoritas.</p>
+                                <a href="explorar.html" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-compass me-2"></i> Explorar música
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Sección de canciones escuchadas recientemente -->
                     <div class="recently-played">
-                        <h3>Escuchado recientemente</h3>
+                        <div class="section-header">
+                            <h3>Escuchado recientemente</h3>
+                            <div class="section-actions">
+                                <button id="clearHistoryBtn" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-trash me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
                         
                         <!-- Lista de canciones escuchadas recientemente (se carga dinámicamente) -->
                         <div id="recentlyPlayedList">
-                            <!-- Elementos de ejemplo que se reemplazarán con datos reales -->
-                            <div class="song-item">
-                                <img src="/api/placeholder/50/50" alt="Cover" class="song-cover">
-                                <div class="song-details">
-                                    <h5 class="song-title">Dark Horse</h5>
-                                    <p class="song-artist">Katy Perry</p>
-                                </div>
-                                <div class="song-time">Hace 2 horas</div>
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-history fa-2x mb-3"></i>
+                                <p>Aún no has escuchado ninguna canción.</p>
+                                <a href="explorar.html" class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-compass me-2"></i> Descubrir música
+                                </a>
                             </div>
-                            
-                            <!-- Más elementos de ejemplo... -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Reproductor fijo en la parte inferior (para modo local) -->
+    <div class="current-player account-player" id="currentPlayer">
+        <!-- Información de la pista actual -->
+        <div class="current-track-info">
+            <img src="resources/album covers/placeholder.png" alt="Track" class="current-track-image" id="currentTrackImage">
+            <div class="current-track-details">
+                <h5 id="currentTrackName">Selecciona una canción</h5>
+                <p id="currentTrackArtist">Para comenzar</p>
+            </div>
+        </div>
+
+        <!-- Sección central: controles y barra de progreso -->
+        <div class="player-center-section">
+            <!-- Botones de control de reproducción -->
+            <div class="player-controls-current">
+                <!-- Botón de reproducción aleatoria -->
+                <button class="control-btn-current" id="shuffleBtn" title="Aleatorio">
+                    <i class="fas fa-random"></i>
+                </button>
+                <!-- Botón de pista anterior -->
+                <button class="control-btn-current" id="prevBtn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <!-- Botón de reproducir/pausar -->
+                <button class="control-btn-current play-btn-current" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <!-- Botón de siguiente pista -->
+                <button class="control-btn-current" id="nextBtn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <!-- Botón de repetición -->
+                <button class="control-btn-current" id="loopBtn" title="Repetir">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            
+            <!-- Barra de progreso de la reproducción -->
+            <div class="progress-bar-container">
+                <!-- Tiempo transcurrido -->
+                <span id="currentTime">0:00</span>
+                <!-- Barra gráfica de progreso -->
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <!-- Duración total -->
+                <span id="totalTime">0:00</span>
+            </div>
+        </div>
+
+        <!-- Controles adicionales: volumen -->
+        <div class="player-actions">
+            <!-- Contenedor del control de volumen -->
+            <div class="volume-container" id="volumeContainer">
+                <!-- Botón de volumen -->
+                <button class="volume-icon">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <!-- Deslizador de volumen -->
+                <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeControl">
+            </div>
+        </div>
+    </div>
 
     <!-- Botón flotante para acceder al asistente musical -->
     <div class="music-assistant-button" id="musicAssistantButton">
@@ -472,6 +767,109 @@
         <div class="assistant-input-area">
             <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
             <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
+        </div>
+    </div>
+
+    <!-- Modal para crear nueva playlist -->
+    <div class="modal fade modal-dark" id="createPlaylistModal" tabindex="-1" aria-labelledby="createPlaylistModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createPlaylistModalLabel">Crear nueva playlist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createPlaylistForm">
+                        <div class="mb-3">
+                            <label for="playlistName" class="form-label">Nombre de la playlist</label>
+                            <input type="text" class="form-control" id="playlistName" placeholder="Mi playlist" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="playlistDescription" class="form-label">Descripción (opcional)</label>
+                            <textarea class="form-control" id="playlistDescription" rows="3" placeholder="Describe tu playlist..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="playlistPublic">
+                                <label class="form-check-label" for="playlistPublic">
+                                    Hacer pública esta playlist
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="savePlaylistBtn">Crear playlist</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar canción a playlist -->
+    <div class="modal fade modal-dark" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addToPlaylistModalLabel">Añadir a playlist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="selectedSongInfo"></p>
+                    <div id="userPlaylistsForSelection" class="mt-3">
+                        <div class="text-center py-3 text-muted">
+                            <p>No tienes playlists disponibles.</p>
+                            <button class="btn btn-sm btn-outline-light" id="createPlaylistFromModalBtn">
+                                <i class="fas fa-plus me-2"></i> Crear nueva playlist
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles de playlist -->
+    <div class="modal fade modal-dark" id="playlistDetailModal" tabindex="-1" aria-labelledby="playlistDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="playlistDetailModalLabel">Detalles de playlist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="playlist-cover-large" style="width: 100%; height: 0; padding-bottom: 100%; background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4)); border-radius: 8px; position: relative;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; color: white;">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h3 id="playlistDetailName">Nombre de la playlist</h3>
+                            <p id="playlistDetailDescription" class="text-muted">Descripción de la playlist</p>
+                            <p id="playlistDetailInfo" class="text-muted">
+                                <small>Creada por: <span id="playlistDetailCreator">Usuario</span> • <span id="playlistDetailSongCount">0</span> canciones • <span id="playlistDetailCreatedAt">Fecha</span></small>
+                            </p>
+                            <div class="mt-3">
+                                <button class="btn btn-primary me-2" id="playPlaylistBtn">
+                                    <i class="fas fa-play me-1"></i> Reproducir
+                                </button>
+                                <button class="btn btn-outline-light me-2" id="editPlaylistBtn">
+                                    <i class="fas fa-edit me-1"></i> Editar
+                                </button>
+                                <button class="btn btn-outline-danger" id="deletePlaylistBtn">
+                                    <i class="fas fa-trash me-1"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="playlistSongsList">
+                        <!-- Lista de canciones de la playlist (se carga dinámicamente) -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -558,5 +956,10 @@
     
     <!-- Script específico para la página de cuenta -->
     <script src="resources/js/account.js"></script>
+
+    <!-- Gestión de likes y playlists -->
+<script src="resources/js/firebase-likes.js"></script>
+<script src="resources/js/playlist-manager.js"></script>
+
 </body>
 </html>

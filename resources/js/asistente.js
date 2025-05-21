@@ -240,6 +240,12 @@ function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+// Función de inicialización del asistente
+function init() {
+    console.log("Inicializando asistente musical...");
+    setupChatMessages();
+    setupEventListeners();
+}
 
 
 // Inicializa cuando el DOM está cargado
