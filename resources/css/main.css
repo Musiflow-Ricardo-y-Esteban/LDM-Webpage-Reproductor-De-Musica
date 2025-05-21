@@ -700,3 +700,12 @@ body {
         right: 10px;
     }
 }
+
+.planes-link{
+    text-decoration: none;
+    color:inherit;
+}
+
+.planes-link:hover{
+    color: inherit;
+}
