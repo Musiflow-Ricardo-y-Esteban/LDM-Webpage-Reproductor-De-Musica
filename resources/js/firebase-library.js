@@ -123,18 +123,20 @@ const LibraryManager = (() => {
 
     function updateLibraryButtonVisual(songId, isInLib) {
         document.querySelectorAll(`.add-to-library-btn[data-track-id="${songId}"]`).forEach(button => {
-            const icon = button.querySelector('i');
+        const icon = button.querySelector('i');
+        if (icon) { // Verificar que el ícono exista
             if (isInLib) {
-                icon.className = 'fas fa-check-circle'; // O fa-bookmark
+                icon.className = 'fas fa-check-circle'; // Icono cuando está en la biblioteca
                 button.title = 'En Biblioteca';
                 button.classList.add('active');
             } else {
-                icon.className = 'fas fa-plus-circle'; // O fa-bookmark-o
+                icon.className = 'fas fa-plus-circle'; // Icono para añadir
                 button.title = 'Añadir a Biblioteca';
                 button.classList.remove('active');
             }
-        });
+        }});
     }
+
 
     // Función de toast (puedes moverla a un utils.js si la usas en más sitios)
     function showToast(message, type = 'info') {

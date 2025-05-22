@@ -330,6 +330,11 @@ class MusicManager {
             const heartClass = isLiked ? 'fas' : 'far';
             const heartColor = isLiked ? 'style="color: #1ed760;"' : '';
             
+            const isInLib = window.LibraryManager ? window.LibraryManager.isInLibrary(track.id) : false;
+            const libIconClass = isInLib ? 'fas fa-check-circle' : 'fas fa-plus-circle';
+            const libTitle = isInLib ? 'En Biblioteca' : 'Añadir a Biblioteca';
+            const libBtnActiveClass = isInLib ? 'active' : '';
+
             const trackRow = document.createElement('div');
             trackRow.className = 'track-row';
             trackRow.dataset.trackId = track.id; // ID de pista de Spotify
@@ -357,6 +362,9 @@ class MusicManager {
                         </button>
                         <button class="action-button add-to-playlist-button" title="Añadir a playlist" data-track-id="${track.id}">
                             <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button class="action-button add-to-library-btn ${libBtnActiveClass}" title="${libTitle}" data-track-id="${track.id}">
+                            <i class="${libIconClass}"></i>
                         </button>
                         <button class="action-button" title="Abrir en Spotify" onclick="window.open('${track.externalUrl}', '_blank')">
                             <i class="fab fa-spotify"></i>
@@ -393,6 +401,12 @@ class MusicManager {
         });
         
         this.dom.searchResults.appendChild(tracksContainer);
+
+
+        if (this.dom.searchResults && !this.dom.searchResults.dataset.listenerAttachedLibrary) {
+            this.dom.searchResults.addEventListener('click', handleLibraryActions);
+            this.dom.searchResults.dataset.listenerAttachedLibrary = 'true';
+        }
         
         // Event listeners para resultados de Spotify
         this.dom.searchResults.querySelectorAll('.play-button, .track-row').forEach(element => {
@@ -495,6 +509,51 @@ class MusicManager {
                 }
             });
         });
+
+        this.dom.searchResults.querySelectorAll('.add-to-library-btn').forEach(button => {
+            const trackId = button.dataset.trackId;
+            // Actualizar visual inicial
+            if (window.LibraryManager && window.LibraryManager.isInLibrary(trackId)) {
+                LibraryManager.updateLibraryButtonVisual(trackId, true);
+            } else {
+                LibraryManager.updateLibraryButtonVisual(trackId, false);
+            }
+
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!window.LibraryManager) {
+                    console.error("LibraryManager no está disponible.");
+                    return;
+                }
+                const track = this.spotifyPlaylist.find(t => t.id === trackId);
+                if (track) {
+                    if (LibraryManager.isInLibrary(trackId)) {
+                        await LibraryManager.removeSongFromLibrary(trackId);
+                    } else {
+                        // Asegúrate de que el objeto 'track' de Spotify tenga toda la info necesaria
+                        // o adáptala para que coincida con 'songDataForLibrary'
+                        const trackForLibrary = {
+                            id: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            album: track.album,
+                            image: track.image,
+                            duration: track.duration,
+                            source: track.previewUrl || track.externalUrl, // O el URI de Spotify
+                            sourceOrigin: 'spotify',
+                            externalUrl: track.externalUrl,
+                        };
+                        await LibraryManager.addSongToLibrary(trackForLibrary);
+                    }
+                }
+            });
+        });
+
+        if (window.LibraryManager) {
+            LibraryManager.addLibraryChangeListener((songId, isInLibrary, songData) => {
+                LibraryManager.updateLibraryButtonVisual(songId, isInLibrary);
+            });
+        }
     }
 
     //=======================================================
