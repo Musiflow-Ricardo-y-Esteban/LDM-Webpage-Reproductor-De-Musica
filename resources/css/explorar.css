@@ -666,13 +666,3 @@
     color: #FF4444;
     border: 1px solid rgba(255, 68, 68, 0.3);
 }
-
-.add-to-library-btn i.fa-check-circle {
-    color: var(--acento-actual); /* O un color verde de Spotify */
-}
-.add-to-library-btn.active {
-    color: var(--acento-actual); /* O verde */
-}
-.add-to-library-btn.active:hover {
-    color: white; /* O un verde más claro */
-}

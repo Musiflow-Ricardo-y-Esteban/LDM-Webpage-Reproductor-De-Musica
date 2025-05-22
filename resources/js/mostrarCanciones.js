@@ -143,12 +143,6 @@ function displayLocalTracks(tracks) {
         const isLiked = window.LikesManager ? window.LikesManager.isLiked(track.id) : false;
         const heartClass = isLiked ? 'fas' : 'far';
         const heartColor = isLiked ? 'style="color: #1ed760;"' : '';
-        
-        const isInLib = window.LibraryManager ? window.LibraryManager.isInLibrary(track.id) : false;
-        const libIconClass = isInLib ? 'fas fa-check-circle' : 'fas fa-plus-circle';
-        const libTitle = isInLib ? 'En Biblioteca' : 'Añadir a Biblioteca';
-        const libBtnActiveClass = isInLib ? 'active' : '';
-
 
         const trackRow = document.createElement('div');
         trackRow.className = 'track-row';
@@ -178,41 +172,12 @@ function displayLocalTracks(tracks) {
                     <button class="action-button add-to-playlist-button" title="Añadir a playlist" data-track-id="${track.id}">
                         <i class="fas fa-list-ul"></i>
                     </button>
-                    <button class="action-button add-to-library-btn ${libBtnActiveClass}" title="${libTitle}" data-track-id="${track.id}">
-                        <i class="${libIconClass}"></i>
-                    </button>
                     <button class="action-button more-button" title="Más opciones" data-track-id="${track.id}">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                 </div>
             </div>
         `;
-
-        document.querySelectorAll('.add-to-library-btn').forEach(button => {
-            const trackId = button.dataset.trackId;
-            // Actualizar visual inicial
-            if (window.LibraryManager && window.LibraryManager.isInLibrary(trackId)) {
-                LibraryManager.updateLibraryButtonVisual(trackId, true);
-            } else {
-                LibraryManager.updateLibraryButtonVisual(trackId, false);
-            }
-
-            button.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (!window.LibraryManager) {
-                    console.error("LibraryManager no está disponible.");
-                    return;
-                }
-                const track = musicDatabase.tracks.find(t => t.id === trackId);
-                if (track) {
-                    if (LibraryManager.isInLibrary(trackId)) {
-                        await LibraryManager.removeSongFromLibrary(trackId);
-                    } else {
-                        await LibraryManager.addSongToLibrary(track);
-                    }
-                }
-            });
-        });
         
         // Eventos para hovering en la fila
         trackRow.addEventListener('mouseenter', () => {
@@ -840,99 +805,6 @@ function loadUserPlaylistsForSelection(track) {
     }
 }
 
-function handleLibraryActions(e) {
-    const target = e.target;
-    const musicManager = window.musicManager; // Asumiendo que musicManager está global
-
-    // Botón Añadir/Quitar de Biblioteca
-    const libraryButton = target.closest('.add-to-library-btn');
-    if (libraryButton && window.LibraryManager) {
-        e.stopPropagation();
-        const trackId = libraryButton.dataset.trackId;
-        
-        // Intentar obtener la canción de las listas disponibles
-        let track = null;
-        if (typeof musicDatabase !== 'undefined' && musicDatabase.tracks) {
-            track = musicDatabase.tracks.find(t => t.id === trackId);
-        }
-        if (!track && musicManager && musicManager.spotifyPlaylist) {
-            const spotifyTrack = musicManager.spotifyPlaylist.find(t => t.id === trackId);
-            if (spotifyTrack) {
-                // Adaptar el objeto de Spotify si es necesario para LibraryManager
-                track = {
-                    id: spotifyTrack.id,
-                    title: spotifyTrack.title,
-                    artist: spotifyTrack.artist,
-                    album: spotifyTrack.album,
-                    image: spotifyTrack.image,
-                    duration: spotifyTrack.duration,
-                    source: spotifyTrack.previewUrl || spotifyTrack.externalUrl,
-                    sourceOrigin: 'spotify',
-                    externalUrl: spotifyTrack.externalUrl,
-                };
-            }
-        }
-
-        if (track) {
-            if (!firebase.auth().currentUser) {
-                // Usar la función de toast de LibraryManager o una global si tienes
-                if (window.LibraryManager && typeof LibraryManager.showToastInternal === 'function') {
-                     LibraryManager.showToastInternal('Debes iniciar sesión para usar la biblioteca.', 'warning');
-                } else if (typeof showToast === 'function') {
-                    showToast('Debes iniciar sesión para usar la biblioteca.', 'warning');
-                } else {
-                    alert('Debes iniciar sesión para usar la biblioteca.');
-                }
-                return;
-            }
-
-            const isInLib = window.LibraryManager.isInLibrary(trackId);
-            
-            // Deshabilitar botón y mostrar spinner
-            libraryButton.disabled = true;
-            const originalIconHTML = libraryButton.innerHTML;
-            libraryButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            const actionPromise = isInLib ? 
-                                  window.LibraryManager.removeSongFromLibrary(trackId) : 
-                                  window.LibraryManager.addSongToLibrary(track);
-
-            actionPromise
-                .then(() => {
-                    // La UI del botón se actualizará a través del listener de LibraryManager.addLibraryChangeListener
-                    // o puedes forzar una actualización aquí si es necesario:
-                    // window.LibraryManager.updateLibraryButtonVisual(trackId, window.LibraryManager.isInLibrary(trackId));
-                })
-                .catch(err => {
-                    if (window.LibraryManager && typeof LibraryManager.showToastInternal === 'function') {
-                         LibraryManager.showToastInternal(err.message || 'Error con la biblioteca', 'error');
-                    } else if (typeof showToast === 'function') {
-                        showToast(err.message || 'Error con la biblioteca', 'error');
-                    } else {
-                        alert(err.message || 'Error con la biblioteca');
-                    }
-                    // Restaurar el botón en caso de error
-                    libraryButton.innerHTML = originalIconHTML;
-                    window.LibraryManager.updateLibraryButtonVisual(trackId, isInLib); // Revertir al estado anterior
-                })
-                .finally(() => {
-                    libraryButton.disabled = false;
-                    // El listener debería haber actualizado el botón. Si no, asegurar:
-                    if(libraryButton.querySelector('.fa-spinner')) { // si aún tiene el spinner
-                       libraryButton.innerHTML = originalIconHTML; // restaurar por si acaso
-                       window.LibraryManager.updateLibraryButtonVisual(trackId, window.LibraryManager.isInLibrary(trackId));
-                    }
-                });
-        } else {
-            console.warn("No se pudo encontrar la canción con ID:", trackId, "para acción de biblioteca.");
-        }
-        return; // Detener la propagación y ejecución adicional para este clic
-    }
-    
-    // Aquí puedes añadir más manejadores para otros botones usando la misma técnica de .closest()
-    // por ejemplo, para los botones de play, like, playlist que ya tenías en handleResultsClick
-}
-
 /**
  * Muestra el menú de más opciones para una canción
  * @param {Object} track - Canción seleccionada
@@ -1136,30 +1008,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    const resultsContainer = document.getElementById('searchResults');
-    if (resultsContainer && !resultsContainer.dataset.listenerAttachedLibrary) {
-        resultsContainer.addEventListener('click', handleLibraryActions);
-        resultsContainer.dataset.listenerAttachedLibrary = 'true';
-    }
-
-    // Escuchar cambios en la biblioteca para actualizar los botones de "Añadir a Biblioteca"
-    if (window.LibraryManager) {
-        LibraryManager.addLibraryChangeListener((songId, isInLibrary, songData) => {
-            console.log('Explorar: Evento libraryChanged recibido para:', songId, isInLibrary);
-            // Actualizar el botón específico si existe
-            const button = document.querySelector(`.add-to-library-btn[data-track-id="${songId}"]`);
-            if (button) {
-                LibraryManager.updateLibraryButtonVisual(songId, isInLibrary);
-            }
-        });
-    }
-
     
     console.log('mostrarCanciones.js: Sistema de visualización con integración cargado correctamente');
 });
-
-
-
 
 console.log("mostrarCanciones.js cargado y mejorado con integración completa de likes y playlists.");
