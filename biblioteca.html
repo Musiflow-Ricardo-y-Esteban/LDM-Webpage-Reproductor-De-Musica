@@ -18,59 +18,710 @@
     <link href="resources/css/footer.css" rel="stylesheet">
     <link href="resources/css/misc.css" rel="stylesheet">
     <link href="resources/css/asistente.css" rel="stylesheet">
-    <link href="resources/css/explorar.css" rel="stylesheet"> <!-- Estilos compartidos de exploración -->
-    <link rel="stylesheet" href="resources/css/estiloCanciones.css"> <!-- Estilos para listas de canciones -->
+    <link href="resources/css/explorar.css" rel="stylesheet">
+    <link rel="stylesheet" href="resources/css/estiloCanciones.css">
 
     <style>
         body {
-            padding-bottom: 90px; /* Espacio para el reproductor fijo */
+            padding-bottom: 90px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
         }
+
         .library-header {
-            padding: 100px 0 60px; /* Ajustado desde 80px para navbar fijo */
-            background: linear-gradient(rgba(18,18,18,0.85), rgba(18,18,18,0.95)), 
-                        url('resources/img/library-bg.jpg') no-repeat center center; /* Opcional: imagen de fondo */
-            background-size: cover;
-            text-align: center;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 120px 0 80px;
+            background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+            position: relative;
+            overflow: hidden;
         }
+
+        .library-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 102, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(0, 153, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 153, 0, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .library-header .container {
+            position: relative;
+            z-index: 1;
+        }
+
         .library-header h1 { 
-            font-size: 3.5rem; 
-            font-weight: bold; 
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            font-size: 4rem; 
+            font-weight: 800; 
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.7);
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-3), var(--arcoiris-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
         }
+
         .library-header p { 
-            font-size: 1.3rem; 
-            color: #b3b3b3; 
-            margin-top: 10px;
+            font-size: 1.4rem; 
+            color: #c0c0c0; 
+            margin-top: 15px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
         }
-        #librarySongsContainer { 
-            margin-top: 30px; 
+
+        .library-nav {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 60px;
+            padding: 12px;
+            margin-top: 40px;
+            display: inline-flex;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
-        .empty-library-message {
+
+        .library-nav-btn {
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .library-nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-3));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .library-nav-btn.active {
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+        }
+
+        .library-nav-btn.active::before {
+            opacity: 1;
+        }
+
+        .library-nav-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .library-section {
+            min-height: 500px;
+            padding: 60px 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--acento-actual), var(--arcoiris-3));
+            border: none;
+            border-radius: 30px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.5);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--acento-actual);
+            color: var(--acento-actual);
+            background: transparent;
+            border-radius: 30px;
+            padding: 10px 22px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--acento-actual);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #a0a0a0; /* Un gris un poco más claro */
-            background-color: rgba(24,24,24,0.5); /* Fondo sutil */
-            border-radius: 8px;
+            padding: 100px 30px;
+            color: #a0a0a0;
+            background: rgba(24, 24, 24, 0.6);
+            border-radius: 25px;
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+            margin: 40px 0;
+        }
+
+        .empty-state::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            animation: shimmer 4s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .empty-state i { 
+            font-size: 5rem; 
+            margin-bottom: 30px; 
+            color: var(--acento-actual);
+            opacity: 0.8;
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
             margin-top: 30px;
         }
-        .empty-library-message i { 
-            font-size: 3.5rem; 
-            margin-bottom: 20px; 
-            color: var(--acento-actual); /* Usar color de acento */
-            opacity: 0.7;
+
+        .playlist-card {
+            background: rgba(40, 40, 40, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
         }
-        .empty-library-message p {
-            font-size: 1.1rem;
+
+        .playlist-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, var(--acento-actual) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-color: var(--acento-actual);
+        }
+
+        .playlist-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .playlist-cover {
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .playlist-cover i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .playlist-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .playlist-info {
+            position: relative;
+            z-index: 1;
+        }
+
+        .playlist-name {
+            font-size: 1.4rem;
+            font-weight: 700;
             margin-bottom: 10px;
+            color: white;
         }
-        .empty-library-message .btn-primary {
-            margin-top: 15px;
+
+        .playlist-meta {
+            color: #b3b3b3;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
-        .results-section .section-title { /* Para el H2 "Resultados" si lo reutilizas */
+
+        .playlist-actions {
+            display: flex;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.4s ease;
+        }
+
+        .playlist-card:hover .playlist-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .playlist-action-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .playlist-action-btn:hover {
+            background: var(--acento-actual);
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+        }
+
+        .play-all-btn {
+            background: linear-gradient(45deg, #1DB954, #1ed760);
+            border: none;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 25px rgba(29, 185, 84, 0.4);
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .play-all-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(29, 185, 84, 0.6);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 20px;
+            padding: 35px;
             text-align: center;
-            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--acento-actual);
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-number {
+            transform: scale(1.1);
+        }
+
+        .stat-label {
+            color: #b3b3b3;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Estilos para tracks */
+        .tracks-container {
+            background: rgba(20, 20, 20, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .track-header {
+            display: grid;
+            grid-template-columns: 60px 1fr 200px 100px;
+            gap: 20px;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #b3b3b3;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .track-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 200px 100px;
+            gap: 20px;
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .track-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .track-row:last-child {
+            border-bottom: none;
+        }
+
+        .track-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .track-index {
+            color: #b3b3b3;
+            font-weight: 600;
+        }
+
+        .play-button {
+            display: none;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .track-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .track-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .track-details {
+            flex: 1;
+        }
+
+        .track-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .track-artist {
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+
+        .source-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .source-badge.spotify {
+            background: #1DB954;
+            color: white;
+        }
+
+        .source-badge.local {
+            background: #6c757d;
+            color: white;
+        }
+
+        .track-album {
+            display: flex;
+            align-items: center;
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+
+        .track-duration {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #b3b3b3;
+            position: relative;
+        }
+
+        .duration-text {
+            font-weight: 600;
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 8px;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .track-row:hover .track-actions {
+            visibility: visible;
+        }
+
+        .action-button {
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .action-button.active {
+            color: var(--acento-actual);
+        }
+
+        /* Playlist song items */
+        .playlist-song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .playlist-song-item:last-child {
+            border-bottom: none;
+        }
+
+        .song-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .song-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .song-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .song-artist {
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+
+        .empty-playlist {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        /* Media queries para responsive */
+        @media (max-width: 1200px) {
+            .track-header,
+            .track-row {
+                grid-template-columns: 50px 1fr 150px 80px;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .library-header h1 {
+                font-size: 2.8rem;
+            }
+            
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .library-nav {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .track-header,
+            .track-row {
+                grid-template-columns: 40px 1fr 60px;
+                gap: 10px;
+            }
+
+            .track-album {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .library-nav-btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .track-info {
+                gap: 10px;
+            }
+
+            .track-image {
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
@@ -109,26 +760,100 @@
 
     <!-- Cabecera de la Biblioteca -->
     <header class="library-header">
-        <div class="container">
+        <div class="container text-center">
             <h1 data-aos="fade-down">Mi Biblioteca</h1>
-            <p data-aos="fade-up" data-aos-delay="100">Tus canciones guardadas, listas para escuchar.</p>
+            <p data-aos="fade-up" data-aos-delay="100">Tu música, tus playlists, tu universo musical personal.</p>
+            
+            <!-- Estadísticas rápidas -->
+            <div class="stats-grid" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-card">
+                    <div class="stat-number" id="songsCount">0</div>
+                    <div class="stat-label">Canciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="playlistsCount">0</div>
+                    <div class="stat-label">Playlists</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="likesCount">0</div>
+                    <div class="stat-label">Favoritos</div>
+                </div>
+            </div>
+            
+            <!-- Navegación de secciones -->
+            <div class="library-nav" data-aos="fade-up" data-aos-delay="300">
+                <button class="library-nav-btn active" data-section="songs">
+                    <i class="fas fa-music me-2"></i>Mis Canciones
+                </button>
+                <button class="library-nav-btn" data-section="playlists">
+                    <i class="fas fa-list-ul me-2"></i>Playlists
+                </button>
+                <button class="library-nav-btn" data-section="likes">
+                    <i class="fas fa-heart me-2"></i>Favoritos
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Sección de Contenido de la Biblioteca -->
-    <section class="results-section"> <!-- Reutilizando clase de explorar para estilos base -->
+    <!-- Sección de Canciones -->
+    <section class="library-section" id="songsSection">
         <div class="container">
-            <!-- El H2 es opcional, puede que prefieras que la cabecera sea suficiente -->
-            <!-- <h2 class="section-title">Mis Canciones Guardadas</h2> -->
+            <div class="section-header">
+                <h2 class="section-title">Mis Canciones</h2>
+                <div class="section-actions">
+                    <button class="play-all-btn" id="playAllSongsBtn" title="Reproducir todas">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="btn btn-outline-primary" id="shuffleAllSongsBtn">
+                        <i class="fas fa-random me-2"></i>Aleatorio
+                    </button>
+                </div>
+            </div>
             <div id="librarySongsContainer">
-                <!-- Mensaje de carga inicial -->
+                <!-- Loading inicial -->
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
                     <p class="text-muted mt-3">Cargando tu biblioteca...</p>
                 </div>
-                <!-- Las canciones de la biblioteca se cargarán aquí por biblioteca.js -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Playlists -->
+    <section class="library-section" id="playlistsSection" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Mis Playlists</h2>
+                <div class="section-actions">
+                    <button class="btn btn-primary" id="createPlaylistBtn">
+                        <i class="fas fa-plus me-2"></i>Nueva Playlist
+                    </button>
+                </div>
+            </div>
+            <div id="playlistsContainer">
+                <!-- Playlists se cargarán aquí -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Favoritos -->
+    <section class="library-section" id="likesSection" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Mis Favoritos</h2>
+                <div class="section-actions">
+                    <button class="play-all-btn" id="playAllLikesBtn" title="Reproducir favoritos">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="btn btn-outline-primary" id="shuffleLikesBtn">
+                        <i class="fas fa-random me-2"></i>Aleatorio
+                    </button>
+                </div>
+            </div>
+            <div id="likesContainer">
+                <!-- Canciones favoritas se cargarán aquí -->
             </div>
         </div>
     </section>
@@ -164,28 +889,89 @@
         </div>
     </div>
 
-    <!-- Asistente Musical -->
-    <div class="music-assistant-button" id="musicAssistantButton"><i>🎵</i></div>
-    <div class="music-assistant-modal" id="musicAssistantModal">
-        <div class="neon-decoration"></div> <div class="neon-decoration"></div> <div class="neon-decoration"></div> <div class="sparkle-effect"></div>
-        <div class="assistant-header">
-            <h1 class="assistant-title">MusicGPT</h1>
-            <p class="assistant-description">Tu asistente musical inteligente</p>
-            <button class="close-button" id="closeButton">×</button>
-        </div>
-        <div class="assistant-chat-container">
-            <div class="assistant-chat-messages" id="chatMessages"></div>
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="typing-indicator-content"><span>MusicGPT está escribiendo</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <!-- Modal para crear/editar playlist -->
+    <div class="modal fade modal-dark" id="playlistModal" tabindex="-1" aria-labelledby="playlistModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="playlistModalLabel">Nueva Playlist</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="playlistForm">
+                        <div class="mb-3">
+                            <label for="playlistName" class="form-label">Nombre de la playlist</label>
+                            <input type="text" class="form-control" id="playlistName" required maxlength="100" placeholder="Mi nueva playlist">
+                        </div>
+                        <div class="mb-3">
+                            <label for="playlistDescription" class="form-label">Descripción (opcional)</label>
+                            <textarea class="form-control" id="playlistDescription" rows="3" maxlength="300" placeholder="Describe tu playlist..."></textarea>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="playlistPublic" checked>
+                            <label class="form-check-label" for="playlistPublic">
+                                Playlist pública
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="savePlaylistBtn">
+                        <i class="fas fa-save me-2"></i>Crear Playlist
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="assistant-input-area">
-            <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
-            <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
         </div>
     </div>
 
-    <!-- Modal para agregar canción a playlist (usado por mostrarCanciones.js y biblioteca.js) -->
+    <!-- Modal para ver detalles de playlist -->
+    <div class="modal fade modal-dark" id="playlistDetailModal" tabindex="-1" aria-labelledby="playlistDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="playlistDetailModalLabel">Detalles de Playlist</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="playlist-cover-large" style="width: 200px; height: 200px; background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4)); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                                <i class="fas fa-music" style="font-size: 4rem; color: white;"></i>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                <button class="btn btn-success" id="playPlaylistBtn">
+                                    <i class="fas fa-play me-2"></i>Reproducir
+                                </button>
+                                <button class="btn btn-outline-primary" id="editPlaylistBtn">
+                                    <i class="fas fa-edit me-2"></i>Editar
+                                </button>
+                                <button class="btn btn-outline-danger" id="deletePlaylistBtn">
+                                    <i class="fas fa-trash me-2"></i>Eliminar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h3 id="playlistDetailName">Nombre de Playlist</h3>
+                            <p class="text-muted" id="playlistDetailDescription">Descripción de la playlist</p>
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <span id="playlistDetailSongCount">0</span> canciones
+                                </small>
+                            </div>
+                            <div class="playlist-songs-list" style="max-height: 350px; overflow-y: auto;">
+                                <div id="playlistSongs">
+                                    <!-- Canciones de la playlist -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar canción a playlist -->
     <div class="modal fade modal-dark" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -206,6 +992,33 @@
     <!-- Overlay de Carga -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Asistente Musical -->
+    <div class="music-assistant-button" id="musicAssistantButton"><i>🎵</i></div>
+    <div class="music-assistant-modal" id="musicAssistantModal">
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="neon-decoration"></div>
+        <div class="sparkle-effect"></div>
+        <div class="assistant-header">
+            <h1 class="assistant-title">MusicGPT</h1>
+            <p class="assistant-description">Tu asistente musical inteligente</p>
+            <button class="close-button" id="closeButton">×</button>
+        </div>
+        <div class="assistant-chat-container">
+            <div class="assistant-chat-messages" id="chatMessages"></div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-indicator-content">
+                    <span>MusicGPT está escribiendo</span>
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        <div class="assistant-input-area">
+            <input type="text" class="assistant-input" id="assistantInput" placeholder="Pregúntame sobre música...">
+            <button class="assistant-send-button" id="sendButton"><i>➤</i></button>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -243,32 +1056,34 @@
 
     <!-- Inicialización de Firebase y Auth -->
     <script src="resources/js/common-auth.js"></script>
-    <!-- firebase-init.js ya no es estrictamente necesario si common-auth.js hace firebase.initializeApp() -->
-    <!-- <script src="resources/js/firebase-init.js"></script> -->
-
 
     <!-- Scripts de la aplicación -->
-    <script src="resources/js/login.js"></script> <!-- Para AuthSystem y modales de login/registro -->
+    <script src="resources/js/login.js"></script>
     <script src="resources/js/asistente.js"></script>
-    <script src="resources/js/spotify-api.js"></script> <!-- Si se reproducen previews de Spotify desde la biblioteca -->
+    <script src="resources/js/spotify-api.js"></script>
     
     <!-- Managers de datos -->
     <script src="resources/js/firebase-likes.js"></script>
     <script src="resources/js/playlist-manager.js"></script>
-    <script src="resources/js/firebase-library.js"></script> <!-- Manager de la biblioteca -->
+    <script src="resources/js/firebase-library.js"></script>
 
     <!-- UI y Reproducción -->
-    <script src="resources/js/mostrarCanciones.js"></script> <!-- Para showAddToPlaylistModal y formatTimeGlobal -->
-    <script src="resources/js/music-manager.js"></script> <!-- Reproductor global -->
+    <script src="resources/js/mostrarCanciones.js"></script>
+    <script src="resources/js/music-manager.js"></script>
     
     <!-- Script específico de la página -->
     <script src="resources/js/biblioteca.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
+            AOS.init({ 
+                duration: 800, 
+                easing: 'ease-in-out', 
+                once: true,
+                offset: 100
+            });
 
-            // Lógica para el cursor brillante (si no está en un script global)
+            // Lógica para el cursor brillante
             const cursor = document.querySelector('.glowing-cursor');
             if (cursor) {
                 document.addEventListener('mousemove', (e) => {
@@ -278,19 +1093,16 @@
                 });
                 document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
             }
-            
-            // Actualizar el loginLink en el navbar (redundante si common-auth.js lo hace)
-            // firebase.auth().onAuthStateChanged(user => {
-            //     const loginLink = document.getElementById('loginLink');
-            //     if (user && loginLink) {
-            //         const displayName = user.displayName || user.email.split('@')[0];
-            //         loginLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
-            //         loginLink.href = 'account.html';
-            //     } else if (loginLink) {
-            //         loginLink.innerHTML = `<i class="fas fa-sign-in-alt"></i> Ingresar`;
-            //         loginLink.href = 'login.html';
-            //     }
-            // });
+
+            // Verificar autenticación para actualizar el enlace de login
+            firebase.auth().onAuthStateChanged(user => {
+                const loginLink = document.getElementById('loginLink');
+                if (user && loginLink) {
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    loginLink.innerHTML = `<i class="fas fa-user"></i> ${displayName}`;
+                    loginLink.href = 'account.html';
+                }
+            });
         });
     </script>
 </body>
