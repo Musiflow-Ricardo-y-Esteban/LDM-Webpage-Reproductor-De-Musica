@@ -1,874 +1,737 @@
-// playlist-manager.js - Sistema mejorado de gestión de playlists para MusiFlow
-// Este archivo proporciona funciones para manejar playlists entre páginas
+// resources/js/mostrarCanciones.js
+// Sistema completo para mostrar canciones con integración de likes y playlists
 
 /**
- * Módulo que gestiona el sistema de playlists
- * Permite crear, editar y reproducir playlists con sincronización en tiempo real
+ * Base de datos de canciones de muestra para la aplicación
+ * Contiene una colección de pistas con sus metadatos y rutas de audio
  */
-(function() {
-    // Caché local de playlists
-    let _userPlaylists = [];
-    let _isInitialized = false;
-    let _currentUser = null;
-    
-    // Evento personalizado para notificar cambios en playlists
-    const PLAYLIST_CHANGED_EVENT = 'playlistStatusChanged';
-    
-    /**
-     * Inicializa el sistema de playlists
-     * @return {Promise} Promesa que se resuelve cuando los datos están cargados
-     */
-    function init() {
-        return new Promise((resolve, reject) => {
-            console.log('PlaylistManager: Inicializando sistema de playlists...');
-            
-            // Verificar si el usuario está autenticado
-            if (!firebase.auth().currentUser) {
-                console.log('PlaylistManager: Usuario no autenticado, inicializando vacío');
-                _userPlaylists = [];
-                _isInitialized = true;
-                resolve([]);
-                return;
-            }
-            
-            _currentUser = firebase.auth().currentUser;
-            const uid = _currentUser.uid;
-            
-            // Cargar playlists desde Firebase
-            firebase.database().ref(`users/${uid}/playlists`).once('value')
-                .then(snapshot => {
-                    const data = snapshot.val() || {};
-                    _userPlaylists = Object.values(data);
-                    _isInitialized = true;
-                    
-                    console.log('PlaylistManager: Sistema inicializado correctamente con', _userPlaylists.length, 'playlists');
-                    
-                    // Actualizar UI después de cargar datos
-                    updatePlaylistUIElements();
-                    
-                    resolve(_userPlaylists);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al inicializar sistema de playlists:', error);
-                    _userPlaylists = [];
-                    _isInitialized = true;
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Fuerza la reinicialización del sistema (útil después de cambios de usuario)
-     * @return {Promise} Promesa que se resuelve cuando se completa la reinicialización
-     */
-    function reinitialize() {
-        console.log('PlaylistManager: Reinicializando sistema...');
-        _isInitialized = false;
-        _userPlaylists = [];
-        _currentUser = null;
-        return init();
-    }
-    
-    /**
-     * Obtiene todas las playlists del usuario
-     * @return {Array} Array con todas las playlists
-     */
-    function getAllPlaylists() {
-        return [..._userPlaylists];
-    }
-    
-    /**
-     * Obtiene una playlist por su ID
-     * @param {string} playlistId - ID de la playlist a buscar
-     * @return {Object|null} Objeto de playlist o null si no se encuentra
-     */
-    function getPlaylistById(playlistId) {
-        if (!playlistId) return null;
-        return _userPlaylists.find(p => p.id === playlistId) || null;
-    }
-    
-    /**
-     * Obtiene el número total de playlists
-     * @return {number} Cantidad de playlists del usuario
-     */
-    function getPlaylistsCount() {
-        return _userPlaylists.length;
-    }
-    
-    /**
-     * Crea una nueva playlist
-     * @param {Object} playlistData - Datos de la nueva playlist
-     * @return {Promise} Promesa que se resuelve con la playlist creada
-     */
-    function createPlaylist(playlistData) {
-        return new Promise((resolve, reject) => {
-            // Validaciones
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!playlistData || !playlistData.name || !playlistData.name.trim()) {
-                reject(new Error('Nombre de playlist requerido'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const timestamp = Date.now();
-            const playlistId = `playlist_${uid}_${timestamp}`;
-            
-            // Crear objeto de playlist con datos completos
-            const playlist = {
-                id: playlistId,
-                name: playlistData.name.trim(),
-                description: playlistData.description ? playlistData.description.trim() : '',
-                public: playlistData.public || false,
-                owner: uid,
-                ownerName: _currentUser.displayName || _currentUser.email.split('@')[0],
-                created_at: timestamp,
-                updated_at: timestamp,
-                songs: {}, // Inicialmente vacío
-                tags: playlistData.tags || [],
-                coverImage: playlistData.coverImage || null
-            };
-            
-            console.log('PlaylistManager: Creando nueva playlist:', playlist.name);
-            
-            // Guardar en Firebase
-            firebase.database().ref(`users/${uid}/playlists/${playlistId}`).set(playlist)
-                .then(() => {
-                    // Añadir a caché local
-                    _userPlaylists.push(playlist);
-                    
-                    console.log('PlaylistManager: Playlist creada exitosamente');
-                    
-                    // Disparar evento
-                    dispatchPlaylistChangedEvent('create', playlist);
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    resolve(playlist);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al crear playlist:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Actualiza una playlist existente
-     * @param {string} playlistId - ID de la playlist a actualizar
-     * @param {Object} updateData - Datos a actualizar
-     * @return {Promise} Promesa que se resuelve con la playlist actualizada
-     */
-    function updatePlaylist(playlistId, updateData) {
-        return new Promise((resolve, reject) => {
-            // Validaciones
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!playlistId) {
-                reject(new Error('ID de playlist requerido'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const playlistIndex = _userPlaylists.findIndex(p => p.id === playlistId);
-            
-            if (playlistIndex === -1) {
-                reject(new Error('Playlist no encontrada'));
-                return;
-            }
-            
-            // Verificar que el usuario sea el propietario
-            if (_userPlaylists[playlistIndex].owner !== uid) {
-                reject(new Error('No tienes permisos para editar esta playlist'));
-                return;
-            }
-            
-            // Actualizar datos sin modificar campos críticos
-            const updatedPlaylist = {
-                ..._userPlaylists[playlistIndex],
-                ...updateData,
-                id: playlistId, // Asegurar que ID no cambia
-                owner: uid, // Asegurar que owner no cambia
-                created_at: _userPlaylists[playlistIndex].created_at, // Mantener fecha de creación
-                updated_at: Date.now() // Actualizar timestamp
-            };
-            
-            // Campos que se pueden actualizar
-            const allowedFields = ['name', 'description', 'public', 'tags', 'coverImage'];
-            const updateFields = {};
-            
-            allowedFields.forEach(field => {
-                if (updateData.hasOwnProperty(field)) {
-                    updateFields[field] = updateData[field];
-                }
-            });
-            
-            updateFields.updated_at = updatedPlaylist.updated_at;
-            
-            console.log('PlaylistManager: Actualizando playlist:', updatedPlaylist.name);
-            
-            // Actualizar en Firebase
-            firebase.database().ref(`users/${uid}/playlists/${playlistId}`).update(updateFields)
-                .then(() => {
-                    // Actualizar en caché local
-                    _userPlaylists[playlistIndex] = updatedPlaylist;
-                    
-                    console.log('PlaylistManager: Playlist actualizada exitosamente');
-                    
-                    // Disparar evento
-                    dispatchPlaylistChangedEvent('update', updatedPlaylist);
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    resolve(updatedPlaylist);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al actualizar playlist:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Elimina una playlist
-     * @param {string} playlistId - ID de la playlist a eliminar
-     * @return {Promise} Promesa que se resuelve cuando se completa la operación
-     */
-    function deletePlaylist(playlistId) {
-        return new Promise((resolve, reject) => {
-            // Validaciones
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!playlistId) {
-                reject(new Error('ID de playlist requerido'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const playlistIndex = _userPlaylists.findIndex(p => p.id === playlistId);
-            
-            if (playlistIndex === -1) {
-                reject(new Error('Playlist no encontrada'));
-                return;
-            }
-            
-            // Verificar que el usuario sea el propietario
-            if (_userPlaylists[playlistIndex].owner !== uid) {
-                reject(new Error('No tienes permisos para eliminar esta playlist'));
-                return;
-            }
-            
-            // Guardar referencia para evento
-            const deletedPlaylist = _userPlaylists[playlistIndex];
-            
-            console.log('PlaylistManager: Eliminando playlist:', deletedPlaylist.name);
-            
-            // Eliminar de Firebase
-            firebase.database().ref(`users/${uid}/playlists/${playlistId}`).remove()
-                .then(() => {
-                    // Eliminar de caché local
-                    _userPlaylists.splice(playlistIndex, 1);
-                    
-                    console.log('PlaylistManager: Playlist eliminada exitosamente');
-                    
-                    // Disparar evento
-                    dispatchPlaylistChangedEvent('delete', deletedPlaylist);
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    resolve(playlistId);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al eliminar playlist:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Añade una canción a una playlist
-     * @param {Object} song - Objeto con datos de la canción
-     * @param {string} playlistId - ID de la playlist
-     * @return {Promise} Promesa que se resuelve cuando se completa la operación
-     */
-    function addSongToPlaylist(song, playlistId) {
-        return new Promise((resolve, reject) => {
-            // Validaciones
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!song || !song.id) {
-                reject(new Error('Datos de canción inválidos: se requiere ID'));
-                return;
-            }
-            
-            if (!playlistId) {
-                reject(new Error('ID de playlist requerido'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const playlistIndex = _userPlaylists.findIndex(p => p.id === playlistId);
-            
-            if (playlistIndex === -1) {
-                reject(new Error('Playlist no encontrada'));
-                return;
-            }
-            
-            // Verificar que el usuario sea el propietario
-            if (_userPlaylists[playlistIndex].owner !== uid) {
-                reject(new Error('No tienes permisos para modificar esta playlist'));
-                return;
-            }
-            
-            // Verificar si la canción ya está en la playlist
-            const playlist = _userPlaylists[playlistIndex];
-            
-            if (playlist.songs && playlist.songs[song.id]) {
-                reject(new Error('Esta canción ya está en la playlist'));
-                return;
-            }
-            
-            const timestamp = Date.now();
-            
-            // Preparar datos de la canción con metadatos adicionales
-            const songData = {
-                id: song.id,
-                title: song.title || 'Título desconocido',
-                artist: song.artist || 'Artista desconocido',
-                album: song.album || 'Álbum desconocido',
-                image: song.image || 'resources/album covers/placeholder.png',
-                duration: song.duration || '0:00',
-                source: song.source || '',
-                sourceOrigin: song.sourceOrigin || (song.source === 'spotify' ? 'spotify' : 'local'),
-                externalUrl: song.externalUrl || '',
-                added_at: timestamp,
-                added_by: uid
-            };
-            
-            console.log('PlaylistManager: Añadiendo canción a playlist:', songData.title, '→', playlist.name);
-            
-            // Añadir canción a la playlist en Firebase
-            firebase.database().ref(`users/${uid}/playlists/${playlistId}/songs/${song.id}`).set(songData)
-                .then(() => {
-                    // Actualizar timestamp de la playlist
-                    return firebase.database().ref(`users/${uid}/playlists/${playlistId}/updated_at`).set(timestamp);
-                })
-                .then(() => {
-                    // Actualizar caché local
-                    if (!_userPlaylists[playlistIndex].songs) {
-                        _userPlaylists[playlistIndex].songs = {};
-                    }
-                    
-                    _userPlaylists[playlistIndex].songs[song.id] = songData;
-                    _userPlaylists[playlistIndex].updated_at = timestamp;
-                    
-                    console.log('PlaylistManager: Canción añadida exitosamente a la playlist');
-                    
-                    // Disparar evento
-                    dispatchPlaylistChangedEvent('addSong', _userPlaylists[playlistIndex], songData);
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    resolve(_userPlaylists[playlistIndex]);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al añadir canción a playlist:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Elimina una canción de una playlist
-     * @param {string} songId - ID de la canción a eliminar
-     * @param {string} playlistId - ID de la playlist
-     * @return {Promise} Promesa que se resuelve cuando se completa la operación
-     */
-    function removeSongFromPlaylist(songId, playlistId) {
-        return new Promise((resolve, reject) => {
-            // Validaciones
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!songId) {
-                reject(new Error('ID de canción requerido'));
-                return;
-            }
-            
-            if (!playlistId) {
-                reject(new Error('ID de playlist requerido'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const playlistIndex = _userPlaylists.findIndex(p => p.id === playlistId);
-            
-            if (playlistIndex === -1) {
-                reject(new Error('Playlist no encontrada'));
-                return;
-            }
-            
-            // Verificar que el usuario sea el propietario
-            if (_userPlaylists[playlistIndex].owner !== uid) {
-                reject(new Error('No tienes permisos para modificar esta playlist'));
-                return;
-            }
-            
-            // Verificar si la canción está en la playlist
-            const playlist = _userPlaylists[playlistIndex];
-            
-            if (!playlist.songs || !playlist.songs[songId]) {
-                reject(new Error('Esta canción no está en la playlist'));
-                return;
-            }
-            
-            // Guardar referencia para evento
-            const removedSong = playlist.songs[songId];
-            const timestamp = Date.now();
-            
-            console.log('PlaylistManager: Eliminando canción de playlist:', removedSong.title, '→', playlist.name);
-            
-            // Eliminar canción de la playlist en Firebase
-            firebase.database().ref(`users/${uid}/playlists/${playlistId}/songs/${songId}`).remove()
-                .then(() => {
-                    // Actualizar timestamp de la playlist
-                    return firebase.database().ref(`users/${uid}/playlists/${playlistId}/updated_at`).set(timestamp);
-                })
-                .then(() => {
-                    // Actualizar caché local
-                    delete _userPlaylists[playlistIndex].songs[songId];
-                    _userPlaylists[playlistIndex].updated_at = timestamp;
-                    
-                    console.log('PlaylistManager: Canción eliminada exitosamente de la playlist');
-                    
-                    // Disparar evento
-                    dispatchPlaylistChangedEvent('removeSong', _userPlaylists[playlistIndex], removedSong);
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    resolve(_userPlaylists[playlistIndex]);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al eliminar canción de playlist:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Obtiene todas las canciones de una playlist
-     * @param {string} playlistId - ID de la playlist
-     * @return {Array} Array con las canciones de la playlist
-     */
-    function getPlaylistSongs(playlistId) {
-        const playlist = getPlaylistById(playlistId);
-        if (!playlist || !playlist.songs) {
-            return [];
+const musicDatabase = {
+    tracks: [
+        {
+            id: "local-1", // IDs únicos, con prefijo para mayor claridad
+            title: "Dark Horse",
+            artist: "Katy Perry",
+            album: "PRISM",
+            image: "resources/album covers/darkhorse.jpg", 
+            duration: "3:45", 
+            genre: "Pop",
+            source: "resources/audio/DarkHorse.mp3", 
+            sourceOrigin: "local"
+        },
+        {
+            id: "local-2",
+            title: "Locked Out of Heaven",
+            artist: "Bruno Mars",
+            album: "Unorthodox Jukebox",
+            image: "resources/album covers/unorthodoxJukebox.jpg",
+            duration: "3:54",
+            genre: "Pop",
+            source: "resources/audio/LockedOutOfHeaven.mp3",
+            sourceOrigin: "local"
+        },
+        {
+            id: "local-3",
+            title: "SOS",
+            artist: "Rihanna",
+            album: "A Girl Like Me",
+            image: "resources/album covers/AGirlLikeMe.jpg",
+            duration: "4:01",
+            genre: "Pop",
+            source: "resources/audio/SOS.mp3",
+            sourceOrigin: "local"
+        },
+        {
+            id: "local-4",
+            title: "End of Beginning",
+            artist: "Djo",
+            album: "DECIDE",
+            image: "resources/album covers/DECIDE.png",
+            duration: "2:39",
+            genre: "Synth-Pop",
+            source: "resources/audio/EndOfBeginning.mp3",
+            sourceOrigin: "local"
+        },
+        {
+            id: "local-5",
+            title: "Judas",
+            artist: "Lady Gaga",
+            album: "Born This Way",
+            image: "resources/album covers/BornThisWay.jpg",
+            duration: "4:09",
+            genre: "Pop",
+            source: "resources/audio/Judas.mp3",
+            sourceOrigin: "local"
+        },
+        {
+            id: "local-6",
+            title: "The Line",
+            artist: "Twenty One Pilots, Arcane, League of Legends",
+            album: "ARCANE",
+            image: "resources/album covers/ARCANE.jpg",
+            duration: "3:54",
+            genre: "ElectroPop",
+            source: "resources/audio/the line.mp3",
+            sourceOrigin: "local"
         }
-        
-        // Convertir objeto de canciones a array y ordenar por fecha de adición
-        return Object.values(playlist.songs).sort((a, b) => (a.added_at || 0) - (b.added_at || 0));
+    ]
+};
+
+/**
+ * Formatea el tiempo en segundos a formato minutos:segundos
+ * @param {number} seconds - Tiempo en segundos
+ * @return {string} Tiempo formateado en "m:ss"
+ */
+function formatTimeGlobal(seconds) {
+    if (seconds == null || isNaN(seconds) || seconds < 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+}
+
+/**
+ * Busca canciones locales que coincidan con una consulta
+ * @param {string} query - Texto a buscar
+ * @return {Array} Lista de pistas que coinciden con la búsqueda
+ */
+function searchLocalTracks(query) {
+    if (!query) {
+        return musicDatabase.tracks;
     }
     
-    /**
-     * Duplica una playlist existente
-     * @param {string} playlistId - ID de la playlist a duplicar
-     * @param {string} newName - Nombre para la nueva playlist (opcional)
-     * @return {Promise} Promesa que se resuelve con la nueva playlist
-     */
-    function duplicatePlaylist(playlistId, newName = null) {
-        return new Promise((resolve, reject) => {
-            const originalPlaylist = getPlaylistById(playlistId);
-            
-            if (!originalPlaylist) {
-                reject(new Error('Playlist original no encontrada'));
-                return;
-            }
-            
-            // Crear datos para la nueva playlist
-            const duplicatedPlaylistData = {
-                name: newName || `${originalPlaylist.name} (Copia)`,
-                description: originalPlaylist.description ? `Copia de: ${originalPlaylist.description}` : `Copia de ${originalPlaylist.name}`,
-                public: false, // Las copias son privadas por defecto
-                tags: [...(originalPlaylist.tags || [])],
-                coverImage: originalPlaylist.coverImage
-            };
-            
-            console.log('PlaylistManager: Duplicando playlist:', originalPlaylist.name);
-            
-            // Crear la nueva playlist
-            createPlaylist(duplicatedPlaylistData)
-                .then(newPlaylist => {
-                    // Si la playlist original tiene canciones, copiarlas
-                    if (originalPlaylist.songs && Object.keys(originalPlaylist.songs).length > 0) {
-                        const songs = Object.values(originalPlaylist.songs);
-                        const copyPromises = songs.map(song => addSongToPlaylist(song, newPlaylist.id));
-                        
-                        return Promise.all(copyPromises).then(() => newPlaylist);
-                    }
-                    
-                    return newPlaylist;
-                })
-                .then(newPlaylist => {
-                    console.log('PlaylistManager: Playlist duplicada exitosamente');
-                    resolve(newPlaylist);
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error al duplicar playlist:', error);
-                    reject(error);
-                });
-        });
+    query = query.toLowerCase().trim();
+    return musicDatabase.tracks.filter(track => 
+        track.title.toLowerCase().includes(query) || 
+        track.artist.toLowerCase().includes(query) || 
+        track.album.toLowerCase().includes(query) ||
+        (track.genre && track.genre.toLowerCase().includes(query))
+    );
+}
+
+/**
+ * Genera HTML para mostrar las canciones locales en la interfaz con integración de likes y playlists
+ * @param {Array} tracks - Lista de pistas a mostrar
+ */
+function displayLocalTracks(tracks) {
+    const resultsContainer = document.getElementById('searchResults');
+    const musicManager = window.musicManager; 
+
+    if (!resultsContainer) {
+        console.error("mostrarCanciones.js: Elemento con ID 'searchResults' no encontrado.");
+        return;
     }
     
-    /**
-     * Busca playlists por nombre o descripción
-     * @param {string} query - Texto a buscar
-     * @return {Array} Array con playlists que coinciden con la búsqueda
-     */
-    function searchPlaylists(query) {
-        if (!query || !query.trim()) {
-            return getAllPlaylists();
-        }
-        
-        const searchTerm = query.toLowerCase().trim();
-        
-        return _userPlaylists.filter(playlist => {
-            return playlist.name.toLowerCase().includes(searchTerm) ||
-                   (playlist.description && playlist.description.toLowerCase().includes(searchTerm)) ||
-                   (playlist.tags && playlist.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
-        });
+    if (!tracks || tracks.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-results">No se encontraron canciones</div>';
+        return;
     }
     
-    /**
-     * Obtiene estadísticas de las playlists del usuario
-     * @return {Object} Objeto con estadísticas detalladas
-     */
-    function getStatistics() {
-        const stats = {
-            totalPlaylists: _userPlaylists.length,
-            totalSongs: 0,
-            publicPlaylists: 0,
-            privatePlaylists: 0,
-            sourceDistribution: {
-                local: 0,
-                spotify: 0,
-                other: 0
-            },
-            averageSongsPerPlaylist: 0,
-            oldestPlaylist: null,
-            newestPlaylist: null,
-            mostPopularTags: {},
-            playlistsCreatedThisWeek: 0,
-            playlistsCreatedThisMonth: 0
-        };
+    resultsContainer.innerHTML = ''; 
+    
+    const tracksContainer = document.createElement('div');
+    tracksContainer.className = 'tracks-container';
+    
+    const headerRow = document.createElement('div');
+    headerRow.className = 'track-header';
+    headerRow.innerHTML = `
+        <div class="track-number">#</div>
+        <div class="track-info">TÍTULO</div>
+        <div class="track-album">ÁLBUM</div>
+        <div class="track-duration"><i class="far fa-clock"></i></div>
+    `;
+    tracksContainer.appendChild(headerRow);
+    
+    tracks.forEach((track, index) => {
+        const isLiked = window.LikesManager ? window.LikesManager.isLiked(track.id) : false;
+        const heartClass = isLiked ? 'fas' : 'far';
+        const heartColor = isLiked ? 'style="color: #1ed760;"' : '';
         
-        if (_userPlaylists.length === 0) {
-            return stats;
-        }
+        const trackRow = document.createElement('div');
+        trackRow.className = 'track-row';
+        trackRow.dataset.trackId = track.id;
         
-        const now = Date.now();
-        const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        const oneMonth = 30 * 24 * 60 * 60 * 1000;
+        trackRow.innerHTML = `
+            <div class="track-number">
+                <span class="track-index">${index + 1}</span>
+                <button class="play-button" data-track-id="${track.id}">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+            <div class="track-info">
+                <img src="${track.image || 'resources/album covers/placeholder.png'}" alt="${track.title || 'Canción'}" class="track-image">
+                <div class="track-details">
+                    <div class="track-title">${track.title || 'Título Desconocido'}</div>
+                    <div class="track-artist">${track.artist || 'Artista Desconocido'}</div>
+                </div>
+            </div>
+            <div class="track-album">${track.album || 'Álbum Desconocido'}</div>
+            <div class="track-duration">
+                <span>${track.duration || '0:00'}</span>
+                <div class="track-actions">
+                    <button class="action-button like-button ${isLiked ? 'active' : ''}" title="${isLiked ? 'Quitar Me Gusta' : 'Me Gusta'}" data-track-id="${track.id}">
+                        <i class="${heartClass} fa-heart" ${heartColor}></i>
+                    </button>
+                    <button class="action-button add-to-library-btn" title="Añadir a Biblioteca" data-track-id="${track.id}">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <button class="action-button add-to-playlist-button" title="Añadir a playlist" data-track-id="${track.id}">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button class="action-button more-button" title="Más opciones" data-track-id="${track.id}">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+        `;
         
-        _userPlaylists.forEach(playlist => {
-            // Conteo básico
-            const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
-            stats.totalSongs += songCount;
-            
-            if (playlist.public) {
-                stats.publicPlaylists++;
-            } else {
-                stats.privatePlaylists++;
-            }
-            
-            // Análisis de canciones por fuente
-            if (playlist.songs) {
-                Object.values(playlist.songs).forEach(song => {
-                    const source = song.sourceOrigin || 'other';
-                    if (stats.sourceDistribution.hasOwnProperty(source)) {
-                        stats.sourceDistribution[source]++;
+        tracksContainer.appendChild(trackRow);
+    });
+        
+    resultsContainer.appendChild(tracksContainer);
+    
+    setupPlayButtons();
+    setupLikeButtons();
+    setupLibraryButtons(); // Para el nuevo botón de biblioteca
+    setupPlaylistButtons();
+    setupTrackRowEvents();
+    setupMoreButtons();
+    
+    console.log('mostrarCanciones.js: Interfaz actualizada con', tracks.length, 'canciones locales.');
+}
+
+function setupPlayButtons() {
+    document.querySelectorAll('#searchResults .track-row .play-button').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.musicManager) {
+                const trackId = newButton.dataset.trackId;
+                const trackToPlay = musicDatabase.tracks.find(t => t.id === trackId);
+                if (trackToPlay) {
+                    if (window.musicManager.currentTrack && 
+                        window.musicManager.currentTrack.id === trackId && 
+                        window.musicManager.isPlaying) {
+                        window.musicManager.togglePlayPause();
                     } else {
-                        stats.sourceDistribution.other++;
+                        window.musicManager.playTrack(trackToPlay);
                     }
-                });
-            }
-            
-            // Análisis temporal
-            const createdAt = playlist.created_at || 0;
-            if (createdAt > now - oneWeek) {
-                stats.playlistsCreatedThisWeek++;
-            }
-            if (createdAt > now - oneMonth) {
-                stats.playlistsCreatedThisMonth++;
-            }
-            
-            // Playlist más antigua y más nueva
-            if (!stats.oldestPlaylist || createdAt < stats.oldestPlaylist.created_at) {
-                stats.oldestPlaylist = playlist;
-            }
-            if (!stats.newestPlaylist || createdAt > stats.newestPlaylist.created_at) {
-                stats.newestPlaylist = playlist;
-            }
-            
-            // Análisis de tags
-            if (playlist.tags) {
-                playlist.tags.forEach(tag => {
-                    stats.mostPopularTags[tag] = (stats.mostPopularTags[tag] || 0) + 1;
-                });
+                }
             }
         });
+    });
+}
+
+function setupLikeButtons() {
+    document.querySelectorAll('#searchResults .like-button').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
-        stats.averageSongsPerPlaylist = stats.totalPlaylists > 0 ? 
-            Math.round(stats.totalSongs / stats.totalPlaylists * 100) / 100 : 0;
-        
-        return stats;
-    }
-    
-    /**
-     * Sincroniza los datos locales con Firebase
-     * @return {Promise} Promesa que se resuelve cuando se completa la sincronización
-     */
-    function syncWithFirebase() {
-        return new Promise((resolve, reject) => {
+        newButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const trackId = newButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) { showToastGlobal('Error: Canción no encontrada', 'error'); return; }
             if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
+                showToastGlobal('Debes iniciar sesión para añadir favoritos', 'warning');
                 return;
             }
-            
-            const uid = firebase.auth().currentUser.uid;
-            
-            console.log('PlaylistManager: Sincronizando con Firebase...');
-            
-            firebase.database().ref(`users/${uid}/playlists`).once('value')
-                .then(snapshot => {
-                    const firebaseData = snapshot.val() || {};
-                    const firebasePlaylists = Object.values(firebaseData);
-                    const localCount = _userPlaylists.length;
-                    const firebaseCount = firebasePlaylists.length;
-                    
-                    console.log('PlaylistManager: Sincronización - Local:', localCount, 'Firebase:', firebaseCount);
-                    
-                    // Detectar cambios
-                    const addedPlaylists = [];
-                    const removedPlaylists = [];
-                    const updatedPlaylists = [];
-                    
-                    // Buscar playlists añadidas o actualizadas en Firebase
-                    firebasePlaylists.forEach(firebasePlaylist => {
-                        const localPlaylist = _userPlaylists.find(p => p.id === firebasePlaylist.id);
-                        
-                        if (!localPlaylist) {
-                            addedPlaylists.push(firebasePlaylist);
-                        } else if (firebasePlaylist.updated_at > localPlaylist.updated_at) {
-                            updatedPlaylists.push(firebasePlaylist);
-                        }
-                    });
-                    
-                    // Buscar playlists eliminadas en Firebase
-                    _userPlaylists.forEach(localPlaylist => {
-                        const firebasePlaylist = firebasePlaylists.find(p => p.id === localPlaylist.id);
-                        if (!firebasePlaylist) {
-                            removedPlaylists.push(localPlaylist);
-                        }
-                    });
-                    
-                    // Actualizar caché local
-                    _userPlaylists = [...firebasePlaylists];
-                    
-                    // Disparar eventos para cambios detectados
-                    addedPlaylists.forEach(playlist => {
-                        dispatchPlaylistChangedEvent('create', playlist);
-                    });
-                    
-                    updatedPlaylists.forEach(playlist => {
-                        dispatchPlaylistChangedEvent('update', playlist);
-                    });
-                    
-                    removedPlaylists.forEach(playlist => {
-                        dispatchPlaylistChangedEvent('delete', playlist);
-                    });
-                    
-                    // Actualizar UI
-                    updatePlaylistUIElements();
-                    
-                    console.log('PlaylistManager: Sincronización completada -', 
-                        addedPlaylists.length, 'añadidas,', 
-                        updatedPlaylists.length, 'actualizadas,',
-                        removedPlaylists.length, 'eliminadas');
-                    
-                    resolve({
-                        totalPlaylists: _userPlaylists.length,
-                        addedPlaylists: addedPlaylists.length,
-                        updatedPlaylists: updatedPlaylists.length,
-                        removedPlaylists: removedPlaylists.length
-                    });
-                })
-                .catch(error => {
-                    console.error('PlaylistManager: Error durante sincronización:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    /**
-     * Dispara un evento personalizado cuando hay cambios en playlists
-     * @param {string} action - Tipo de acción ('create', 'update', 'delete', 'addSong', 'removeSong')
-     * @param {Object} playlist - Playlist afectada
-     * @param {Object} song - Canción afectada (solo para addSong y removeSong)
-     */
-    function dispatchPlaylistChangedEvent(action, playlist, song = null) {
-        const event = new CustomEvent(PLAYLIST_CHANGED_EVENT, {
-            detail: {
-                action,
-                playlist,
-                song,
-                timestamp: Date.now(),
-                totalPlaylists: _userPlaylists.length,
-                totalSongs: _userPlaylists.reduce((total, p) => total + (p.songs ? Object.keys(p.songs).length : 0), 0)
-            }
-        });
-        
-        console.log('PlaylistManager: Disparando evento de cambio de playlist:', action, '→', playlist.name);
-        document.dispatchEvent(event);
-    }
-    
-    /**
-     * Añade un listener para eventos de cambio en playlists
-     * @param {Function} callback - Función a llamar cuando hay cambios
-     */
-    function addPlaylistChangeListener(callback) {
-        if (typeof callback !== 'function') {
-            console.error('PlaylistManager: addPlaylistChangeListener requiere una función como parámetro');
-            return;
-        }
-        
-        document.addEventListener(PLAYLIST_CHANGED_EVENT, (event) => {
             try {
-                callback(event.detail.action, event.detail.playlist, event.detail.song);
-            } catch (error) {
-                console.error('PlaylistManager: Error en callback de cambio de playlist:', error);
-            }
-        });
-        
-        console.log('PlaylistManager: Listener de cambios añadido correctamente');
-    }
-    
-    /**
-     * Actualiza la interfaz de usuario con el estado actual de playlists
-     */
-    function updatePlaylistUIElements() {
-        console.log('PlaylistManager: Actualizando elementos UI con', _userPlaylists.length, 'playlists');
-        
-        // Actualizar contadores si existen
-        const playlistCountElements = document.querySelectorAll('#playlistsCount, .playlist-count, [data-playlist-count]');
-        playlistCountElements.forEach(element => {
-            element.textContent = _userPlaylists.length;
-        });
-        
-        // Disparar evento de actualización de UI si es necesario
-        const uiUpdateEvent = new CustomEvent('playlistUIUpdate', {
-            detail: {
-                totalPlaylists: _userPlaylists.length,
-                playlists: [..._userPlaylists]
-            }
-        });
-        document.dispatchEvent(uiUpdateEvent);
-    }
-    
-    // Exportar funciones públicas
-    window.PlaylistManager = {
-        // Inicialización
-        init,
-        reinitialize,
-        
-        // Consultas básicas
-        getAllPlaylists,
-        getPlaylistById,
-        getPlaylistsCount,
-        getPlaylistSongs,
-        searchPlaylists,
-        getStatistics,
-        
-        // Operaciones de playlist
-        createPlaylist,
-        updatePlaylist,
-        deletePlaylist,
-        duplicatePlaylist,
-        
-        // Operaciones de canciones
-        addSongToPlaylist,
-        removeSongFromPlaylist,
-        
-        // Sincronización
-        syncWithFirebase,
-        
-        // Eventos
-        addPlaylistChangeListener,
-        
-        // UI
-        updatePlaylistUIElements
-    };
-    
-    // Auto-inicializar cuando Firebase esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('PlaylistManager: DOM cargado, configurando auto-inicialización...');
-        
-        // Verificar si Firebase Auth está disponible
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            // Esperar a que se inicialice la autenticación
-            firebase.auth().onAuthStateChanged(user => {
-                if (user) {
-                    console.log('PlaylistManager: Usuario autenticado detectado, inicializando...');
-                    // El usuario está autenticado, inicializar sistema de playlists
-                    init().then(() => {
-                        console.log('PlaylistManager: Auto-inicialización completada exitosamente');
-                    }).catch(error => {
-                        console.error('PlaylistManager: Error durante auto-inicialización:', error);
-                    });
+                const originalContent = newButton.innerHTML;
+                newButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; newButton.disabled = true;
+                if (window.LikesManager) {
+                    const newLikeStatus = await window.LikesManager.toggleLike(track);
+                    updateLikeButtonVisual(newButton, newLikeStatus); // Actualiza el botón
+                    showToastGlobal(`Canción ${newLikeStatus ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
                 } else {
-                    console.log('PlaylistManager: Usuario no autenticado, limpiando datos locales');
-                    // No hay usuario autenticado, limpiar datos
-                    _userPlaylists = [];
-                    _isInitialized = true;
-                    _currentUser = null;
-                    
-                    // Actualizar UI para reflejar estado sin autenticación
-                    updatePlaylistUIElements();
+                    newButton.innerHTML = originalContent;
+                    showToastGlobal('Sistema de favoritos no disponible', 'error');
                 }
-            });
-        } else {
-            console.warn('PlaylistManager: Firebase no disponible durante inicialización automática');
+                newButton.disabled = false;
+            } catch (error) {
+                console.error('Error al cambiar estado de like:', error);
+                showToastGlobal(error.message || 'Error al actualizar favoritos', 'error');
+                const isCurrentlyLiked = window.LikesManager ? window.LikesManager.isLiked(trackId) : false;
+                updateLikeButtonVisual(newButton, isCurrentlyLiked);
+                newButton.disabled = false;
+            }
+        });
+    });
+}
+
+function setupLibraryButtons() {
+    document.querySelectorAll('#searchResults .add-to-library-btn').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        // Actualizar estado visual inicial del botón de biblioteca
+        const trackId = newButton.dataset.trackId;
+        if (window.LibraryManager) {
+            window.LibraryManager.updateLibraryButtonVisual(trackId, window.LibraryManager.isInLibrary(trackId));
         }
+
+        newButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const trackId = newButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) { showToastGlobal('Error: Canción no encontrada', 'error'); return; }
+            if (!firebase.auth().currentUser) {
+                showToastGlobal('Debes iniciar sesión para gestionar tu biblioteca', 'warning');
+                return;
+            }
+            try {
+                const originalContent = newButton.innerHTML;
+                newButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; newButton.disabled = true;
+                if (window.LibraryManager) {
+                    const isInLib = window.LibraryManager.isInLibrary(trackId);
+                    if (isInLib) {
+                        await window.LibraryManager.removeSongFromLibrary(trackId);
+                    } else {
+                        await window.LibraryManager.addSongToLibrary(track);
+                    }
+                    // El listener de LibraryManager se encargará de actualizar el botón.
+                } else {
+                    newButton.innerHTML = originalContent;
+                    showToastGlobal('Sistema de biblioteca no disponible', 'error');
+                }
+                newButton.disabled = false;
+            } catch (error) {
+                console.error('Error al gestionar biblioteca:', error);
+                showToastGlobal(error.message || 'Error al actualizar biblioteca', 'error');
+                if(window.LibraryManager) window.LibraryManager.updateLibraryButtonVisual(trackId, window.LibraryManager.isInLibrary(trackId));
+                newButton.disabled = false;
+            }
+        });
+    });
+}
+
+
+function updateLikeButtonVisual(button, isLiked) {
+    const icon = button.querySelector('i');
+    if (icon) {
+        icon.className = isLiked ? 'fas fa-heart' : 'far fa-heart';
+        icon.style.color = isLiked ? '#1ed760' : '';
+    }
+    button.classList.toggle('active', isLiked);
+    button.title = isLiked ? 'Quitar Me Gusta' : 'Me Gusta';
+}
+
+function setupPlaylistButtons() {
+    document.querySelectorAll('#searchResults .add-to-playlist-button').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const trackId = newButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) { showToastGlobal('Error: Canción no encontrada', 'error'); return; }
+            if (!firebase.auth().currentUser) {
+                showToastGlobal('Debes iniciar sesión para gestionar playlists', 'warning');
+                return;
+            }
+            showAddToPlaylistModalGlobal(track); // Llamar a la función global
+        });
+    });
+}
+
+function setupTrackRowEvents() {
+    document.querySelectorAll('#searchResults .track-row').forEach(row => {
+        const newRow = row.cloneNode(true);
+        row.parentNode.replaceChild(newRow, row);
+        
+        setupRowChildEvents(newRow); // Configura listeners para los hijos del nuevo row
+        
+        newRow.addEventListener('click', (e) => {
+            if (e.target.closest('.action-button') || e.target.closest('.play-button')) return;
+            if (window.musicManager) {
+                const trackId = newRow.dataset.trackId;
+                const trackToPlay = musicDatabase.tracks.find(t => t.id === trackId);
+                if (trackToPlay) {
+                    if (!(window.musicManager.currentTrack && 
+                          window.musicManager.currentTrack.id === trackId && 
+                          window.musicManager.isPlaying)) {
+                        window.musicManager.playTrack(trackToPlay);
+                    }
+                }
+            }
+        });
+    });
+}
+
+function setupRowChildEvents(row) {
+    const musicManager = window.musicManager;
+    const trackId = row.dataset.trackId;
+
+    row.addEventListener('mouseenter', () => {
+        const playButtonEl = row.querySelector('.play-button');
+        const indexElement = row.querySelector('.track-index');
+        const actionsElement = row.querySelector('.track-actions');
+        
+        if (playButtonEl && indexElement) {
+            const isCurrentAndPlaying = musicManager && musicManager.currentTrack && 
+                                       musicManager.currentTrack.id === trackId && musicManager.isPlaying;
+            if (isCurrentAndPlaying && musicManager.currentMode === 'local') {
+                indexElement.style.display = 'none';
+                playButtonEl.style.display = 'flex';
+                playButtonEl.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                indexElement.style.display = 'none';
+                playButtonEl.style.display = 'flex';
+                playButtonEl.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+        if (actionsElement) actionsElement.style.visibility = 'visible';
     });
     
-    // Configurar sincronización periódica (opcional)
-    setInterval(() => {
-        if (_isInitialized && _currentUser) {
-            console.log('PlaylistManager: Sincronización automática programada ejecutándose...');
-            syncWithFirebase().catch(error => {
-                console.error('PlaylistManager: Error en sincronización automática:', error);
-            });
+    row.addEventListener('mouseleave', () => {
+        const playButtonEl = row.querySelector('.play-button');
+        const indexElement = row.querySelector('.track-index');
+        const actionsElement = row.querySelector('.track-actions');
+        
+        if (playButtonEl && indexElement) {
+            const isCurrent = musicManager && musicManager.currentTrack && musicManager.currentTrack.id === trackId;
+            if (!isCurrent || musicManager.currentMode !== 'local') {
+                indexElement.style.display = 'block';
+                playButtonEl.style.display = 'none';
+            } else { // Es la pista actual (sonando o pausada)
+                indexElement.style.display = 'none';
+                playButtonEl.style.display = 'flex';
+                playButtonEl.innerHTML = musicManager.isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+            }
         }
-    }, 10 * 60 * 1000); // Cada 10 minutos
+        if (actionsElement) actionsElement.style.visibility = 'hidden';
+    });
     
-    console.log('PlaylistManager: Módulo cargado correctamente');
-})();
+    const playButton = row.querySelector('.play-button');
+    if (playButton) {
+        playButton.addEventListener('click', (e) => { /* ... (misma lógica que en setupPlayButtons) ... */ 
+            e.stopPropagation();
+            if (window.musicManager) {
+                const trackToPlay = musicDatabase.tracks.find(t => t.id === trackId);
+                if (trackToPlay) {
+                    if (window.musicManager.currentTrack && window.musicManager.currentTrack.id === trackId && window.musicManager.isPlaying) {
+                        window.musicManager.togglePlayPause();
+                    } else {
+                        window.musicManager.playTrack(trackToPlay);
+                    }
+                }
+            }
+        });
+    }
+    
+    const likeButton = row.querySelector('.like-button');
+    if (likeButton) {
+        likeButton.addEventListener('click', async (e) => { /* ... (misma lógica que en setupLikeButtons) ... */ 
+            e.stopPropagation();
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) return;
+            if (!firebase.auth().currentUser) { showToastGlobal('Debes iniciar sesión', 'warning'); return; }
+            // ... resto de la lógica de like
+            try {
+                const originalContent = likeButton.innerHTML;
+                likeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; likeButton.disabled = true;
+                if (window.LikesManager) {
+                    const newLikeStatus = await window.LikesManager.toggleLike(track);
+                    updateLikeButtonVisual(likeButton, newLikeStatus);
+                    showToastGlobal(`Canción ${newLikeStatus ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
+                } else {
+                    likeButton.innerHTML = originalContent;
+                    showToastGlobal('Sistema de favoritos no disponible', 'error');
+                }
+                likeButton.disabled = false;
+            } catch (error) {
+                const isCurrentlyLiked = window.LikesManager ? window.LikesManager.isLiked(trackId) : false;
+                updateLikeButtonVisual(likeButton, isCurrentlyLiked);
+                likeButton.disabled = false;
+                showToastGlobal(error.message || 'Error al actualizar favoritos', 'error');
+            }
+        });
+    }
+
+    const libraryButton = row.querySelector('.add-to-library-btn');
+    if (libraryButton) {
+        libraryButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) return;
+            if (!firebase.auth().currentUser) { showToastGlobal('Debes iniciar sesión', 'warning'); return; }
+            // ... Lógica para añadir/quitar de biblioteca con LibraryManager
+            try {
+                const originalContent = libraryButton.innerHTML;
+                libraryButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; libraryButton.disabled = true;
+                if (window.LibraryManager) {
+                    const isInLib = window.LibraryManager.isInLibrary(trackId);
+                    if (isInLib) {
+                        await window.LibraryManager.removeSongFromLibrary(trackId);
+                    } else {
+                        await window.LibraryManager.addSongToLibrary(track);
+                    }
+                } else {
+                    libraryButton.innerHTML = originalContent;
+                    showToastGlobal('Sistema de biblioteca no disponible', 'error');
+                }
+                libraryButton.disabled = false;
+            } catch (error) {
+                if(window.LibraryManager) window.LibraryManager.updateLibraryButtonVisual(trackId, window.LibraryManager.isInLibrary(trackId));
+                libraryButton.disabled = false;
+                showToastGlobal(error.message || 'Error al actualizar biblioteca', 'error');
+            }
+        });
+    }
+    
+    const playlistButton = row.querySelector('.add-to-playlist-button');
+    if (playlistButton) {
+        playlistButton.addEventListener('click', (e) => { /* ... (misma lógica que en setupPlaylistButtons) ... */ 
+            e.stopPropagation();
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (!track) return;
+            if (!firebase.auth().currentUser) { showToastGlobal('Debes iniciar sesión', 'warning'); return; }
+            showAddToPlaylistModalGlobal(track);
+        });
+    }
+    
+    const moreButton = row.querySelector('.more-button');
+    if (moreButton) {
+        moreButton.addEventListener('click', (e) => { /* ... (misma lógica que en setupMoreButtons) ... */ 
+            e.stopPropagation();
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (track) showMoreOptionsMenu(track, e.target);
+        });
+    }
+}
+
+function setupMoreButtons() {
+    document.querySelectorAll('#searchResults .more-button').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        newButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const trackId = newButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            if (track) showMoreOptionsMenu(track, e.target);
+        });
+    });
+}
+
+window.showAddToPlaylistModalGlobal = function(track) { // Ahora es global
+    let modal = document.getElementById('addToPlaylistModal');
+    if (!modal) {
+        const modalHTML = `
+            <div class="modal fade modal-dark" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="addToPlaylistModalLabel">Añadir a playlist</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <div id="selectedSongInfoInModal" class="mb-3"></div>
+                            <div id="userPlaylistsForSelectionInModal"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modal = document.getElementById('addToPlaylistModal');
+    }
+    
+    const songInfoElement = document.getElementById('selectedSongInfoInModal');
+    if (songInfoElement) {
+        songInfoElement.innerHTML = `
+            <div class="d-flex align-items-center mb-3">
+                <img src="${track.image || 'resources/album covers/placeholder.png'}" alt="${track.title || 'Canción'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px;">
+                <div><h6 class="m-0">${track.title || 'Título Desconocido'}</h6><small class="text-muted m-0">${track.artist || 'Artista Desconocido'}</small></div>
+            </div>
+            <p class="mb-2 small">Selecciona una playlist o crea una nueva:</p>`;
+    }
+    
+    loadUserPlaylistsForSelectionModal(track); 
+    
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+}
+
+function loadUserPlaylistsForSelectionModal(track) {
+    const container = document.getElementById('userPlaylistsForSelectionInModal');
+    if (!container) return;
+    container.innerHTML = `<div class="text-center py-2"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>`;
+    
+    if (window.PlaylistManager) {
+        setTimeout(async () => { 
+            try {
+                if (typeof window.PlaylistManager.init === 'function' && !window.PlaylistManager._isInitialized) { 
+                    await window.PlaylistManager.init();
+                }
+                const playlists = window.PlaylistManager.getAllPlaylists();
+                if (playlists.length === 0) {
+                    container.innerHTML = `<div class="text-center py-3 text-muted small"><p>No tienes playlists.</p><button class="btn btn-sm btn-outline-light create-playlist-from-modal-direct-btn"><i class="fas fa-plus me-1"></i> Crear Nueva Playlist</button></div>`;
+                } else {
+                    container.innerHTML = ''; 
+                    const listGroup = document.createElement('div');
+                    listGroup.className = 'list-group list-group-flush';
+                    playlists.forEach(playlist => {
+                        const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
+                        const playlistItemButton = document.createElement('button');
+                        playlistItemButton.type = 'button';
+                        playlistItemButton.className = 'list-group-item list-group-item-action bg-transparent text-light d-flex justify-content-between align-items-center py-2 px-0';
+                        playlistItemButton.innerHTML = `<span>${playlist.name}</span><small class="text-muted">${songCount} canc.</small>`;
+                        playlistItemButton.addEventListener('click', async () => {
+                            try {
+                                playlistItemButton.disabled = true;
+                                playlistItemButton.innerHTML = `<span><i class="fas fa-spinner fa-spin me-1"></i> Añadiendo...</span>`;
+                                await window.PlaylistManager.addSongToPlaylist(track, playlist.id);
+                                bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'))?.hide();
+                                showToastGlobal(`"${track.title}" añadida a "${playlist.name}"`, 'success');
+                            } catch (error) {
+                                playlistItemButton.disabled = false;
+                                playlistItemButton.innerHTML = `<span>${playlist.name}</span><small class="text-muted">${songCount} canc.</small>`;
+                                showToastGlobal(error.message || 'Error al añadir canción', 'error');
+                            }
+                        });
+                        listGroup.appendChild(playlistItemButton);
+                    });
+                    container.appendChild(listGroup);
+                    container.insertAdjacentHTML('beforeend', `<div class="text-center mt-3 border-top border-secondary pt-3"><button class="btn btn-sm btn-outline-light create-playlist-from-modal-direct-btn"><i class="fas fa-plus me-1"></i> Crear Nueva Playlist</button></div>`);
+                }
+                document.querySelectorAll('#userPlaylistsForSelectionInModal .create-playlist-from-modal-direct-btn').forEach(btn => {
+                    btn.onclick = () => { 
+                        bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'))?.hide();
+                        window.selectedSongForPlaylist = track; // Guardar para account.js
+                        if (window.authSystem && typeof window.authSystem.showCreatePlaylistModal === 'function'){
+                             window.authSystem.showCreatePlaylistModal();
+                        } else if (typeof showCreatePlaylistModal === 'function') { // Fallback si está global en account.js
+                             showCreatePlaylistModal();
+                        } else {
+                            console.error("Función para crear playlist no encontrada.");
+                        }
+                    };
+                });
+            } catch (error) {
+                console.error("Error cargando playlists en modal:", error);
+                container.innerHTML = `<p class="text-danger small">Error al cargar playlists.</p>`;
+            }
+        }, 100);
+    } else {
+        container.innerHTML = `<p class="text-warning small">Sistema de playlists no disponible.</p>`;
+    }
+}
+
+function showMoreOptionsMenu(track, buttonElement) {
+    const existingMenu = document.getElementById('moreOptionsMenu');
+    if (existingMenu) existingMenu.remove();
+    
+    const menu = document.createElement('div');
+    menu.id = 'moreOptionsMenu';
+    menu.style.cssText = `position: fixed; background: rgba(30,30,30,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 5px 0; min-width: 180px; z-index: 1056; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3);`;
+    
+    menu.innerHTML = `
+        <div class="menu-item" onclick="window.handleMoreOptionClick('copyInfo', '${track.id}')"><i class="fas fa-copy me-2"></i>Copiar Info</div>
+        <div class="menu-item" onclick="window.handleMoreOptionClick('shareTrack', '${track.id}')"><i class="fas fa-share-alt me-2"></i>Compartir</div>
+        <div class="menu-item" onclick="window.handleMoreOptionClick('viewDetails', '${track.id}')"><i class="fas fa-info-circle me-2"></i>Ver Detalles</div>
+    `;
+    
+    const rect = buttonElement.getBoundingClientRect();
+    menu.style.left = `${Math.min(rect.left, window.innerWidth - 180 - 10)}px`; // Evitar desbordamiento
+    menu.style.top = `${rect.bottom + 5}px`;
+    
+    menu.querySelectorAll('.menu-item').forEach(item => {
+        item.style.cssText = `padding: 10px 15px; cursor: pointer; color: #e0e0e0; font-size: 14px; display: flex; align-items: center;`;
+        item.onmouseenter = () => item.style.backgroundColor = 'rgba(255,255,255,0.1)';
+        item.onmouseleave = () => item.style.backgroundColor = 'transparent';
+    });
+    
+    document.body.appendChild(menu);
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenuOnClick(e) {
+            if (!menu.contains(e.target) && e.target !== buttonElement) {
+                menu.remove();
+                document.removeEventListener('click', closeMenuOnClick);
+            }
+        }, { once: true }); // { once: true } para que el listener se auto-elimine
+    }, 0); // setTimeout 0 para que el listener se añada después del evento de clic actual
+}
+
+window.handleMoreOptionClick = function(action, trackId) {
+    const track = musicDatabase.tracks.find(t => t.id === trackId) || 
+                  (window.musicManager && window.musicManager.spotifyPlaylist && window.musicManager.spotifyPlaylist.find(t => t.id === trackId));
+
+    if (!track) { showToastGlobal('Canción no encontrada.', 'error'); return; }
+
+    switch(action) {
+        case 'copyInfo':
+            navigator.clipboard.writeText(`${track.title} - ${track.artist}`)
+                .then(() => showToastGlobal('Información copiada.', 'success'))
+                .catch(() => showToastGlobal('Error al copiar.', 'error'));
+            break;
+        case 'shareTrack':
+            if (navigator.share) {
+                navigator.share({ title: track.title, text: `Escucha "${track.title}" por ${track.artist} en MusiFlow!`, url: window.location.href })
+                    .catch(err => console.log("Error al compartir:", err));
+            } else {
+                showToastGlobal('Función de compartir no soportada. Copia la info manualmente.', 'info');
+            }
+            break;
+        case 'viewDetails':
+            showToastGlobal(`Detalles: ${track.title} - ${track.artist} (${track.album || 'N/A'})`, 'info');
+            break;
+    }
+    document.getElementById('moreOptionsMenu')?.remove();
+};
+
+function showToastGlobal(message, type = 'success') {
+    const toastId = 'musiflow-global-toast';
+    let toast = document.getElementById(toastId);
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = toastId;
+        toast.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; opacity: 0; transition: opacity 0.3s, bottom 0.3s; font-size: 14px; max-width: 90%; text-align: center;`;
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    let bgColor;
+    switch(type) {
+        case 'success': bgColor = '#28a745'; break;
+        case 'error': bgColor = '#dc3545'; break;
+        case 'warning': bgColor = '#ffc107'; break;
+        default: bgColor = '#17a2b8'; // info
+    }
+    toast.style.backgroundColor = bgColor;
+    toast.style.opacity = '1';
+    toast.style.bottom = '30px';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.bottom = '20px';
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+    }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    function trySetupGlobalListeners() {
+        if (window.LikesManager && typeof window.LikesManager.addLikeChangeListener === 'function') {
+            window.LikesManager.addLikeChangeListener((songId, isLiked) => {
+                document.querySelectorAll(`.like-button[data-track-id="${songId}"]`).forEach(button => {
+                    updateLikeButtonVisual(button, isLiked);
+                });
+            });
+            console.log('mostrarCanciones.js: Listener global de LikesManager configurado.');
+        } else {
+            console.warn('mostrarCanciones.js: LikesManager no listo para listener global, reintentando...');
+            setTimeout(trySetupGlobalListeners, 500);
+        }
+
+        if (window.LibraryManager && typeof window.LibraryManager.addLibraryChangeListener === 'function') {
+             window.LibraryManager.addLibraryChangeListener((songId, isInLibrary) => {
+                document.querySelectorAll(`.add-to-library-btn[data-track-id="${songId}"]`).forEach(button => {
+                    window.LibraryManager.updateLibraryButtonVisual(songId, isInLibrary); // Usar la función del manager
+                });
+            });
+            console.log('mostrarCanciones.js: Listener global de LibraryManager configurado.');
+        } else {
+             console.warn('mostrarCanciones.js: LibraryManager no listo para listener global, reintentando...');
+            setTimeout(trySetupGlobalListeners, 500); // Reintentar para ambos si uno no está
+        }
+    }
+    trySetupGlobalListeners();
+    
+    console.log('mostrarCanciones.js: Sistema de visualización con integración cargado correctamente.');
+});
+
+console.log("mostrarCanciones.js cargado y mejorado con integración completa de likes, biblioteca y playlists.");
