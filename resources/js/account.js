@@ -842,7 +842,6 @@ function startAccountSystem() {
         console.log(`account.js: showAddToPlaylistModal - Abriendo modal para añadir canción "${song.title}" a playlist.`);
         
         // Actualizar la información de la canción en el modal.
-        // Se asume que el modal tiene un elemento con ID `selectedSongInfo`.
         const songInfoElement = document.getElementById('selectedSongInfo'); 
         if (songInfoElement) { 
             songInfoElement.innerHTML = `
@@ -858,7 +857,6 @@ function startAccountSystem() {
         }
         
         // Cargar y mostrar las playlists del usuario en el modal.
-        // Se asume que el modal tiene un contenedor con ID `userPlaylistsForSelection`.
         const playlistsContainerElement = document.getElementById('userPlaylistsForSelection'); 
         if (playlistsContainerElement) { 
             if (userPlaylists.length === 0) {
@@ -918,7 +916,6 @@ function startAccountSystem() {
                 playlistsContainerElement.appendChild(createNewItem);
             }
         }
-        // Mostrar el modal (se asume que el HTML del modal ya existe en la página).
         const modalElement = document.getElementById('addToPlaylistModal');
         if (modalElement) {
             new bootstrap.Modal(modalElement).show();
@@ -1878,9 +1875,6 @@ function startAccountSystem() {
      * @param {string} songId - ID de la canción cuyo estado de like se va a actualizar en la UI.
      */
     function updateLikeStatus(songId) {
-        // Esta función parece ser un duplicado conceptual de lo que hace `updateLikeStatusInUI`.
-        // Se recomienda unificar la lógica o asegurar que sus propósitos estén bien diferenciados.
-        // Por ahora, se asume que se quiere actualizar los iconos de like de cualquier item de canción con ese ID.
         console.log(`account.js: updateLikeStatus - Actualizando estado de like en UI para canción ID: ${songId}`);
         document.querySelectorAll(`.song-item[data-id="${songId}"]`).forEach(item => {
             const likeBtn = item.querySelector('.song-like');
@@ -2107,7 +2101,6 @@ function startAccountSystem() {
     /**
      * Abre el modal para que el usuario pueda editar su perfil.
      * Carga los datos actuales del usuario (nombre, URL de foto, biografía) en el formulario del modal.
-     * Se asume que el HTML del modal `editProfileModal` y sus campos de formulario existen.
      */
     function openEditProfileModal() {
         if (!currentUser) { // Verificar que haya un usuario cargado.
@@ -2132,7 +2125,6 @@ function startAccountSystem() {
         // Llenar los campos del formulario con los datos actuales del usuario.
         nameInput.value = currentUser.displayName || '';
         photoURLInput.value = currentUser.photoURL || '';
-        // La biografía se asume que está en `currentUser.profileInfo.bio`.
         bioInput.value = currentUser.profileInfo && currentUser.profileInfo.bio ? currentUser.profileInfo.bio : '';
         
         // Mostrar el modal de edición de perfil.
@@ -2202,7 +2194,6 @@ function startAccountSystem() {
             }
 
             // Actualizar la biografía en Firebase Realtime Database.
-            // Se asume que la biografía se guarda en `users/{uid}/profileInfo/bio`.
             const currentBioInCache = currentUser.profileInfo && currentUser.profileInfo.bio ? currentUser.profileInfo.bio : '';
             if (newBio !== currentBioInCache) { // Solo actualizar si la biografía cambió.
                  await firebase.database().ref(`users/${userAuth.uid}/profileInfo/bio`).set(newBio || null); // Guardar `null` si está vacía para borrarla.
@@ -2461,7 +2452,6 @@ function startAccountSystem() {
     
     /**
      * Muestra u oculta un overlay de carga en la página.
-     * Se asume que existe un elemento con ID `loadingOverlay` en el HTML.
      * @param {boolean} show - `true` para mostrar el overlay, `false` para ocultarlo.
      */
     function showLoading(show) { 
