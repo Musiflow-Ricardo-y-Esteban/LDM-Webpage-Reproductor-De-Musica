@@ -1,0 +1,424 @@
+/* Estructura principal de la página */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Altura mínima igual a la altura de la ventana */
+        }
+        
+        /* Sección principal de la cuenta */
+        .account-page-section {
+            flex-grow: 1; /* Ocupa el espacio disponible */
+            padding-top: 100px; /* Espacio para la barra de navegación fija */
+            padding-bottom: 100px; /* Espacio para el reproductor fijo */
+            background: radial-gradient(circle at center, #2a2a2a 0%, var(--oscuro-primario) 100%);
+            position: relative; /* Para posicionamiento de elementos decorativos */
+        }
+        
+        /* Tarjeta del perfil de usuario */
+        .profile-card {
+            background-color: rgba(18, 18, 18, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Cabecera del perfil con avatar y datos básicos */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        /* Avatar del usuario */
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+        
+        /* Información básica del perfil */
+        .profile-info h2 {
+            margin: 0;
+            margin-bottom: 5px;
+        }
+        .profile-info p {
+            color: var(--texto-secundario);
+            margin: 0;
+        }
+        
+        /* Estadísticas de la cuenta (cuadrícula) */
+        .account-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        /* Caja individual de estadísticas */
+        .stat-box {
+            background-color: rgba(30, 30, 30, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* Efecto hover para cajas de estadísticas */
+        .stat-box:hover {
+            transform: translateY(-5px);
+            background-color: rgba(40, 40, 40, 0.8);
+        }
+        
+        /* Número destacado en estadísticas */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Etiqueta en estadísticas */
+        .stat-label {
+            color: var(--texto-secundario);
+            font-size: 0.9rem;
+        }
+        
+        /* Contenedor de acciones de cuenta */
+        .account-actions {
+            margin-top: 20px;
+        }
+        
+        /* Tarjeta de configuración */
+        .settings-card {
+            background-color: rgba(18, 18, 18, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Sección individual de configuración */
+        .settings-section {
+            margin-bottom: 25px;
+        }
+        
+        /* Título de sección de configuración */
+        .settings-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        /* Personalización de interruptores de configuración */
+        .form-switch .form-check-input {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Estado activo de interruptores */
+        .form-switch .form-check-input:checked {
+            background-color: var(--acento-actual);
+            border-color: var(--acento-actual);
+        }
+        
+        /* Insignia de usuario premium */
+        .premium-badge {
+            background: linear-gradient(45deg, var(--arcoiris-1), var(--arcoiris-5));
+            color: white;
+            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+        
+        /* Botón de cierre de sesión */
+        #logoutBtn {
+            margin-top: 20px;
+        }
+        
+        /* Sección de reproducción reciente */
+        .recently-played, .liked-songs, .user-playlists {
+            background-color: rgba(18, 18, 18, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        /* Elemento individual de canción */
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* Efecto hover para elementos de canción */
+        .song-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding-left: 10px;
+        }
+        
+        /* Portada de canción en miniatura */
+        .song-cover {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        
+        /* Detalles de la canción */
+        .song-details {
+            flex-grow: 1;
+        }
+        
+        /* Título de la canción */
+        .song-title {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        /* Artista de la canción */
+        .song-artist {
+            color: var(--texto-secundario);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        /* Tiempo de reproducción de la canción */
+        .song-time {
+            color: var(--texto-secundario);
+            font-size: 0.8rem;
+        }
+        
+        /* Acciones para canción en lista */
+        .song-actions {
+            margin-left: 10px;
+            display: none;
+        }
+        
+        .song-item:hover .song-actions {
+            display: flex;
+        }
+        
+        .song-action-btn {
+            background: none;
+            border: none;
+            color: var(--texto-secundario);
+            font-size: 0.9rem;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .song-action-btn:hover {
+            color: var(--acento-actual);
+        }
+        
+        /* Playlist item específico */
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(30, 30, 30, 0.6);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .playlist-item:hover {
+            background-color: rgba(40, 40, 40, 0.8);
+            transform: translateY(-2px);
+        }
+        
+        .playlist-cover {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
+            margin-right: 15px;
+            object-fit: cover;
+            background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4));
+        }
+        
+        .playlist-title {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .playlist-info {
+            color: var(--texto-secundario);
+            font-size: 0.8rem;
+            margin: 5px 0 0 0;
+        }
+        
+        /* Header con opciones */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            margin: 0;
+        }
+        
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Modal para crear playlist */
+        .modal-dark .modal-content {
+            background-color: rgba(18, 18, 18, 0.95);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-dark .btn-close {
+            color: white;
+            filter: invert(1);
+        }
+        
+        /* Reproductor en la cuenta */
+        .account-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        /* Capa de carga para operaciones asíncronas */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        /* Estado visible de la capa de carga */
+        .loading-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Indicador giratorio de carga */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--acento-actual);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Animación de giro para el spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Filtro de vista en playlists */
+        .view-filters {
+            display: flex;
+            background-color: rgba(30, 30, 30, 0.6);
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .view-filter {
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .view-filter.active {
+            background-color: var(--acento-actual);
+            color: white;
+        }
+        
+        /* Estado de like en canciones */
+        .song-like {
+            margin-left: 15px;
+            color: var(--texto-secundario);
+        }
+        
+        .song-like.active {
+            color: var(--acento-actual);
+        }
+        
+        /* Estilo para la fuente de la canción (Local/Spotify) */
+        .song-source {
+            font-size: 0.7rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .song-source.spotify {
+            background-color: rgba(29, 185, 84, 0.2);
+            color: #1DB954;
+        }
+        
+        .song-source.local {
+            background-color: rgba(255, 68, 68, 0.2);
+            color: #FF4444;
+        }
+
+/* Evitar que el placeholder ocupe demasiado espacio */
+.current-track-image {
+    max-width: 60px !important;
+    max-height: 60px !important;
+}
+
+/* Ocultar el reproductor cuando no hay contenido */
+.current-player:not(.playing) {
+    height: auto;
+    max-height: 60px;
+}
