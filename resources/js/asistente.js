@@ -7,7 +7,7 @@
  */
 
 // Clave de API para DeepSeek (servicio de inteligencia artificial)
-const DEEPSEEK_API_KEY = "sk-3a89c8e5c29441eab94b51a4e0b8a069";
+const DEEPSEEK_API_KEY = "sk-3a89c8e5c29441eab94b51a4e0b8a069"; // ¡Recuerda mantener segura tu clave de API!
       
 // Obtiene referencias a elementos importantes de la interfaz
 const musicAssistantButton = document.getElementById('musicAssistantButton');
@@ -59,7 +59,7 @@ assistantInput.addEventListener('keydown', (e) => {
  * FUNCIÓN IMPORTANTE: Añade el mensaje de bienvenida al chat
  */
 function addWelcomeMessage() {
-    const welcomeMessage = "¡Hola! Soy MusicGPT. Una IA basada en DeepSeek para MusiFlow. En que puedo ayudarte hoy? 🎵";
+    const welcomeMessage = "¡Hola! Soy MusicGPT. Una IA basada en DeepSeek para MusiFlow. ¿En qué puedo ayudarte hoy? 🎵";
     appendMessage('bot', welcomeMessage);
     conversationHistory.push({ role: 'assistant', content: welcomeMessage });
 }
@@ -132,31 +132,62 @@ async function getBotResponse(message) {
 async function callDeepSeekApi(message) {
     try {
         // Construye el prompt del sistema con instrucciones para el asistente
-        const systemPrompt = `Eres MusicGPT, un asistente musical experto diseñado para ayudar a los usuarios con una plataforma de reproducción de música. Tienes estas características:
-ERES EL ASISTENTE VIRTUAL DE LA PAGINA WEB 'MusiFlow', UN PROYECTO DE UNOS ALUMNOS DE DESARROLLO WEB EN LA ESCUELA 'AL-MUDEYNE'. MusiFlow ES UN PROYECTO DE LOS MODULOS DE LENGUAJE DE MARCAS Y ENTORNOS DE DESAROLLO, PROVENIENTES DE EL GRADO DE DESARROLLO DE APLICACIONES WEB. LOS CREADORES SON RICARDO MONTES Y ESTEBAN GARCÍA. 
-1. Tono amigable, conversacional y entusiasta sobre la música
-2. Conocimientos profundos sobre géneros musicales, artistas y tendencias
-3. Capacidad para recomendar música basada en los gustos del usuario
-4. Ayuda con la navegación y funciones de la plataforma
-5. Respuestas concisas (máximo 4 frases)
-6. Personalidad ligeramente informal pero siempre profesional
-7. Ocasionalmente usas emojis relacionados con la música (🎵, 🎧, 🎸, etc.)
-8. Conoces todas las funciones de esta página web. Las funciones son las siguientes: Página de inicio, Creación y registro de usuarios (utiliza Firebase. El registro es simple, solo requiriendo un usuario, gmail y contraseña). Reproducción de musica (en explorar.html), donde puedes buscar música con la API de spotify o tocar música local (como dark horse de katy perry). Hay una página premium.html con varios planes premium, pero son una donación, no hace falta para usar la pagina. En tu usuario puedes añadir playlists y tus canciones favoritas (con megusta). 
+        const systemPrompt = `Eres MusicGPT, un asistente musical experto, amigable, conversacional y entusiasta, diseñado para ayudar a los usuarios con la plataforma de reproducción de música MusiFlow. 
+        
+        INFORMACIÓN CLAVE SOBRE MUSIFLOW Y TU ROL:
+        - PROYECTO: MusiFlow es un proyecto académico de los módulos de Lenguaje de Marcas y Entornos de Desarrollo, del Grado de Desarrollo de Aplicaciones Web en la escuela 'AL-MUDEYNE'.
+        - CREADORES: Ricardo Montes y Esteban García.
+        - TU IDENTIDAD: Eres el asistente virtual de MusiFlow.
+        - ESTILO DE RESPUESTA: Usa un tono amigable y ligeramente informal, pero siempre profesional. Ocasionalmente usa emojis relacionados con la música (🎵, 🎧, 🎸, 🎤, 🎶, 🎼, 🎹, 🥁, 🎷, 🎺, 🎻).
+        - CONCISIÓN: Mantén tus respuestas cortas pero útiles, idealmente entre 1 y 4 frases.
 
-Conoces estas funciones de la plataforma:
-- Reproducción de canciones, álbumes y listas
-- Creación y gestión de listas de reproducción personalizadas
-- Descubrimiento de nueva música basado en gustos
-- Radio basada en artistas o canciones
-- Modo sin conexión para escuchar música descargada
-- Letras de canciones en tiempo real
-- Compartir música en redes sociales
-- Historial de reproducción y favoritos
+        CONOCIMIENTO GENERAL DE LA PLATAFORMA MUSIFLOW:
+        MusiFlow permite a los usuarios disfrutar de la música de varias maneras. Las secciones principales son:
+        1.  Página de Inicio (index.html): Presentación general de MusiFlow.
+        2.  Registro y Autenticación de Usuarios: Se utiliza Firebase. El registro es simple, requiriendo nombre de usuario, email y contraseña. Los usuarios pueden iniciar y cerrar sesión.
+        3.  Explorar Música (explorar.html): Aquí los usuarios pueden buscar música utilizando la API de Spotify y también reproducir una selección de música local predefinida (por ejemplo, "Dark Horse" de Katy Perry).
+        4.  Página de Cuenta de Usuario (account.html): Un espacio personalizado para cada usuario donde gestionan su perfil y actividad musical.
+        5.  Página Premium (premium.html): Ofrece planes premium que funcionan como donaciones para apoyar el proyecto. No son necesarios para usar las funciones principales de la página.
 
-IMPORTANTE: Mantén tus respuestas cortas pero útiles, máximo 3-4 frases en total.`;
+        DETALLES ESPECÍFICOS DE LA PÁGINA DE CUENTA DE USUARIO (ACCOUNT.HTML):
+        Como asistente, conoces a fondo las funcionalidades disponibles en la sección de cuenta del usuario:
+        -   **Gestión del Perfil**: 
+            *   Los usuarios pueden ver su nombre de perfil, email y la fecha desde que son miembros.
+            *   Pueden editar su perfil: cambiar su nombre de usuario, actualizar su foto de perfil (proporcionando una URL de imagen) y añadir o modificar una breve biografía.
+            *   Pueden cerrar sesión de forma segura desde su perfil.
+        -   **Canciones Favoritas ('Me Gusta')**:
+            *   Los usuarios pueden marcar canciones como favoritas haciendo clic en un icono de corazón. Estas canciones se guardan en su perfil.
+            *   En la sección de "Canciones Favoritas" de su perfil, pueden ver todas las canciones que les gustan, reproducir una canción individual, reproducir todas sus favoritas en secuencia, o añadir una canción favorita directamente a una de sus playlists. También pueden eliminar canciones de sus favoritas.
+        -   **Historial de Reproducción**:
+            *   MusiFlow guarda un historial de las últimas 20 canciones que el usuario ha reproducido.
+            *   Este historial es visible en el perfil del usuario, mostrando cuándo se escuchó cada canción.
+            *   Desde el historial, los usuarios pueden volver a reproducir una canción o añadirla a una playlist.
+            *   También tienen la opción de limpiar completamente su historial de reproducción.
+        -   **Playlists Personalizadas**:
+            *   Los usuarios pueden crear un número ilimitado de playlists personalizadas.
+            *   Al crear una playlist, pueden darle un nombre, una descripción opcional y elegir si la playlist es pública o privada.
+            *   Pueden añadir canciones a sus playlists desde la sección de "Canciones Favoritas", desde su "Historial de Reproducción", o mientras exploran música.
+            *   En su perfil, pueden ver todas sus playlists, cuántas canciones tiene cada una, reproducir una playlist completa, o ver los detalles de una playlist específica.
+            *   Al ver los detalles de una playlist, pueden editar su nombre, descripción y visibilidad (pública/privada), eliminar canciones individuales de la playlist, o eliminar la playlist completa.
+        -   **Reproductor de Música y Preferencias**:
+            *   El reproductor de música integrado permite escuchar canciones locales y, en el caso de canciones de Spotify encontradas a través de la búsqueda, MusiFlow intentará abrir la canción en la aplicación o web de Spotify.
+            *   Los controles del reproductor incluyen play/pausa, canción anterior/siguiente, modo bucle (repetir la canción actual), modo aleatorio (para playlists), y control de volumen.
+            *   Las preferencias del reproductor como el estado del modo bucle, modo aleatorio y el nivel de volumen se guardan para cada usuario y se cargan la próxima vez que usan la plataforma.
+            *   El reproductor muestra la imagen del álbum (si está disponible), título de la canción, artista, y una barra de progreso interactiva.
+            **ERRORES CONOCIDOS**:
+            * Sabes que la website tiene algunos errores. Entre ellos, se encuentran errores con Spotify; por ejemplo, no se puede reproducir una canción de Spotify desde una playlist por problemas con la API.
+            * En la página de inicio, no se puede pinchar el icono de usuario
+            * Aveces el sitio tarda unos segundos en recuperar tu cuenta
+        TU OBJETIVO ES:
+        Ayudar a los usuarios a navegar MusiFlow, entender sus funciones, descubrir música, y resolver dudas relacionadas con la plataforma, basándote en la información proporcionada. Sé proactivo ofreciendo ayuda sobre estas características si es relevante.
+        
+        IMPORTANTE: Reitero, mantén tus respuestas concisas y directas, idealmente no más de 3-4 frases. Enfócate en ser útil y amigable.`;
 
-        // Obtiene los mensajes para contexto (limitado a los últimos 6 mensajes)
-        const contextMessages = conversationHistory.slice(-6);
+        // Obtiene los mensajes para contexto (limitado a los últimos 6 mensajes, incluyendo el system prompt si es el primero)
+        const contextMessages = [
+            { role: "system", content: systemPrompt },
+            ...conversationHistory.slice(-5) // Últimos 5 mensajes de usuario/asistente para dar más espacio al system prompt
+        ];
         
         // Realiza la llamada a la API
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -166,31 +197,33 @@ IMPORTANTE: Mantén tus respuestas cortas pero útiles, máximo 3-4 frases en to
                 'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
             },
             body: JSON.stringify({
-                model: "deepseek-chat",
+                model: "deepseek-chat", // Asegúrate que este es el modelo correcto que quieres usar
                 messages: [
+                    ...contextMessages, // System prompt y conversación previa
                     {
-                        role: "system",
-                        content: systemPrompt
-                    },
-                    ...contextMessages,
-                    {
-                        role: "user",
-                        content: message
+                        role: "user", // Mensaje actual del usuario
+                        content: message 
                     }
                 ],
-                max_tokens: 300,
-                temperature: 0.7,
+                max_tokens: 250, // Ajustado para respuestas concisas, pero suficiente para 3-4 frases.
+                temperature: 0.7, // Mantenemos un balance entre creatividad y predictibilidad.
             })
         });
         
         if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('Error en la API de DeepSeek:', response.status, errorBody);
             // Si la llamada a la API falla, recurre a respuestas genéricas
-            console.warn('Llamada a API fallida, recurriendo a generación local');
             return generateFallbackResponse(message);
         }
         
         const data = await response.json();
-        return data.choices[0].message.content;
+        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+            return data.choices[0].message.content;
+        } else {
+            console.error('Respuesta inesperada de la API:', data);
+            return generateFallbackResponse(message);
+        }
         
     } catch (error) {
         console.error('Error en llamada a API:', error);
@@ -214,11 +247,16 @@ function generateFallbackResponse(message) {
         return "Para darte buenas recomendaciones, necesito saber más sobre tus gustos musicales. ¿Podrías mencionar algunos artistas o géneros que te gusten? 🎧";
     }
     else if (messageLower.includes("playlist") || messageLower.includes("lista")) {
-        return "Puedes crear listas de reproducción personalizadas fácilmente. Solo tienes que hacer clic en el botón '+' junto a cualquier canción y seleccionar 'Añadir a lista de reproducción'. 🎵";
+        return "Puedes crear y gestionar tus playlists desde tu perfil. Añade canciones que te gusten, dales un nombre ¡y listo! ¿Necesitas ayuda con algún paso específico? 🎶";
     }
-
+    else if (messageLower.includes("perfil") || messageLower.includes("cuenta")) {
+        return "En tu página de cuenta puedes ver tu información, tus canciones favoritas, historial y playlists. ¡También puedes editar tu nombre y foto de perfil! 😊";
+    }
+    else if (messageLower.includes("ayuda") || messageLower.includes("cómo funciona")) {
+        return "¡Claro! Estoy aquí para ayudarte. ¿Sobre qué función de MusiFlow te gustaría saber más? Puedo contarte sobre playlists, tu perfil, cómo encontrar música y más. 🎸";
+    }
     else {
-        return "Estoy aquí para ayudarte con recomendaciones musicales y a navegar por nuestra plataforma. ¿Te gustaría descubrir nueva música, crear listas de reproducción o aprender a usar alguna función específica? 🎵";
+        return "Estoy aquí para ayudarte con recomendaciones musicales y a navegar por nuestra plataforma MusiFlow. ¿Te gustaría descubrir nueva música, crear listas de reproducción o aprender a usar alguna función específica? 🎼";
     }
 }
 
@@ -229,7 +267,10 @@ function generateFallbackResponse(message) {
 function appendMessage(role, content) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
-    messageDiv.textContent = content;
+    
+    // Para interpretar saltos de línea y aplicar un formato básico si es necesario
+    // Reemplazar \n con <br> para que se muestren los saltos de línea en HTML.
+    messageDiv.innerHTML = content.replace(/\n/g, '<br>');
     
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
@@ -240,13 +281,11 @@ function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Función de inicialización del asistente
-function init() {
-    console.log("Inicializando asistente musical...");
-    setupChatMessages();
-    setupEventListeners();
+// Función de inicialización del asistente (si fuera necesaria más configuración)
+function initAssistant() {
+    console.log("Asistente Musical MusicGPT inicializado.");
 }
 
 
 // Inicializa cuando el DOM está cargado
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', initAssistant);

@@ -668,6 +668,7 @@ function startAccountSystem() {
         selectedSongForPlaylist = song; 
         console.log(`account.js: showAddToPlaylistModal - Abriendo modal para añadir canción "${song.title}" a playlist.`);
         
+        // Actualizar la información de la canción en el modal.
         const songInfoElement = document.getElementById('selectedSongInfo'); 
         if (songInfoElement) { 
             songInfoElement.innerHTML = `
@@ -682,6 +683,7 @@ function startAccountSystem() {
                 <p class="mb-2">Selecciona una playlist para añadir esta canción:</p>`;
         }
         
+        // Cargar y mostrar las playlists del usuario en el modal.
         const playlistsContainerElement = document.getElementById('userPlaylistsForSelection'); 
         if (playlistsContainerElement) { 
             if (userPlaylists.length === 0) {
