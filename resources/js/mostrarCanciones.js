@@ -172,6 +172,9 @@ function displayLocalTracks(tracks) {
                     <button class="action-button add-to-playlist-button" title="Añadir a playlist" data-track-id="${track.id}">
                         <i class="fas fa-list-ul"></i>
                     </button>
+                    <button class="action-button add-to-library-btn" title="Añadir a Biblioteca">
+                        <i class="fas fa-plus-circle"></i> <!-- O un icono más adecuado como fa-book-medical o fa-bookmark -->
+                    </button>
                     <button class="action-button more-button" title="Más opciones" data-track-id="${track.id}">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
