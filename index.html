@@ -734,6 +734,56 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- REPRODUCTOR FLOTANTE PARA LA PÁGINA DE INICIO -->
+    <div class="floating-player d-none" id="floating-player">
+        <audio id="audio-player"></audio> <!-- Elemento audio para reproducir la música -->
+        <div class="player-container">
+            <!-- Información del Álbum -->
+            <div class="album-info">
+                <img src="/resources/album covers/placeholder.png" alt="Album Cover" class="player-thumbnail" id="player-album-cover">
+                <div class="player-song-info">
+                    <h5 id="player-song-title">Nombre de la canción</h5>
+                    <p id="player-artist-name">Nombre del artista</p>
+                </div>
+            </div>
+
+            <!-- Controles Centrales (Play/Pause, Progreso) -->
+            <div class="player-controls-container">
+                <div class="player-controls">
+                    <button class="player-control-btn" id="prev-btn" title="Anterior">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button class="player-control-btn player-play-btn" id="play-pause-btn" title="Reproducir/Pausar">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="player-control-btn" id="next-btn" title="Siguiente">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+                <div class="player-progress-container">
+                    <span id="current-time">0:00</span>
+                    <div class="player-progress-bar"> <!-- Contenedor de la barra de progreso -->
+                        <div id="progress-fill"></div> <!-- Relleno de la barra de progreso -->
+                    </div>
+                    <span id="total-time">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controles de Volumen y Cerrar -->
+            <div class="player-volume-controls">
+                <button class="player-volume-btn" id="volume-btn" title="Volumen">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div class="player-volume-slider"> <!-- Contenedor del slider de volumen -->
+                    <div id="volume-fill"></div> <!-- Relleno del slider de volumen -->
+                </div>
+            </div>
+            <button class="player-close-btn" id="close-player-btn" title="Cerrar reproductor">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
     <script src="resources/js/common-auth.js"></script>
     
     <!-- Script para el asistente musical -->
