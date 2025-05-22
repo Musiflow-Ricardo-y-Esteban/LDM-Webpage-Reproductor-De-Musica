@@ -1,4 +1,4 @@
-// mostrarCanciones.js - Sistema mejorado para mostrar canciones con integración de likes y playlists
+// mostrarCanciones.js - Sistema completo para mostrar canciones con integración de likes y playlists
 
 /**
  * Base de datos de canciones de muestra para la aplicación
@@ -249,10 +249,8 @@ function displayLocalTracks(tracks) {
 function setupPlayButtons() {
     document.querySelectorAll('.track-row .play-button').forEach(button => {
         // Limpiar eventos anteriores
-        button.replaceWith(button.cloneNode(true));
-        
-        // Obtener la nueva referencia después de clonar
-        const newButton = document.querySelector(`.play-button[data-track-id="${button.dataset.trackId}"]`);
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
         newButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -284,10 +282,8 @@ function setupPlayButtons() {
 function setupLikeButtons() {
     document.querySelectorAll('.like-button').forEach(button => {
         // Limpiar eventos anteriores
-        button.replaceWith(button.cloneNode(true));
-        
-        // Obtener la nueva referencia después de clonar
-        const newButton = document.querySelector(`.like-button[data-track-id="${button.dataset.trackId}"]`);
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
         newButton.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -297,32 +293,74 @@ function setupLikeButtons() {
             
             if (!track) {
                 console.error('Canción no encontrada:', trackId);
+                showToast('Error: Canción no encontrada', 'error');
                 return;
             }
             
             // Verificar si el usuario está autenticado
             if (!firebase.auth().currentUser) {
                 showToast('Debes iniciar sesión para añadir favoritos', 'warning');
+                // Opcional: redirigir al login
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
                 return;
             }
             
             try {
+                // Mostrar indicador de carga en el botón
+                const originalContent = newButton.innerHTML;
+                newButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                newButton.disabled = true;
+                
                 if (window.LikesManager) {
                     // Usar el sistema integrado de likes
-                    await window.LikesManager.toggleLike(track);
+                    const newLikeStatus = await window.LikesManager.toggleLike(track);
                     
-                    // La UI se actualizará automáticamente a través del evento de cambio
-                    console.log('Estado de like cambiado para:', track.title);
+                    // Actualizar el botón inmediatamente
+                    updateLikeButtonVisual(newButton, newLikeStatus);
+                    
+                    // Mostrar mensaje de confirmación
+                    showToast(`Canción ${newLikeStatus ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
+                    
+                    console.log('Estado de like cambiado para:', track.title, '→', newLikeStatus);
                 } else {
                     console.warn('LikesManager no está disponible');
                     showToast('Sistema de favoritos no disponible', 'error');
+                    
+                    // Restaurar botón
+                    newButton.innerHTML = originalContent;
                 }
+                
+                newButton.disabled = false;
+                
             } catch (error) {
                 console.error('Error al cambiar estado de like:', error);
-                showToast('Error al actualizar favoritos', 'error');
+                showToast(error.message || 'Error al actualizar favoritos', 'error');
+                
+                // Restaurar botón en caso de error
+                const isCurrentlyLiked = window.LikesManager ? window.LikesManager.isLiked(trackId) : false;
+                updateLikeButtonVisual(newButton, isCurrentlyLiked);
+                newButton.disabled = false;
             }
         });
     });
+}
+
+/**
+ * Actualiza la apariencia visual de un botón de like
+ * @param {Element} button - Elemento del botón
+ * @param {boolean} isLiked - Estado de like
+ */
+function updateLikeButtonVisual(button, isLiked) {
+    const icon = button.querySelector('i');
+    if (icon) {
+        icon.className = isLiked ? 'fas fa-heart' : 'far fa-heart';
+        icon.style.color = isLiked ? '#1ed760' : '';
+    }
+    
+    button.classList.toggle('active', isLiked);
+    button.title = isLiked ? 'Eliminar de favoritos' : 'Añadir a favoritos';
 }
 
 /**
@@ -331,10 +369,8 @@ function setupLikeButtons() {
 function setupPlaylistButtons() {
     document.querySelectorAll('.add-to-playlist-button').forEach(button => {
         // Limpiar eventos anteriores
-        button.replaceWith(button.cloneNode(true));
-        
-        // Obtener la nueva referencia después de clonar
-        const newButton = document.querySelector(`.add-to-playlist-button[data-track-id="${button.dataset.trackId}"]`);
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
         newButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -344,12 +380,17 @@ function setupPlaylistButtons() {
             
             if (!track) {
                 console.error('Canción no encontrada:', trackId);
+                showToast('Error: Canción no encontrada', 'error');
                 return;
             }
             
             // Verificar si el usuario está autenticado
             if (!firebase.auth().currentUser) {
                 showToast('Debes iniciar sesión para gestionar playlists', 'warning');
+                // Opcional: redirigir al login
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
                 return;
             }
             
@@ -365,10 +406,11 @@ function setupPlaylistButtons() {
 function setupTrackRowEvents() {
     document.querySelectorAll('.track-row').forEach(row => {
         // Limpiar eventos anteriores
-        row.replaceWith(row.cloneNode(true));
+        const newRow = row.cloneNode(true);
+        row.parentNode.replaceChild(newRow, row);
         
-        // Obtener la nueva referencia después de clonar
-        const newRow = document.querySelector(`.track-row[data-track-id="${row.dataset.trackId}"]`);
+        // Reconfigurar eventos para los elementos hijos del nuevo row
+        setupRowChildEvents(newRow);
         
         newRow.addEventListener('click', (e) => {
             // No reproducir si se hizo clic en un botón de acción
@@ -394,15 +436,185 @@ function setupTrackRowEvents() {
 }
 
 /**
+ * Configura eventos para elementos hijos de una fila
+ * @param {Element} row - Elemento de fila
+ */
+function setupRowChildEvents(row) {
+    // Configurar hover events
+    row.addEventListener('mouseenter', () => {
+        const playButton = row.querySelector('.play-button');
+        const indexElement = row.querySelector('.track-index');
+        const actionsElement = row.querySelector('.track-actions');
+        
+        if (playButton && indexElement) {
+            const trackId = row.dataset.trackId;
+            const musicManager = window.musicManager;
+            const isCurrentAndPlaying = musicManager && musicManager.currentTrack && 
+                                       musicManager.currentTrack.id === trackId && 
+                                       musicManager.isPlaying;
+
+            if (isCurrentAndPlaying && musicManager.currentMode === 'local') {
+                indexElement.style.display = 'none';
+                playButton.style.display = 'flex';
+                playButton.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                indexElement.style.display = 'none';
+                playButton.style.display = 'flex';
+                playButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+        
+        if (actionsElement) {
+            actionsElement.style.visibility = 'visible';
+        }
+    });
+    
+    row.addEventListener('mouseleave', () => {
+        const playButton = row.querySelector('.play-button');
+        const indexElement = row.querySelector('.track-index');
+        const actionsElement = row.querySelector('.track-actions');
+        const trackId = row.dataset.trackId;
+        const musicManager = window.musicManager;
+        
+        if (playButton && indexElement) {
+            const isCurrent = musicManager && musicManager.currentTrack && 
+                             musicManager.currentTrack.id === trackId;
+
+            if (!isCurrent || musicManager.currentMode !== 'local') {
+                indexElement.style.display = 'block';
+                playButton.style.display = 'none';
+            } else if (isCurrent && musicManager.isPlaying) {
+                indexElement.style.display = 'none';
+                playButton.style.display = 'flex';
+                playButton.innerHTML = '<i class="fas fa-pause"></i>';
+            } else if (isCurrent && !musicManager.isPlaying) {
+                indexElement.style.display = 'none';
+                playButton.style.display = 'flex';
+                playButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+        
+        if (actionsElement) {
+            actionsElement.style.visibility = 'hidden';
+        }
+    });
+    
+    // Configurar evento del botón de play
+    const playButton = row.querySelector('.play-button');
+    if (playButton) {
+        playButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (window.musicManager) {
+                const trackId = playButton.dataset.trackId;
+                const trackToPlay = musicDatabase.tracks.find(t => t.id === trackId);
+                
+                if (trackToPlay) {
+                    if (window.musicManager.currentTrack && 
+                        window.musicManager.currentTrack.id === trackId && 
+                        window.musicManager.isPlaying) {
+                        window.musicManager.togglePlayPause();
+                    } else {
+                        window.musicManager.playTrack(trackToPlay);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Configurar evento del botón de like
+    const likeButton = row.querySelector('.like-button');
+    if (likeButton) {
+        likeButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            
+            const trackId = likeButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            
+            if (!track) {
+                console.error('Canción no encontrada:', trackId);
+                return;
+            }
+            
+            if (!firebase.auth().currentUser) {
+                showToast('Debes iniciar sesión para añadir favoritos', 'warning');
+                return;
+            }
+            
+            try {
+                const originalContent = likeButton.innerHTML;
+                likeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                likeButton.disabled = true;
+                
+                if (window.LikesManager) {
+                    const newLikeStatus = await window.LikesManager.toggleLike(track);
+                    updateLikeButtonVisual(likeButton, newLikeStatus);
+                    showToast(`Canción ${newLikeStatus ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
+                } else {
+                    likeButton.innerHTML = originalContent;
+                    showToast('Sistema de favoritos no disponible', 'error');
+                }
+                
+                likeButton.disabled = false;
+                
+            } catch (error) {
+                console.error('Error al cambiar estado de like:', error);
+                showToast('Error al actualizar favoritos', 'error');
+                
+                const isCurrentlyLiked = window.LikesManager ? window.LikesManager.isLiked(trackId) : false;
+                updateLikeButtonVisual(likeButton, isCurrentlyLiked);
+                likeButton.disabled = false;
+            }
+        });
+    }
+    
+    // Configurar evento del botón de playlist
+    const playlistButton = row.querySelector('.add-to-playlist-button');
+    if (playlistButton) {
+        playlistButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            const trackId = playlistButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            
+            if (!track) {
+                console.error('Canción no encontrada:', trackId);
+                return;
+            }
+            
+            if (!firebase.auth().currentUser) {
+                showToast('Debes iniciar sesión para gestionar playlists', 'warning');
+                return;
+            }
+            
+            showAddToPlaylistModal(track);
+        });
+    }
+    
+    // Configurar evento del botón de opciones
+    const moreButton = row.querySelector('.more-button');
+    if (moreButton) {
+        moreButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            const trackId = moreButton.dataset.trackId;
+            const track = musicDatabase.tracks.find(t => t.id === trackId);
+            
+            if (track) {
+                showMoreOptionsMenu(track, e.target);
+            }
+        });
+    }
+}
+
+/**
  * Configura los eventos de los botones de "más opciones"
  */
 function setupMoreButtons() {
     document.querySelectorAll('.more-button').forEach(button => {
         // Limpiar eventos anteriores
-        button.replaceWith(button.cloneNode(true));
-        
-        // Obtener la nueva referencia después de clonar
-        const newButton = document.querySelector(`.more-button[data-track-id="${button.dataset.trackId}"]`);
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
         newButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -481,67 +693,107 @@ function loadUserPlaylistsForSelection(track) {
     
     if (!container) return;
     
+    // Mostrar indicador de carga
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Cargando playlists...</p>
+        </div>
+    `;
+    
     if (window.PlaylistManager) {
-        const playlists = window.PlaylistManager.getAllPlaylists();
-        
-        if (playlists.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-3 text-muted">
-                    <p>No tienes playlists disponibles.</p>
+        // Esperar un momento para que se vea el indicador de carga
+        setTimeout(() => {
+            const playlists = window.PlaylistManager.getAllPlaylists();
+            
+            if (playlists.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <p>No tienes playlists disponibles.</p>
+                        <button class="btn btn-sm btn-outline-light" onclick="createPlaylistAndAddSong('${track.id}')">
+                            <i class="fas fa-plus me-2"></i> Crear nueva playlist
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+                
+                playlists.forEach(playlist => {
+                    const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
+                    
+                    const playlistItem = document.createElement('div');
+                    playlistItem.className = 'playlist-item';
+                    playlistItem.style.cssText = `
+                        cursor: pointer; 
+                        padding: 15px; 
+                        border-radius: 8px; 
+                        margin-bottom: 10px; 
+                        background: rgba(255, 255, 255, 0.05);
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                    `;
+                    
+                    playlistItem.innerHTML = `
+                        <div class="playlist-cover" style="width: 50px; height: 50px; background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4)); border-radius: 5px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                            <i class="fas fa-music" style="color: white;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="playlist-title m-0">${playlist.name}</h6>
+                            <small class="text-muted">${songCount} ${songCount === 1 ? 'canción' : 'canciones'}</small>
+                        </div>
+                    `;
+                    
+                    // Efectos hover
+                    playlistItem.addEventListener('mouseenter', () => {
+                        playlistItem.style.background = 'rgba(255, 255, 255, 0.1)';
+                        playlistItem.style.transform = 'translateX(5px)';
+                    });
+                    
+                    playlistItem.addEventListener('mouseleave', () => {
+                        playlistItem.style.background = 'rgba(255, 255, 255, 0.05)';
+                        playlistItem.style.transform = 'translateX(0)';
+                    });
+                    
+                    playlistItem.addEventListener('click', async () => {
+                        try {
+                            // Mostrar indicador de carga
+                            playlistItem.style.opacity = '0.5';
+                            playlistItem.style.pointerEvents = 'none';
+                            
+                            await window.PlaylistManager.addSongToPlaylist(track, playlist.id);
+                            
+                            // Cerrar modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'));
+                            if (modal) {
+                                modal.hide();
+                            }
+                            
+                            showToast(`Canción añadida a "${playlist.name}"`, 'success');
+                        } catch (error) {
+                            console.error('Error al añadir canción a playlist:', error);
+                            showToast(error.message || 'Error al añadir canción a playlist', 'error');
+                            
+                            // Restaurar estado del elemento
+                            playlistItem.style.opacity = '1';
+                            playlistItem.style.pointerEvents = 'auto';
+                        }
+                    });
+                    
+                    container.appendChild(playlistItem);
+                });
+                
+                // Opción para crear nueva playlist
+                const createNewItem = document.createElement('div');
+                createNewItem.className = 'text-center mt-3';
+                createNewItem.innerHTML = `
                     <button class="btn btn-sm btn-outline-light" onclick="createPlaylistAndAddSong('${track.id}')">
                         <i class="fas fa-plus me-2"></i> Crear nueva playlist
                     </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = '';
-            
-            playlists.forEach(playlist => {
-                const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
-                
-                const playlistItem = document.createElement('div');
-                playlistItem.className = 'playlist-item';
-                playlistItem.style.cursor = 'pointer';
-                playlistItem.innerHTML = `
-                    <div class="playlist-cover" style="width: 50px; height: 50px; background: linear-gradient(45deg, var(--arcoiris-2), var(--arcoiris-4)); border-radius: 5px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                        <i class="fas fa-music" style="color: white;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="playlist-title m-0">${playlist.name}</h6>
-                        <small class="text-muted">${songCount} ${songCount === 1 ? 'canción' : 'canciones'}</small>
-                    </div>
                 `;
-                
-                playlistItem.addEventListener('click', async () => {
-                    try {
-                        await window.PlaylistManager.addSongToPlaylist(track, playlist.id);
-                        
-                        // Cerrar modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'));
-                        if (modal) {
-                            modal.hide();
-                        }
-                        
-                        showToast(`Canción añadida a "${playlist.name}"`, 'success');
-                    } catch (error) {
-                        console.error('Error al añadir canción a playlist:', error);
-                        showToast(error.message || 'Error al añadir canción a playlist', 'error');
-                    }
-                });
-                
-                container.appendChild(playlistItem);
-            });
-            
-            // Opción para crear nueva playlist
-            const createNewItem = document.createElement('div');
-            createNewItem.className = 'text-center mt-3';
-            createNewItem.innerHTML = `
-                <button class="btn btn-sm btn-outline-light" onclick="createPlaylistAndAddSong('${track.id}')">
-                    <i class="fas fa-plus me-2"></i> Crear nueva playlist
-                </button>
-            `;
-            container.appendChild(createNewItem);
-        }
+                container.appendChild(createNewItem);
+            }
+        }, 300);
     } else {
         container.innerHTML = `
             <div class="text-center py-3 text-muted">
@@ -712,6 +964,7 @@ function showToast(message, type = 'success') {
         display: flex;
         align-items: center;
         gap: 10px;
+        max-width: 400px;
     `;
     
     let icon = 'check-circle';
@@ -747,22 +1000,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.LikesManager.addLikeChangeListener((songId, isLiked) => {
             console.log('Actualizando UI por cambio de like:', songId, isLiked);
             
-            // Actualizar botón de like en la lista actual
-            const likeButton = document.querySelector(`.like-button[data-track-id="${songId}"]`);
-            if (likeButton) {
-                const icon = likeButton.querySelector('i');
-                if (icon) {
-                    icon.className = isLiked ? 'fas fa-heart' : 'far fa-heart';
-                    icon.style.color = isLiked ? '#1ed760' : '';
-                }
-                
-                likeButton.classList.toggle('active', isLiked);
-                likeButton.title = isLiked ? 'Eliminar de favoritos' : 'Añadir a favoritos';
-            }
+            // Actualizar todos los botones de like para esta canción
+            document.querySelectorAll(`[data-track-id="${songId}"] .like-button, .like-button[data-track-id="${songId}"]`).forEach(button => {
+                updateLikeButtonVisual(button, isLiked);
+            });
         });
     }
     
     console.log('mostrarCanciones.js: Sistema de visualización con integración cargado correctamente');
 });
 
-console.log("mostrarCanciones.js cargado y mejorado con integración de likes y playlists.");
+console.log("mostrarCanciones.js cargado y mejorado con integración completa de likes y playlists.");

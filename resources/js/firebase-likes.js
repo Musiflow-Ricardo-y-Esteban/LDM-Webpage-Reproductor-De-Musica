@@ -1,26 +1,32 @@
-// firebase-likes.js - Sistema mejorado de gestión de likes para MusiFlow
-// Este archivo proporciona funciones para manejar canciones favoritas entre páginas
+// firebase-likes.js - Sistema completo de gestión de likes para MusiFlow
 
 /**
- * Módulo que gestiona el sistema de "Me gusta" para canciones
- * Permite sincronizar el estado de likes entre las páginas de exploración y cuenta
+ * Módulo que gestiona el sistema de "me gusta" para canciones
+ * Permite marcar canciones como favoritas con sincronización en Firebase
  */
 (function() {
-    // Caché local de canciones favoritas
-    let _likedSongs = {};
-    let _isInitialized = false;
-    let _currentUser = null;
+    // Variables globales del módulo
+    let _likedSongs = {}; // Caché local de canciones favoritas
+    let _isInitialized = false; // Estado de inicialización
+    let _currentUser = null; // Usuario actual
     
-    // Evento personalizado para notificar cambios en los likes
+    // Constantes
     const LIKE_CHANGED_EVENT = 'likeStatusChanged';
     
     /**
      * Inicializa el sistema de likes
-     * @return {Promise} Promesa que se resuelve cuando los datos están cargados
+     * @return {Promise} Promesa que se resuelve cuando el sistema está listo
      */
     function init() {
         return new Promise((resolve, reject) => {
             console.log('LikesManager: Inicializando sistema de likes...');
+            
+            // Verificar si Firebase está disponible
+            if (typeof firebase === 'undefined') {
+                console.error('LikesManager: Firebase no está disponible');
+                reject(new Error('Firebase no disponible'));
+                return;
+            }
             
             // Verificar si el usuario está autenticado
             if (!firebase.auth().currentUser) {
@@ -34,13 +40,14 @@
             _currentUser = firebase.auth().currentUser;
             const uid = _currentUser.uid;
             
-            // Cargar canciones favoritas desde Firebase
+            // Cargar likes desde Firebase
             firebase.database().ref(`users/${uid}/liked_songs`).once('value')
                 .then(snapshot => {
-                    _likedSongs = snapshot.val() || {};
+                    const data = snapshot.val() || {};
+                    _likedSongs = { ...data }; // Crear copia para evitar referencias directas
                     _isInitialized = true;
                     
-                    console.log('LikesManager: Sistema inicializado correctamente con', Object.keys(_likedSongs).length, 'canciones favoritas');
+                    console.log('LikesManager: Sistema inicializado correctamente con', Object.keys(_likedSongs).length, 'likes');
                     
                     // Actualizar UI después de cargar datos
                     updateLikeUIElements();
@@ -71,10 +78,10 @@
     /**
      * Verifica si una canción está marcada como favorita
      * @param {string} songId - ID de la canción a verificar
-     * @return {boolean} true si está en favoritos, false si no
+     * @return {boolean} True si la canción está marcada como favorita
      */
     function isLiked(songId) {
-        if (!songId) return false;
+        if (!songId || !_isInitialized) return false;
         return !!_likedSongs[songId];
     }
     
@@ -83,15 +90,58 @@
      * @return {Object} Objeto con todas las canciones favoritas
      */
     function getAllLikedSongs() {
-        return {..._likedSongs};
+        return { ..._likedSongs }; // Devolver copia para evitar modificaciones externas
     }
     
     /**
-     * Obtiene el número de canciones favoritas
+     * Obtiene el número total de canciones favoritas
      * @return {number} Cantidad de canciones favoritas
      */
     function getLikedSongsCount() {
         return Object.keys(_likedSongs).length;
+    }
+    
+    /**
+     * Obtiene una canción favorita específica por ID
+     * @param {string} songId - ID de la canción a buscar
+     * @return {Object|null} Datos de la canción o null si no existe
+     */
+    function getLikedSong(songId) {
+        if (!songId || !_likedSongs[songId]) return null;
+        return { ..._likedSongs[songId] }; // Devolver copia
+    }
+    
+    /**
+     * Alterna el estado de "me gusta" de una canción
+     * @param {Object} song - Objeto con datos de la canción
+     * @return {Promise} Promesa que se resuelve con el nuevo estado (true/false)
+     */
+    function toggleLike(song) {
+        return new Promise((resolve, reject) => {
+            if (!song || !song.id) {
+                reject(new Error('Datos de canción inválidos'));
+                return;
+            }
+            
+            if (!firebase.auth().currentUser) {
+                reject(new Error('Usuario no autenticado'));
+                return;
+            }
+            
+            const isCurrentlyLiked = isLiked(song.id);
+            
+            if (isCurrentlyLiked) {
+                // Si ya está marcada como favorita, quitarla
+                removeSongFromLiked(song.id)
+                    .then(() => resolve(false))
+                    .catch(reject);
+            } else {
+                // Si no está marcada como favorita, añadirla
+                addSongToLiked(song)
+                    .then(() => resolve(true))
+                    .catch(reject);
+            }
+        });
     }
     
     /**
@@ -112,17 +162,16 @@
                 return;
             }
             
-            // Si ya está en favoritos, no hacer nada
-            if (_likedSongs[song.id]) {
-                console.log('LikesManager: Canción ya está en favoritos:', song.title);
-                resolve(song);
+            // Verificar si ya está en favoritos
+            if (isLiked(song.id)) {
+                reject(new Error('Esta canción ya está en favoritos'));
                 return;
             }
             
             const uid = firebase.auth().currentUser.uid;
             const timestamp = Date.now();
             
-            // Preparar datos de la canción con metadatos adicionales
+            // Preparar datos completos de la canción
             const songData = {
                 id: song.id,
                 title: song.title || 'Título desconocido',
@@ -133,7 +182,8 @@
                 source: song.source || '',
                 sourceOrigin: song.sourceOrigin || (song.source === 'spotify' ? 'spotify' : 'local'),
                 externalUrl: song.externalUrl || '',
-                added_at: timestamp
+                added_at: timestamp,
+                added_by: uid
             };
             
             console.log('LikesManager: Añadiendo canción a favoritos:', songData.title);
@@ -144,9 +194,9 @@
                     // Actualizar caché local
                     _likedSongs[song.id] = songData;
                     
-                    console.log('LikesManager: Canción añadida exitosamente a favoritos');
+                    console.log('LikesManager: Canción añadida a favoritos exitosamente');
                     
-                    // Disparar evento personalizado
+                    // Disparar evento de cambio
                     dispatchLikeChangedEvent(song.id, true, songData);
                     
                     // Actualizar UI
@@ -170,7 +220,7 @@
         return new Promise((resolve, reject) => {
             // Validaciones
             if (!songId) {
-                reject(new Error('ID de canción inválido'));
+                reject(new Error('ID de canción requerido'));
                 return;
             }
             
@@ -179,14 +229,15 @@
                 return;
             }
             
-            // Si no está en favoritos, no hacer nada
-            if (!_likedSongs[songId]) {
-                console.log('LikesManager: Canción no está en favoritos:', songId);
-                resolve(songId);
+            // Verificar si la canción está en favoritos
+            if (!isLiked(songId)) {
+                reject(new Error('Esta canción no está en favoritos'));
                 return;
             }
             
             const uid = firebase.auth().currentUser.uid;
+            
+            // Guardar referencia de la canción antes de eliminarla
             const removedSong = _likedSongs[songId];
             
             console.log('LikesManager: Eliminando canción de favoritos:', removedSong.title);
@@ -194,12 +245,12 @@
             // Eliminar de Firebase
             firebase.database().ref(`users/${uid}/liked_songs/${songId}`).remove()
                 .then(() => {
-                    // Eliminar de caché local
+                    // Eliminar del caché local
                     delete _likedSongs[songId];
                     
-                    console.log('LikesManager: Canción eliminada exitosamente de favoritos');
+                    console.log('LikesManager: Canción eliminada de favoritos exitosamente');
                     
-                    // Disparar evento personalizado
+                    // Disparar evento de cambio
                     dispatchLikeChangedEvent(songId, false, removedSong);
                     
                     // Actualizar UI
@@ -215,134 +266,183 @@
     }
     
     /**
-     * Alterna el estado de "me gusta" de una canción
-     * @param {Object} song - Objeto con datos de la canción
-     * @return {Promise} Promesa que se resuelve cuando se completa la operación
+     * Busca canciones favoritas por título o artista
+     * @param {string} query - Texto a buscar
+     * @return {Array} Array con canciones que coinciden con la búsqueda
      */
-    function toggleLike(song) {
-        if (!song || !song.id) {
-            return Promise.reject(new Error('Datos de canción inválidos'));
+    function searchLikedSongs(query) {
+        if (!query || !query.trim()) {
+            return Object.values(_likedSongs);
         }
         
-        console.log('LikesManager: Alternando like para canción:', song.title, '| Estado actual:', isLiked(song.id));
+        const searchTerm = query.toLowerCase().trim();
         
-        if (isLiked(song.id)) {
-            return removeSongFromLiked(song.id);
-        } else {
-            return addSongToLiked(song);
-        }
-    }
-    
-    /**
-     * Importa canciones favoritas desde un objeto (útil para migración de datos)
-     * @param {Object} songsObject - Objeto con canciones favoritas
-     * @return {Promise} Promesa que se resuelve cuando se completa la importación
-     */
-    function importLikedSongs(songsObject) {
-        return new Promise((resolve, reject) => {
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
-            }
-            
-            if (!songsObject || typeof songsObject !== 'object') {
-                reject(new Error('Datos de importación inválidos'));
-                return;
-            }
-            
-            const uid = firebase.auth().currentUser.uid;
-            const songCount = Object.keys(songsObject).length;
-            
-            console.log('LikesManager: Importando', songCount, 'canciones favoritas...');
-            
-            // Importar todas las canciones a Firebase
-            firebase.database().ref(`users/${uid}/liked_songs`).set(songsObject)
-                .then(() => {
-                    // Actualizar caché local
-                    _likedSongs = {...songsObject};
-                    
-                    console.log('LikesManager: Importación completada exitosamente');
-                    
-                    // Actualizar UI
-                    updateLikeUIElements();
-                    
-                    // Disparar evento para cada canción importada
-                    Object.keys(songsObject).forEach(songId => {
-                        dispatchLikeChangedEvent(songId, true, songsObject[songId]);
-                    });
-                    
-                    resolve(songsObject);
-                })
-                .catch(error => {
-                    console.error('LikesManager: Error durante la importación:', error);
-                    reject(error);
-                });
+        return Object.values(_likedSongs).filter(song => {
+            return song.title.toLowerCase().includes(searchTerm) ||
+                   song.artist.toLowerCase().includes(searchTerm) ||
+                   song.album.toLowerCase().includes(searchTerm);
         });
     }
     
     /**
-     * Exporta todas las canciones favoritas (útil para backup)
-     * @return {Object} Objeto con todas las canciones favoritas
+     * Obtiene canciones favoritas ordenadas por diferentes criterios
+     * @param {string} sortBy - Criterio de ordenación ('date', 'title', 'artist', 'album')
+     * @param {string} order - Orden ('asc' o 'desc')
+     * @return {Array} Array ordenado de canciones favoritas
      */
-    function exportLikedSongs() {
-        console.log('LikesManager: Exportando', Object.keys(_likedSongs).length, 'canciones favoritas');
-        return {
-            exportDate: new Date().toISOString(),
-            userId: _currentUser ? _currentUser.uid : null,
-            songs: {..._likedSongs}
+    function getSortedLikedSongs(sortBy = 'date', order = 'desc') {
+        const songs = Object.values(_likedSongs);
+        
+        return songs.sort((a, b) => {
+            let compareResult = 0;
+            
+            switch (sortBy) {
+                case 'date':
+                    compareResult = (a.added_at || 0) - (b.added_at || 0);
+                    break;
+                case 'title':
+                    compareResult = a.title.localeCompare(b.title);
+                    break;
+                case 'artist':
+                    compareResult = a.artist.localeCompare(b.artist);
+                    break;
+                case 'album':
+                    compareResult = a.album.localeCompare(b.album);
+                    break;
+                default:
+                    compareResult = (a.added_at || 0) - (b.added_at || 0);
+            }
+            
+            return order === 'desc' ? -compareResult : compareResult;
+        });
+    }
+    
+    /**
+     * Obtiene estadísticas de las canciones favoritas
+     * @return {Object} Objeto con estadísticas detalladas
+     */
+    function getLikedSongsStatistics() {
+        const songs = Object.values(_likedSongs);
+        const stats = {
+            totalSongs: songs.length,
+            sourceDistribution: {
+                local: 0,
+                spotify: 0,
+                other: 0
+            },
+            artistsCount: 0,
+            albumsCount: 0,
+            mostLikedArtists: {},
+            mostLikedAlbums: {},
+            recentlyAdded: [],
+            oldestLiked: null,
+            newestLiked: null
         };
-    }
-    
-    /**
-     * Limpia todas las canciones favoritas (con confirmación)
-     * @param {boolean} confirmed - Indica si la operación está confirmada
-     * @return {Promise} Promesa que se resuelve cuando se completa la operación
-     */
-    function clearAllLikedSongs(confirmed = false) {
-        return new Promise((resolve, reject) => {
-            if (!confirmed) {
-                reject(new Error('Operación no confirmada - para limpiar todos los favoritos, pasar confirmed: true'));
-                return;
+        
+        if (songs.length === 0) {
+            return stats;
+        }
+        
+        const uniqueArtists = new Set();
+        const uniqueAlbums = new Set();
+        
+        songs.forEach(song => {
+            // Distribución por fuente
+            const source = song.sourceOrigin || 'other';
+            if (stats.sourceDistribution.hasOwnProperty(source)) {
+                stats.sourceDistribution[source]++;
+            } else {
+                stats.sourceDistribution.other++;
             }
             
-            if (!firebase.auth().currentUser) {
-                reject(new Error('Usuario no autenticado'));
-                return;
+            // Artistas únicos
+            if (song.artist) {
+                uniqueArtists.add(song.artist);
+                stats.mostLikedArtists[song.artist] = (stats.mostLikedArtists[song.artist] || 0) + 1;
             }
             
-            const uid = firebase.auth().currentUser.uid;
-            const songCount = Object.keys(_likedSongs).length;
+            // Álbumes únicos
+            if (song.album) {
+                uniqueAlbums.add(song.album);
+                stats.mostLikedAlbums[song.album] = (stats.mostLikedAlbums[song.album] || 0) + 1;
+            }
             
-            console.log('LikesManager: Limpiando todas las canciones favoritas (' + songCount + ')...');
-            
-            // Limpiar en Firebase
-            firebase.database().ref(`users/${uid}/liked_songs`).remove()
-                .then(() => {
-                    // Limpiar caché local
-                    const clearedSongs = {..._likedSongs};
-                    _likedSongs = {};
-                    
-                    console.log('LikesManager: Limpieza completada exitosamente');
-                    
-                    // Actualizar UI
-                    updateLikeUIElements();
-                    
-                    // Disparar eventos para todas las canciones eliminadas
-                    Object.keys(clearedSongs).forEach(songId => {
-                        dispatchLikeChangedEvent(songId, false, clearedSongs[songId]);
-                    });
-                    
-                    resolve(songCount);
-                })
-                .catch(error => {
-                    console.error('LikesManager: Error al limpiar favoritos:', error);
-                    reject(error);
-                });
+            // Fechas de adición
+            const addedAt = song.added_at || 0;
+            if (!stats.oldestLiked || addedAt < stats.oldestLiked.added_at) {
+                stats.oldestLiked = song;
+            }
+            if (!stats.newestLiked || addedAt > stats.newestLiked.added_at) {
+                stats.newestLiked = song;
+            }
         });
+        
+        stats.artistsCount = uniqueArtists.size;
+        stats.albumsCount = uniqueAlbums.size;
+        
+        // Canciones añadidas recientemente (últimos 7 días)
+        const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        stats.recentlyAdded = songs.filter(song => (song.added_at || 0) > weekAgo);
+        
+        return stats;
     }
     
     /**
-     * Sincroniza los datos locales con Firebase (útil después de cambios externos)
+     * Exporta las canciones favoritas a diferentes formatos
+     * @param {string} format - Formato de exportación ('json', 'csv', 'txt')
+     * @return {string} Datos exportados en el formato especificado
+     */
+    function exportLikedSongs(format = 'json') {
+        const songs = Object.values(_likedSongs);
+        
+        switch (format.toLowerCase()) {
+            case 'json':
+                return JSON.stringify(songs, null, 2);
+                
+            case 'csv':
+                if (songs.length === 0) return '';
+                
+                const headers = ['Título', 'Artista', 'Álbum', 'Duración', 'Fuente', 'Fecha de Adición'];
+                const csvRows = [headers.join(',')];
+                
+                songs.forEach(song => {
+                    const row = [
+                        `"${song.title}"`,
+                        `"${song.artist}"`,
+                        `"${song.album}"`,
+                        `"${song.duration}"`,
+                        `"${song.sourceOrigin || 'local'}"`,
+                        `"${new Date(song.added_at || 0).toLocaleDateString()}"`
+                    ];
+                    csvRows.push(row.join(','));
+                });
+                
+                return csvRows.join('\n');
+                
+            case 'txt':
+                if (songs.length === 0) return 'No hay canciones favoritas.';
+                
+                let txtOutput = 'MIS CANCIONES FAVORITAS\n';
+                txtOutput += '========================\n\n';
+                
+                songs.forEach((song, index) => {
+                    txtOutput += `${index + 1}. ${song.title}\n`;
+                    txtOutput += `   Artista: ${song.artist}\n`;
+                    txtOutput += `   Álbum: ${song.album}\n`;
+                    txtOutput += `   Duración: ${song.duration}\n`;
+                    txtOutput += `   Fuente: ${song.sourceOrigin || 'local'}\n`;
+                    txtOutput += `   Añadida: ${new Date(song.added_at || 0).toLocaleDateString()}\n\n`;
+                });
+                
+                return txtOutput;
+                
+            default:
+                throw new Error('Formato de exportación no soportado');
+        }
+    }
+    
+    /**
+     * Sincroniza los datos locales con Firebase
      * @return {Promise} Promesa que se resuelve cuando se completa la sincronización
      */
     function syncWithFirebase() {
@@ -365,46 +465,58 @@
                     console.log('LikesManager: Sincronización - Local:', localCount, 'Firebase:', firebaseCount);
                     
                     // Detectar cambios
-                    const addedSongs = {};
-                    const removedSongs = {};
+                    const addedSongs = [];
+                    const removedSongs = [];
+                    const updatedSongs = [];
                     
-                    // Buscar canciones añadidas en Firebase
+                    // Buscar canciones añadidas o actualizadas en Firebase
                     Object.keys(firebaseData).forEach(songId => {
-                        if (!_likedSongs[songId]) {
-                            addedSongs[songId] = firebaseData[songId];
+                        const firebaseSong = firebaseData[songId];
+                        const localSong = _likedSongs[songId];
+                        
+                        if (!localSong) {
+                            addedSongs.push(firebaseSong);
+                        } else if (firebaseSong.added_at !== localSong.added_at) {
+                            updatedSongs.push(firebaseSong);
                         }
                     });
                     
                     // Buscar canciones eliminadas en Firebase
                     Object.keys(_likedSongs).forEach(songId => {
                         if (!firebaseData[songId]) {
-                            removedSongs[songId] = _likedSongs[songId];
+                            removedSongs.push(_likedSongs[songId]);
                         }
                     });
                     
                     // Actualizar caché local
-                    _likedSongs = {...firebaseData};
+                    _likedSongs = { ...firebaseData };
                     
                     // Disparar eventos para cambios detectados
-                    Object.keys(addedSongs).forEach(songId => {
-                        dispatchLikeChangedEvent(songId, true, addedSongs[songId]);
+                    addedSongs.forEach(song => {
+                        dispatchLikeChangedEvent(song.id, true, song);
                     });
                     
-                    Object.keys(removedSongs).forEach(songId => {
-                        dispatchLikeChangedEvent(songId, false, removedSongs[songId]);
+                    removedSongs.forEach(song => {
+                        dispatchLikeChangedEvent(song.id, false, song);
+                    });
+                    
+                    updatedSongs.forEach(song => {
+                        dispatchLikeChangedEvent(song.id, true, song);
                     });
                     
                     // Actualizar UI
                     updateLikeUIElements();
                     
                     console.log('LikesManager: Sincronización completada -', 
-                        Object.keys(addedSongs).length, 'añadidas,', 
-                        Object.keys(removedSongs).length, 'eliminadas');
+                        addedSongs.length, 'añadidas,', 
+                        updatedSongs.length, 'actualizadas,',
+                        removedSongs.length, 'eliminadas');
                     
                     resolve({
-                        totalSongs: Object.keys(_likedSongs).length,
-                        addedSongs: Object.keys(addedSongs).length,
-                        removedSongs: Object.keys(removedSongs).length
+                        totalLikedSongs: Object.keys(_likedSongs).length,
+                        addedSongs: addedSongs.length,
+                        updatedSongs: updatedSongs.length,
+                        removedSongs: removedSongs.length
                     });
                 })
                 .catch(error => {
@@ -415,12 +527,12 @@
     }
     
     /**
-     * Dispara un evento personalizado cuando cambia el estado de un like
-     * @param {string} songId - ID de la canción que cambió
-     * @param {boolean} isLiked - Nuevo estado (true si está en favoritos, false si no)
-     * @param {Object} songData - Datos completos de la canción (opcional)
+     * Dispara un evento personalizado cuando hay cambios en likes
+     * @param {string} songId - ID de la canción afectada
+     * @param {boolean} isLiked - Nuevo estado de like
+     * @param {Object} songData - Datos de la canción
      */
-    function dispatchLikeChangedEvent(songId, isLiked, songData = null) {
+    function dispatchLikeChangedEvent(songId, isLiked, songData) {
         const event = new CustomEvent(LIKE_CHANGED_EVENT, {
             detail: {
                 songId,
@@ -431,13 +543,13 @@
             }
         });
         
-        console.log('LikesManager: Disparando evento de cambio de like:', songId, '-> isLiked:', isLiked);
+        console.log('LikesManager: Disparando evento de cambio de like:', songId, '→', isLiked);
         document.dispatchEvent(event);
     }
     
     /**
-     * Añade un listener para eventos de cambio de like
-     * @param {Function} callback - Función a llamar cuando cambia un like
+     * Añade un listener para eventos de cambio en likes
+     * @param {Function} callback - Función a llamar cuando hay cambios
      */
     function addLikeChangeListener(callback) {
         if (typeof callback !== 'function') {
@@ -447,7 +559,7 @@
         
         document.addEventListener(LIKE_CHANGED_EVENT, (event) => {
             try {
-                callback(event.detail.songId, event.detail.isLiked, event.detail.songData, event.detail.totalLikedSongs);
+                callback(event.detail.songId, event.detail.isLiked, event.detail.songData);
             } catch (error) {
                 console.error('LikesManager: Error en callback de cambio de like:', error);
             }
@@ -458,114 +570,96 @@
     
     /**
      * Actualiza la interfaz de usuario con el estado actual de likes
-     * Busca elementos con el ID de canción y actualiza sus clases e íconos
      */
     function updateLikeUIElements() {
-        console.log('LikesManager: Actualizando elementos UI con', Object.keys(_likedSongs).length, 'canciones favoritas');
-        
-        // Buscar todos los elementos de canción que tengan botones de like
-        const songItems = document.querySelectorAll('.song-item[data-id]');
-        let updatedCount = 0;
-        
-        songItems.forEach(songItem => {
-            const songId = songItem.dataset.id;
-            const likeBtn = songItem.querySelector('.song-like, .like-button, .action-button[title*="gusta"]');
-            
-            if (likeBtn && songId) {
-                const isLikedStatus = isLiked(songId);
-                
-                // Actualizar clases e ícono
-                likeBtn.classList.toggle('active', isLikedStatus);
-                
-                const heartIcon = likeBtn.querySelector('i');
-                if (heartIcon) {
-                    // Actualizar clase del ícono
-                    if (isLikedStatus) {
-                        heartIcon.className = 'fas fa-heart';
-                        heartIcon.style.color = '#1ed760'; // Verde de Spotify para favoritos
-                    } else {
-                        heartIcon.className = 'far fa-heart';
-                        heartIcon.style.color = '';
-                    }
-                }
-                
-                // Actualizar título del botón
-                likeBtn.title = isLikedStatus ? 'Eliminar de favoritos' : 'Añadir a favoritos';
-                
-                updatedCount++;
-            }
-        });
+        const likedCount = Object.keys(_likedSongs).length;
+        console.log('LikesManager: Actualizando elementos UI con', likedCount, 'likes');
         
         // Actualizar contadores si existen
-        const likedCountElements = document.querySelectorAll('#likedSongsCount, .liked-count, [data-liked-count]');
-        likedCountElements.forEach(element => {
-            element.textContent = Object.keys(_likedSongs).length;
+        const likeCountElements = document.querySelectorAll('#likedSongsCount, .liked-count, [data-liked-count]');
+        likeCountElements.forEach(element => {
+            element.textContent = likedCount;
         });
         
-        console.log('LikesManager: UI actualizada -', updatedCount, 'elementos de canción actualizados');
+        // Actualizar botones de like en la interfaz
+        Object.keys(_likedSongs).forEach(songId => {
+            updateLikeButtonUI(songId, true);
+        });
+        
+        // Disparar evento de actualización de UI si es necesario
+        const uiUpdateEvent = new CustomEvent('likeUIUpdate', {
+            detail: {
+                totalLikedSongs: likedCount,
+                likedSongs: { ..._likedSongs }
+            }
+        });
+        document.dispatchEvent(uiUpdateEvent);
     }
     
     /**
-     * Obtiene estadísticas de las canciones favoritas
-     * @return {Object} Objeto con estadísticas detalladas
+     * Actualiza el estado visual de un botón de like específico
+     * @param {string} songId - ID de la canción
+     * @param {boolean} isLiked - Estado de like
      */
-    function getStatistics() {
-        const songs = Object.values(_likedSongs);
-        const stats = {
-            totalSongs: songs.length,
-            sourceDistribution: {
-                local: 0,
-                spotify: 0,
-                other: 0
-            },
-            artists: {},
-            albums: {},
-            addedThisWeek: 0,
-            addedThisMonth: 0,
-            oldestSong: null,
-            newestSong: null
-        };
+    function updateLikeButtonUI(songId, isLiked) {
+        // Buscar todos los botones de like para esta canción
+        const likeButtons = document.querySelectorAll(`[data-song-id="${songId}"] .like-button, [data-track-id="${songId}"] .like-button`);
         
-        const now = Date.now();
-        const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        const oneMonth = 30 * 24 * 60 * 60 * 1000;
-        
-        songs.forEach(song => {
-            // Distribución por fuente
-            const source = song.sourceOrigin || 'other';
-            if (stats.sourceDistribution.hasOwnProperty(source)) {
-                stats.sourceDistribution[source]++;
-            } else {
-                stats.sourceDistribution.other++;
+        likeButtons.forEach(button => {
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.className = isLiked ? 'fas fa-heart' : 'far fa-heart';
+                icon.style.color = isLiked ? '#1ed760' : '';
             }
             
-            // Conteo por artista
-            const artist = song.artist || 'Desconocido';
-            stats.artists[artist] = (stats.artists[artist] || 0) + 1;
-            
-            // Conteo por álbum
-            const album = song.album || 'Desconocido';
-            stats.albums[album] = (stats.albums[album] || 0) + 1;
-            
-            // Análisis temporal
-            const addedAt = song.added_at || 0;
-            if (addedAt > now - oneWeek) {
-                stats.addedThisWeek++;
-            }
-            if (addedAt > now - oneMonth) {
-                stats.addedThisMonth++;
-            }
-            
-            // Canción más antigua y más nueva
-            if (!stats.oldestSong || addedAt < stats.oldestSong.added_at) {
-                stats.oldestSong = song;
-            }
-            if (!stats.newestSong || addedAt > stats.newestSong.added_at) {
-                stats.newestSong = song;
-            }
+            button.classList.toggle('active', isLiked);
+            button.title = isLiked ? 'Eliminar de favoritos' : 'Añadir a favoritos';
         });
-        
-        return stats;
+    }
+    
+    /**
+     * Limpia todos los datos de likes (usar con precaución)
+     * @return {Promise} Promesa que se resuelve cuando se completa la limpieza
+     */
+    function clearAllLikedSongs() {
+        return new Promise((resolve, reject) => {
+            if (!firebase.auth().currentUser) {
+                reject(new Error('Usuario no autenticado'));
+                return;
+            }
+            
+            if (!confirm('¿Estás seguro de que quieres eliminar todas las canciones favoritas? Esta acción no se puede deshacer.')) {
+                reject(new Error('Operación cancelada por el usuario'));
+                return;
+            }
+            
+            const uid = firebase.auth().currentUser.uid;
+            
+            console.log('LikesManager: Limpiando todas las canciones favoritas...');
+            
+            firebase.database().ref(`users/${uid}/liked_songs`).remove()
+                .then(() => {
+                    // Limpiar caché local
+                    const clearedSongs = { ..._likedSongs };
+                    _likedSongs = {};
+                    
+                    console.log('LikesManager: Todas las canciones favoritas eliminadas');
+                    
+                    // Disparar eventos para todas las canciones eliminadas
+                    Object.keys(clearedSongs).forEach(songId => {
+                        dispatchLikeChangedEvent(songId, false, clearedSongs[songId]);
+                    });
+                    
+                    // Actualizar UI
+                    updateLikeUIElements();
+                    
+                    resolve(Object.keys(clearedSongs).length);
+                })
+                .catch(error => {
+                    console.error('LikesManager: Error al limpiar canciones favoritas:', error);
+                    reject(error);
+                });
+        });
     }
     
     // Exportar funciones públicas
@@ -574,30 +668,31 @@
         init,
         reinitialize,
         
-        // Consultas
+        // Consultas básicas
         isLiked,
         getAllLikedSongs,
         getLikedSongsCount,
-        getStatistics,
+        getLikedSong,
+        searchLikedSongs,
+        getSortedLikedSongs,
+        getLikedSongsStatistics,
         
-        // Operaciones principales
+        // Operaciones de like
+        toggleLike,
         addSongToLiked,
         removeSongFromLiked,
-        toggleLike,
-        
-        // Operaciones masivas
-        importLikedSongs,
-        exportLikedSongs,
         clearAllLikedSongs,
         
-        // Sincronización
+        // Utilidades
+        exportLikedSongs,
         syncWithFirebase,
         
         // Eventos
         addLikeChangeListener,
         
         // UI
-        updateLikeUIElements
+        updateLikeUIElements,
+        updateLikeButtonUI
     };
     
     // Auto-inicializar cuando Firebase esté listo
@@ -640,7 +735,7 @@
                 console.error('LikesManager: Error en sincronización automática:', error);
             });
         }
-    }, 5 * 60 * 1000); // Cada 5 minutos
+    }, 15 * 60 * 1000); // Cada 15 minutos
     
     console.log('LikesManager: Módulo cargado correctamente');
 })();

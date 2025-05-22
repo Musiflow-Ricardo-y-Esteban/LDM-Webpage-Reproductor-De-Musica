@@ -1,4 +1,4 @@
-// account.js - Sistema mejorado para gestión de cuentas de usuario
+// account.js - Sistema completo para gestión de cuentas de usuario
 
 /**
  * FUNCIÓN PRINCIPAL: Este script gestiona todas las funcionalidades de la cuenta de usuario 
@@ -81,14 +81,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEffects();
     
     // Espera a que Firebase Authentication esté listo antes de continuar
-    document.addEventListener('authStateChanged', async (event) => {
-        const user = event.detail.user;
-        
+    firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             // Si el usuario está autenticado, carga sus datos
             await initializeUserData(user);
-        } 
-        // Si no está autenticado, common-auth.js redirigirá automáticamente
+        } else {
+            // Si no está autenticado, redirigir al login
+            console.log('Usuario no autenticado, redirigiendo al login...');
+            window.location.href = 'login.html';
+        }
     });
     
     /**
@@ -97,8 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function initializeUserData(user) {
         try {
-            // Oculta la pantalla de carga
-            showLoading(false);
+            // Muestra la pantalla de carga
+            showLoading(true);
             
             // Guarda los datos del usuario
             currentUser = user;
@@ -117,9 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Inicializa la funcionalidad del reproductor
             setupMusicPlayer();
+            
+            showLoading(false);
         } catch (error) {
             console.error('Error al inicializar datos de usuario:', error);
             showToast('Error al cargar datos de usuario', 'error');
+            showLoading(false);
         }
     }
     
@@ -255,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Establece la fecha de registro
         if (memberSinceElement) {
-            const memberSinceDate = user.created_at 
-                ? new Date(user.created_at)
+            const memberSinceDate = user.metadata && user.metadata.creationTime 
+                ? new Date(user.metadata.creationTime)
                 : new Date();
             
             const formattedDate = new Intl.DateTimeFormat('es-ES', {
@@ -270,13 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Establece el avatar
         if (profileAvatarElement) {
-            if (user.photoURL || user.profile_picture) {
+            if (user.photoURL) {
                 // Si el usuario tiene foto de perfil
-                const photoUrl = user.photoURL || user.profile_picture;
-                profileAvatarElement.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                profileAvatarElement.innerHTML = `<img src="${user.photoURL}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
             } else {
                 // Genera un avatar con la primera letra del nombre/email
-                const firstLetter = (user.displayName || user.username || user.email).charAt(0).toUpperCase();
+                const firstLetter = (user.displayName || user.email).charAt(0).toUpperCase();
                 profileAvatarElement.innerHTML = firstLetter;
                 
                 // Color aleatorio basado en el nombre de usuario
@@ -385,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<span class="song-source local">Local</span>';
             
             const songItem = document.createElement('div');
-            songItem.className = 'song-item';
+            songItem.className = 'song-item fade-in';
             songItem.dataset.id = song.id;
             songItem.dataset.source = song.sourceOrigin || 'local';
             songItem.innerHTML = `
@@ -419,7 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para el botón de eliminar de favoritos
             const removeBtn = songItem.querySelector('.remove-from-liked-btn');
             if (removeBtn) {
-                removeBtn.addEventListener('click', async () => {
+                removeBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     await removeSongFromLiked(song.id);
                 });
             }
@@ -427,7 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para el botón de añadir a playlist
             const addToPlaylistBtn = songItem.querySelector('.add-to-playlist-btn');
             if (addToPlaylistBtn) {
-                addToPlaylistBtn.addEventListener('click', () => {
+                addToPlaylistBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     showAddToPlaylistModal(song);
                 });
             }
@@ -435,7 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para el botón de me gusta (ya está activo, así que al hacer clic lo quita)
             const likeBtn = songItem.querySelector('.song-like');
             if (likeBtn) {
-                likeBtn.addEventListener('click', async () => {
+                likeBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     await removeSongFromLiked(song.id);
                 });
             }
@@ -448,11 +454,10 @@ document.addEventListener('DOMContentLoaded', () => {
             playAllLikedBtn.disabled = songsArray.length === 0;
             
             // Limpiar eventos anteriores y añadir nuevo
-            const newPlayAllBtn = playAllLikedBtn.cloneNode(true);
-            playAllLikedBtn.parentNode.replaceChild(newPlayAllBtn, playAllLikedBtn);
+            playAllLikedBtn.onclick = null;
             
             // Evento para reproducir todas las canciones favoritas
-            newPlayAllBtn.addEventListener('click', () => {
+            playAllLikedBtn.addEventListener('click', () => {
                 if (songsArray.length > 0) {
                     playPlaylist(songsArray, 0, "liked_songs");
                 }
@@ -495,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const heartIcon = isLiked ? 'fas' : 'far';
             
             const songItem = document.createElement('div');
-            songItem.className = 'song-item';
+            songItem.className = 'song-item slide-in';
             songItem.dataset.id = song.id;
             songItem.dataset.source = song.sourceOrigin || 'local';
             songItem.innerHTML = `
@@ -527,7 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para el botón de me gusta
             const likeBtn = songItem.querySelector('.song-like');
             if (likeBtn) {
-                likeBtn.addEventListener('click', async () => {
+                likeBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     await toggleLikeSong(song);
                 });
             }
@@ -535,7 +541,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para el botón de añadir a playlist
             const addToPlaylistBtn = songItem.querySelector('.add-to-playlist-btn');
             if (addToPlaylistBtn) {
-                addToPlaylistBtn.addEventListener('click', () => {
+                addToPlaylistBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     showAddToPlaylistModal(song);
                 });
             }
@@ -546,10 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Configurar botón de limpiar historial
         if (clearHistoryBtn) {
             // Limpiar eventos anteriores
-            const newClearBtn = clearHistoryBtn.cloneNode(true);
-            clearHistoryBtn.parentNode.replaceChild(newClearBtn, clearHistoryBtn);
+            clearHistoryBtn.onclick = null;
             
-            newClearBtn.addEventListener('click', () => {
+            clearHistoryBtn.addEventListener('click', () => {
                 if (confirm('¿Estás seguro de que quieres limpiar tu historial de reproducción?')) {
                     clearPlayHistory();
                 }
@@ -593,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
             
             const playlistItem = document.createElement('div');
-            playlistItem.className = 'playlist-item';
+            playlistItem.className = 'playlist-item fade-in';
             playlistItem.dataset.id = playlist.id;
             playlistItem.innerHTML = `
                 <div class="playlist-cover">
@@ -625,7 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para reproducir la playlist
             const playBtn = playlistItem.querySelector('.play-playlist-btn');
             if (playBtn) {
-                playBtn.addEventListener('click', () => {
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     playPlaylistById(playlist.id);
                 });
             }
@@ -633,7 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Evento para ver detalles de la playlist
             const viewBtn = playlistItem.querySelector('.view-playlist-btn');
             if (viewBtn) {
-                viewBtn.addEventListener('click', () => {
+                viewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     showPlaylistDetails(playlist);
                 });
             }
@@ -657,7 +665,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.LikesManager) {
                 // Usar el sistema integrado de likes
                 await window.LikesManager.toggleLike(song);
-                showToast(`Canción ${window.LikesManager.isLiked(song.id) ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
+                const isLiked = window.LikesManager.isLiked(song.id);
+                showToast(`Canción ${isLiked ? 'añadida a' : 'eliminada de'} favoritos`, 'success');
             } else {
                 // Fallback al método directo
                 if (likedSongs[song.id]) {
@@ -774,9 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUserStats();
         
         // Si estamos en la sección de favoritos, actualizar toda la UI
-        if (window.location.hash === '#liked' || likedSongsListElement.querySelector('.song-item')) {
-            updateLikedSongsUI();
-        }
+        updateLikedSongsUI();
     }
     
     /**
@@ -818,6 +825,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             console.log('Canción añadida al historial:', song.title);
+            
+            // Actualizar UI del historial
+            updateRecentlyPlayedUI();
             
         } catch (error) {
             console.error('Error al añadir canción al historial:', error);
@@ -1063,6 +1073,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedSongForPlaylist = null; // Limpiar selección
             }
             
+            // Actualizar UI
+            updateUserStats();
+            updatePlaylistsUI();
+            
             showLoading(false);
         } catch (error) {
             console.error('Error al crear playlist:', error);
@@ -1197,20 +1211,6 @@ document.addEventListener('DOMContentLoaded', () => {
             savePlaylistBtn.addEventListener('click', createNewPlaylist);
         }
         
-        // Botón para crear playlist desde el modal de añadir a playlist
-        if (createPlaylistFromModalBtn) {
-            createPlaylistFromModalBtn.addEventListener('click', () => {
-                // Cerrar modal actual
-                const addToPlaylistModal = bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'));
-                if (addToPlaylistModal) {
-                    addToPlaylistModal.hide();
-                }
-                
-                // Mostrar modal de crear playlist
-                showCreatePlaylistModal();
-            });
-        }
-        
         // Cajas de estadísticas (para acceso directo)
         const likedSongsStatBox = document.getElementById('likedSongsStatBox');
         if (likedSongsStatBox) {
@@ -1246,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupMusicPlayer() {
         // Ocultar el reproductor inicialmente si no hay pista seleccionada
         if (currentPlayer && !currentPlayingTrack) {
-            currentPlayer.classList.remove('playing');
+            currentPlayer.style.display = 'none';
         }
         
         audioPlayer = new Audio();
@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePlayerUI();
         
         // Determinar el tipo de fuente (local o Spotify)
-        if (song.sourceOrigin === 'spotify') {
+        if (song.sourceOrigin === 'spotify' || song.source === 'spotify') {
             // Para Spotify, abrir en una nueva ventana
             if (song.externalUrl) {
                 window.open(song.externalUrl, '_blank');
@@ -1375,296 +1375,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Actualizar el estado de "me gusta"
         updateLikeStatus(song.id);
     }
-    
-    // Resto de funciones del reproductor (playPlaylist, stopPlayback, togglePlayPause, etc.)
-    // Se mantienen igual que en el código original...
-    
-    //===================================================================
-    // FUNCIONES DE UTILIDAD
-    //===================================================================
-    
-    /**
-     * Formatea el tiempo en segundos a formato "minutos:segundos"
-     * @param {number} seconds - Tiempo en segundos
-     * @return {string} Tiempo formateado (MM:SS)
-     */
-    function formatTime(seconds) {
-        if (!seconds || isNaN(seconds)) return '0:00';
-        
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    }
-    
-    /**
-     * Calcula y formatea el tiempo transcurrido desde una marca de tiempo
-     * @param {number} timestamp - Marca de tiempo en milisegundos
-     * @return {string} Tiempo relativo formateado (ej: "hace 2 horas")
-     */
-    function getTimeAgo(timestamp) {
-        if (!timestamp) return 'fecha desconocida';
-        
-        const now = Date.now();
-        const diff = now - timestamp;
-        
-        // Calcular unidades de tiempo
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-        
-        // Formatear según la unidad más apropiada
-        if (days > 0) {
-            return `hace ${days} ${days === 1 ? 'día' : 'días'}`;
-        } else if (hours > 0) {
-            return `hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
-        } else if (minutes > 0) {
-            return `hace ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`;
-        } else {
-            return 'hace unos segundos';
-        }
-    }
-    
-    /**
-     * Genera un valor hash para una cadena
-     * Utilizado para generar colores consistentes basados en texto
-     * @param {string} str - Cadena a hashear
-     * @return {number} Valor numérico hash
-     */
-    function hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0; // Convertir a entero de 32 bits
-        }
-        return hash;
-    }
-    
-    /**
-     * Mezcla un array aleatoriamente (algoritmo Fisher-Yates)
-     * @param {Array} array - Array a mezclar
-     * @return {Array} Array mezclado (modifica el original)
-     */
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-    
-    /**
-     * Muestra el overlay de carga
-     * @param {boolean} show - Indica si mostrar (true) u ocultar (false)
-     */
-    function showLoading(show) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay) {
-            if (show) {
-                loadingOverlay.classList.add('show');
-            } else {
-                loadingOverlay.classList.remove('show');
-            }
-        }
-    }
-    
-    /**
-     * Muestra un mensaje de notificación
-     * @param {string} message - Mensaje a mostrar
-     * @param {string} type - Tipo de mensaje ('success', 'error', 'warning', 'info')
-     */
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        // Definir los estilos en línea
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8'};
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 9999;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        // Añadir ícono según el tipo
-        let icon = 'check-circle';
-        if (type === 'error') icon = 'exclamation-circle';
-        if (type === 'warning') icon = 'exclamation-triangle';
-        if (type === 'info') icon = 'info-circle';
-        
-        toast.innerHTML = `
-            <i class="fas fa-${icon}"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Animar entrada
-        setTimeout(() => {
-            toast.style.transform = 'translateY(0)';
-            toast.style.opacity = '1';
-        }, 100);
-        
-        // Eliminar después de 3 segundos
-        setTimeout(() => {
-            toast.style.transform = 'translateY(100px)';
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-    
-    // Resto de funciones de utilidad (logout, openEditProfileModal, etc.)
-    // Se mantienen igual que en el código original...
-    
-    /**
-     * Inicializa efectos visuales y decorativos en la página de cuenta
-     * Agrega animaciones, partículas y efectos interactivos
-     */
-    function initializeEffects() {
-        // Crear notas musicales flotantes en el fondo
-        createFloatingNotes();
-        
-        // Agregar efectos de hover a los elementos interactivos
-        addHoverEffects();
-        
-        // Inicializar animaciones para las estadísticas
-        initStatisticAnimations();
-        
-        console.log('Efectos visuales inicializados en la página de cuenta');
-    }
-    
-    /**
-     * Crea notas musicales decorativas flotantes en el fondo
-     */
-    function createFloatingNotes() {
-        const notesContainer = document.querySelector('.notes-container');
-        if (!notesContainer) return;
-        
-        const notes = ['♪', '♫', '𝅘𝅥𝅮', '𝅘𝅥', '𝅘𝅥𝅯', '𝅗𝅥', '𝄞'];
-        const noteCount = 15;
-        
-        // Limpiar notas existentes
-        notesContainer.innerHTML = '';
-        
-        // Generar nuevas notas
-        for (let i = 0; i < noteCount; i++) {
-            const note = document.createElement('div');
-            note.className = 'floating-note';
-            note.innerHTML = notes[Math.floor(Math.random() * notes.length)];
-            note.style.left = `${Math.random() * 100}%`;
-            note.style.top = `${Math.random() * 100}%`;
-            note.style.animationDelay = `${Math.random() * 5}s`;
-            note.style.animationDuration = `${10 + Math.random() * 15}s`;
-            note.style.opacity = 0.2 + Math.random() * 0.3;
-            note.style.fontSize = `${1 + Math.random() * 1.5}rem`;
-            
-            notesContainer.appendChild(note);
-        }
-    }
-    
-    /**
-     * Agrega efectos de hover a elementos interactivos
-     */
-    function addHoverEffects() {
-        // Efectos para las cajas de estadísticas
-        const statBoxes = document.querySelectorAll('.stat-box');
-        statBoxes.forEach(box => {
-            box.addEventListener('mouseenter', () => {
-                box.style.transform = 'translateY(-5px)';
-                box.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.2)';
-            });
-            
-            box.addEventListener('mouseleave', () => {
-                box.style.transform = '';
-                box.style.boxShadow = '';
-            });
-        });
-    }
-    
-    /**
-     * Inicializa animaciones para las estadísticas
-     */
-    function animateCounters() {
-        const statNumbers = document.querySelectorAll('.stat-number');
-        
-        statNumbers.forEach(statNumber => {
-            const originalValue = parseInt(statNumber.textContent);
-            
-            // Solo animar si hay un valor numérico
-            if (!isNaN(originalValue)) {
-                // Resetear a cero para animación
-                statNumber.textContent = '0';
-                
-                // Crear animación de conteo
-                let currentValue = 0;
-                const duration = 1500; // milisegundos
-                const interval = 50; // milisegundos
-                const increment = originalValue / (duration / interval);
-                
-                const counter = setInterval(() => {
-                    currentValue += increment;
-                    
-                    if (currentValue >= originalValue) {
-                        clearInterval(counter);
-                        statNumber.textContent = originalValue;
-                    } else {
-                        statNumber.textContent = Math.floor(currentValue);
-                    }
-                }, interval);
-            }
-        });
-    }
-    
-    /**
-     * Inicializa animaciones para las estadísticas
-     */
-    function initStatisticAnimations() {
-        const statBoxes = document.querySelectorAll('.stat-box');
-        
-        statBoxes.forEach(box => {
-            const statNumber = box.querySelector('.stat-number');
-            if (!statNumber) return;
-            
-            const originalValue = parseInt(statNumber.textContent);
-            
-            // Solo animar si hay un valor numérico
-            if (!isNaN(originalValue)) {
-                // Resetear a cero para animación
-                statNumber.textContent = '0';
-                
-                // Crear animación de conteo
-                let currentValue = 0;
-                const duration = 1500; // milisegundos
-                const interval = 50; // milisegundos
-                const increment = originalValue / (duration / interval);
-                
-                const counter = setInterval(() => {
-                    currentValue += increment;
-                    
-                    if (currentValue >= originalValue) {
-                        clearInterval(counter);
-                        statNumber.textContent = originalValue;
-                    } else {
-                        statNumber.textContent = Math.floor(currentValue);
-                    }
-                }, interval);
-            }
-        });
-    }
-    
-    // Funciones restantes del reproductor y utilidades se mantienen igual...
-    // (playPlaylist, stopPlayback, togglePlayPause, playNext, playPrevious, etc.)
     
     /**
      * Reproduce una playlist completa
@@ -2050,8 +1760,286 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPlaylistDetails(playlist) {
         if (!playlist) return;
         
-        console.log('Mostrando detalles de playlist:', playlist.name);
-        showToast('Función en desarrollo', 'info');
+        // Actualizar información en el modal
+        const modalTitle = document.getElementById('playlistDetailModalLabel');
+        const playlistName = document.getElementById('playlistDetailName');
+        const playlistDescription = document.getElementById('playlistDetailDescription');
+        const playlistInfo = document.getElementById('playlistDetailInfo');
+        const playlistCreator = document.getElementById('playlistDetailCreator');
+        const playlistSongCount = document.getElementById('playlistDetailSongCount');
+        const playlistCreatedAt = document.getElementById('playlistDetailCreatedAt');
+        const playlistSongsList = document.getElementById('playlistSongsList');
+        
+        if (modalTitle) modalTitle.textContent = playlist.name;
+        if (playlistName) playlistName.textContent = playlist.name;
+        if (playlistDescription) {
+            playlistDescription.textContent = playlist.description || 'Sin descripción';
+            playlistDescription.style.display = playlist.description ? 'block' : 'none';
+        }
+        
+        const songCount = playlist.songs ? Object.keys(playlist.songs).length : 0;
+        if (playlistCreator) playlistCreator.textContent = playlist.ownerName || 'Usuario';
+        if (playlistSongCount) playlistSongCount.textContent = songCount;
+        if (playlistCreatedAt) {
+            const date = new Date(playlist.created_at);
+            playlistCreatedAt.textContent = date.toLocaleDateString('es-ES');
+        }
+        
+        // Mostrar canciones de la playlist
+        if (playlistSongsList) {
+            if (songCount === 0) {
+                playlistSongsList.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-music fa-2x mb-3"></i>
+                        <p>Esta playlist está vacía.</p>
+                    </div>
+                `;
+            } else {
+                const songs = Object.values(playlist.songs);
+                playlistSongsList.innerHTML = '';
+                
+                songs.forEach((song, index) => {
+                    const songItem = document.createElement('div');
+                    songItem.className = 'song-item';
+                    songItem.innerHTML = `
+                        <img src="${song.image || 'resources/album covers/placeholder.png'}" alt="${song.title}" class="song-cover">
+                        <div class="song-details">
+                            <h5 class="song-title">${song.title}</h5>
+                            <p class="song-artist">${song.artist}</p>
+                        </div>
+                        <div class="song-actions">
+                            <button class="song-action-btn play-song-btn" title="Reproducir">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="song-action-btn remove-from-playlist-btn" title="Eliminar de playlist">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Evento para reproducir canción
+                    const playBtn = songItem.querySelector('.play-song-btn');
+                    if (playBtn) {
+                        playBtn.addEventListener('click', () => {
+                            playSong(song);
+                        });
+                    }
+                    
+                    // Evento para eliminar de playlist
+                    const removeBtn = songItem.querySelector('.remove-from-playlist-btn');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', async () => {
+                            try {
+                                if (window.PlaylistManager) {
+                                    await window.PlaylistManager.removeSongFromPlaylist(song.id, playlist.id);
+                                    showToast('Canción eliminada de la playlist', 'success');
+                                    
+                                    // Actualizar la vista del modal
+                                    showPlaylistDetails(window.PlaylistManager.getPlaylistById(playlist.id));
+                                } else {
+                                    showToast('Error: Sistema de playlists no disponible', 'error');
+                                }
+                            } catch (error) {
+                                console.error('Error al eliminar canción de playlist:', error);
+                                showToast('Error al eliminar canción de playlist', 'error');
+                            }
+                        });
+                    }
+                    
+                    playlistSongsList.appendChild(songItem);
+                });
+            }
+        }
+        
+        // Configurar botones del modal
+        const playPlaylistBtn = document.getElementById('playPlaylistBtn');
+        const editPlaylistBtn = document.getElementById('editPlaylistBtn');
+        const deletePlaylistBtn = document.getElementById('deletePlaylistBtn');
+        
+        if (playPlaylistBtn) {
+            playPlaylistBtn.onclick = () => {
+                playPlaylistById(playlist.id);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('playlistDetailModal'));
+                if (modal) modal.hide();
+            };
+        }
+        
+        if (editPlaylistBtn) {
+            editPlaylistBtn.onclick = () => {
+                // TODO: Implementar edición de playlist
+                showToast('Función de edición en desarrollo', 'info');
+            };
+        }
+        
+        if (deletePlaylistBtn) {
+            deletePlaylistBtn.onclick = async () => {
+                if (confirm(`¿Estás seguro de que quieres eliminar la playlist "${playlist.name}"?`)) {
+                    try {
+                        if (window.PlaylistManager) {
+                            await window.PlaylistManager.deletePlaylist(playlist.id);
+                            showToast('Playlist eliminada correctamente', 'success');
+                            
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('playlistDetailModal'));
+                            if (modal) modal.hide();
+                        } else {
+                            showToast('Error: Sistema de playlists no disponible', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error al eliminar playlist:', error);
+                        showToast('Error al eliminar playlist', 'error');
+                    }
+                }
+            };
+        }
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('playlistDetailModal'));
+        modal.show();
+    }
+    
+    //===================================================================
+    // FUNCIONES DE UTILIDAD
+    //===================================================================
+    
+    /**
+     * Formatea el tiempo en segundos a formato "minutos:segundos"
+     * @param {number} seconds - Tiempo en segundos
+     * @return {string} Tiempo formateado (MM:SS)
+     */
+    function formatTime(seconds) {
+        if (!seconds || isNaN(seconds)) return '0:00';
+        
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }
+    
+    /**
+     * Calcula y formatea el tiempo transcurrido desde una marca de tiempo
+     * @param {number} timestamp - Marca de tiempo en milisegundos
+     * @return {string} Tiempo relativo formateado (ej: "hace 2 horas")
+     */
+    function getTimeAgo(timestamp) {
+        if (!timestamp) return 'fecha desconocida';
+        
+        const now = Date.now();
+        const diff = now - timestamp;
+        
+        // Calcular unidades de tiempo
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        
+        // Formatear según la unidad más apropiada
+        if (days > 0) {
+            return `hace ${days} ${days === 1 ? 'día' : 'días'}`;
+        } else if (hours > 0) {
+            return `hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+        } else if (minutes > 0) {
+            return `hace ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`;
+        } else {
+            return 'hace unos segundos';
+        }
+    }
+    
+    /**
+     * Genera un valor hash para una cadena
+     * Utilizado para generar colores consistentes basados en texto
+     * @param {string} str - Cadena a hashear
+     * @return {number} Valor numérico hash
+     */
+    function hashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convertir a entero de 32 bits
+        }
+        return hash;
+    }
+    
+    /**
+     * Mezcla un array aleatoriamente (algoritmo Fisher-Yates)
+     * @param {Array} array - Array a mezclar
+     * @return {Array} Array mezclado (modifica el original)
+     */
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+    
+    /**
+     * Muestra el overlay de carga
+     * @param {boolean} show - Indica si mostrar (true) u ocultar (false)
+     */
+    function showLoading(show) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            if (show) {
+                loadingOverlay.classList.add('show');
+            } else {
+                loadingOverlay.classList.remove('show');
+            }
+        }
+    }
+    
+    /**
+     * Muestra un mensaje de notificación
+     * @param {string} message - Mensaje a mostrar
+     * @param {string} type - Tipo de mensaje ('success', 'error', 'warning', 'info')
+     */
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        // Definir los estilos en línea
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8'};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
+        // Añadir ícono según el tipo
+        let icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        if (type === 'info') icon = 'info-circle';
+        
+        toast.innerHTML = `
+            <i class="fas fa-${icon}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        }, 100);
+        
+        // Eliminar después de 3 segundos
+        setTimeout(() => {
+            toast.style.transform = 'translateY(100px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
     
     /**
@@ -2059,35 +2047,26 @@ document.addEventListener('DOMContentLoaded', () => {
      * Llama a Firebase y actualiza la interfaz
      */
     function logout() {
-        if (window.firebaseAuth) {
-            window.firebaseAuth.logoutUser()
-                .then(result => {
-                    if (result.success) {
-                        // Redireccionar a la página de inicio
-                        window.location.href = 'index.html';
-                    } else {
-                        showToast('Error al cerrar sesión', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error durante logout:', error);
-                    showToast('Error al cerrar sesión', 'error');
-                });
-        } else {
-            // Fallback si firebaseAuth no está disponible
-            if (firebase.auth) {
-                firebase.auth().signOut()
-                    .then(() => {
-                        window.location.href = 'index.html';
-                    })
-                    .catch(error => {
-                        console.error('Error durante logout:', error);
-                        showToast('Error al cerrar sesión', 'error');
-                    });
-            } else {
-                showToast('Error: Sistema de autenticación no disponible', 'error');
-            }
-        }
+        firebase.auth().signOut()
+            .then(() => {
+                console.log('Usuario desconectado correctamente');
+                // Limpiar datos locales
+                currentUser = null;
+                likedSongs = {};
+                recentlyPlayed = [];
+                userPlaylists = [];
+                followedArtists = [];
+                
+                // Limpiar localStorage
+                localStorage.removeItem('player_preferences');
+                
+                // Redirigir al login
+                window.location.href = 'login.html';
+            })
+            .catch(error => {
+                console.error('Error al cerrar sesión:', error);
+                showToast('Error al cerrar sesión', 'error');
+            });
     }
     
     /**
@@ -2099,4 +2078,103 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Función en desarrollo', 'info');
     }
     
+    /**
+     * Inicializa efectos visuales y decorativos en la página de cuenta
+     * Agrega animaciones, partículas y efectos interactivos
+     */
+    function initializeEffects() {
+        // Crear notas musicales flotantes en el fondo
+        createFloatingNotes();
+        
+        // Agregar efectos de hover a los elementos interactivos
+        addHoverEffects();
+        
+        console.log('Efectos visuales inicializados en la página de cuenta');
+    }
+    
+    /**
+     * Crea notas musicales decorativas flotantes en el fondo
+     */
+    function createFloatingNotes() {
+        const notesContainer = document.querySelector('.notes-container');
+        if (!notesContainer) return;
+        
+        const notes = ['♪', '♫', '𝅘𝅥𝅮', '𝅘𝅥', '𝅘𝅥𝅯', '𝅗𝅥', '𝄞'];
+        const noteCount = 15;
+        
+        // Limpiar notas existentes
+        notesContainer.innerHTML = '';
+        
+        // Generar nuevas notas
+        for (let i = 0; i < noteCount; i++) {
+            const note = document.createElement('div');
+            note.className = 'floating-note';
+            note.innerHTML = notes[Math.floor(Math.random() * notes.length)];
+            note.style.left = `${Math.random() * 100}%`;
+            note.style.top = `${Math.random() * 100}%`;
+            note.style.animationDelay = `${Math.random() * 5}s`;
+            note.style.animationDuration = `${10 + Math.random() * 15}s`;
+            note.style.opacity = 0.2 + Math.random() * 0.3;
+            note.style.fontSize = `${1 + Math.random() * 1.5}rem`;
+            note.style.position = 'absolute';
+            note.style.color = 'var(--acento-actual)';
+            note.style.pointerEvents = 'none';
+            note.style.animation = `flotarNota ${10 + Math.random() * 15}s linear infinite`;
+            
+            notesContainer.appendChild(note);
+        }
+    }
+    
+    /**
+     * Agrega efectos de hover a elementos interactivos
+     */
+    function addHoverEffects() {
+        // Efectos para las cajas de estadísticas
+        const statBoxes = document.querySelectorAll('.stat-box');
+        statBoxes.forEach(box => {
+            box.addEventListener('mouseenter', () => {
+                box.style.transform = 'translateY(-5px)';
+                box.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.2)';
+            });
+            
+            box.addEventListener('mouseleave', () => {
+                box.style.transform = '';
+                box.style.boxShadow = '';
+            });
+        });
+    }
+    
+    /**
+     * Anima los contadores de estadísticas
+     */
+    function animateCounters() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        
+        statNumbers.forEach(statNumber => {
+            const originalValue = parseInt(statNumber.textContent);
+            
+            // Solo animar si hay un valor numérico
+            if (!isNaN(originalValue)) {
+                // Resetear a cero para animación
+                statNumber.textContent = '0';
+                
+                // Crear animación de conteo
+                let currentValue = 0;
+                const duration = 1500; // milisegundos
+                const interval = 50; // milisegundos
+                const increment = originalValue / (duration / interval);
+                
+                const counter = setInterval(() => {
+                    currentValue += increment;
+                    
+                    if (currentValue >= originalValue) {
+                        clearInterval(counter);
+                        statNumber.textContent = originalValue;
+                    } else {
+                        statNumber.textContent = Math.floor(currentValue);
+                    }
+                }, interval);
+            }
+        });
+    }
 });
