@@ -90,7 +90,8 @@ class MusicManager {
             });
         }
         
-        this.dom.playPauseBtn?.addEventListener('click', () => this.togglePlayPause());
+        this.dom.playPauseBtn?.addEventListener('click', () => this.togglePlayPause()); 
+        
         this.dom.prevBtn?.addEventListener('click', () => this.playPrevious());
         this.dom.nextBtn?.addEventListener('click', () => this.playNext());
         this.dom.loopBtn?.addEventListener('click', () => this.toggleLoop());
@@ -467,22 +468,34 @@ class MusicManager {
     // Manejadores de eventos para HTMLAudioElement, bindeados en playTrack
     handleTrackEnd() {
         console.log("MusicManager: Pista local finalizada.");
-        this.isPlaying = false; // Establecer antes de llamar playNext o hacer bucle
+        this.isPlaying = false; // La pista ha terminado, por lo que ya no está sonando
+
         if (this.isLoopEnabled && this.currentMode === 'local' && this.currentAudio) {
             this.currentAudio.currentTime = 0;
-            this.currentAudio.play().catch(e => console.error("Error al re-activar bucle", e));
-            this.isPlaying = true; // Se establece de nuevo a true si el play es exitoso
+            this.currentAudio.play()
+                .then(() => {
+                    this.isPlaying = true; // Se reanuda la reproducción
+                    this.updatePlayPauseButtonUI();
+                    if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
+                })
+                .catch(e => {
+                    console.error("Error al re-activar bucle", e);
+                    this.isPlaying = false; // Falló, no está sonando
+                    this.updatePlayPauseButtonUI();
+                    if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
+                });
         } else {
+            // playNext llamará a playTrack, que se encargará de actualizar isPlaying y la UI del botón.
             this.playNext();
         }
-        this.updatePlayPauseButtonUI(); // Actualizar después de la acción
+
     }
 
     handleAudioError(e) {
         console.error('Error de reproducción de audio local:', e);
         this.showError('Error al reproducir la pista local.');
         this.isPlaying = false;
-        this.updatePlayPauseButtonUI();
+        this.updatePlayPauseButtonUI(); // Asegurar que el botón refleje el estado de no reproducción
         this.stopProgressUpdate();
     }
     
@@ -560,29 +573,37 @@ class MusicManager {
         if (!this.currentAudio || !this.currentTrack) {
              // Si no hay pista actual, intentar reproducir la primera de la lista local
             if (this.localPlaylist && this.localPlaylist.length > 0) {
+                // playTrack se encargará de actualizar isPlaying y la UI del botón correctamente
                 this.playTrack(this.localPlaylist[0]);
             }
-            return;
+            return; // Salir aquí porque playTrack manejará la UI
         }
         
-        if (this.isPlaying) {
+        if (this.isPlaying) { // Si está sonando, la pausamos
             this.currentAudio.pause();
             this.isPlaying = false;
             this.stopProgressUpdate();
-        } else {
+            // Actualizar UI DESPUÉS de que el estado haya cambiado
+            this.updatePlayPauseButtonUI();
+            if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
+        } else { // Si está pausada o detenida, la reproducimos/reanudamos
             this.currentAudio.play()
                 .then(() => {
                     this.isPlaying = true;
                     this.startProgressUpdate();
+                    // Actualizar UI DESPUÉS de que play() tenga éxito y isPlaying sea true
+                    this.updatePlayPauseButtonUI(); 
+                    if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
                 })
                 .catch(error => {
                     console.error('Error al reanudar:', error);
                     this.showError('Error al reproducir la pista.');
                     this.isPlaying = false; // Asegurar que isPlaying es false si hay error
+                    // Actualizar UI también en caso de error
+                    this.updatePlayPauseButtonUI(); 
+                    if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
                 });
         }
-        this.updatePlayPauseButtonUI();
-        if (this.currentTrack) this.updateTrackListVisualState(this.currentTrack.id, this.isPlaying);
     }
 
     updatePlayPauseButtonUI() {
