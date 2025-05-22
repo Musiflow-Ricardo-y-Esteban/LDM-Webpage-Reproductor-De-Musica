@@ -65,7 +65,7 @@
     </nav>
     
     <!-- Contenedor para notas musicales decorativas flotantes -->
-    <div class="notes-container"></div>
+    <div class="notes-container"></div> <!-- Clase correcta es notes-container -->
     
     <!-- Sección principal: información y configuración de la cuenta -->
     <section class="account-page-section">
@@ -158,7 +158,7 @@
                     </div>
                     
                     <!-- Sección de playlists del usuario -->
-                    <div class="user-playlists">
+                    <div class="user-playlists user-playlists-section"> <!-- Clase para scroll -->
                         <div class="section-header">
                             <h3>Mis Playlists</h3>
                             <div class="section-actions">
@@ -180,7 +180,7 @@
                             <div class="text-center py-4 text-muted">
                                 <i class="fas fa-music fa-2x mb-3"></i>
                                 <p>Aún no tienes playlists.</p>
-                                <button class="btn btn-sm btn-outline-light" id="createFirstPlaylistBtn">
+                                 <button class="btn btn-sm btn-outline-light" id="createFirstPlaylistBtnUI"> <!-- ID Único -->
                                     <i class="fas fa-plus me-2"></i> Crear mi primera playlist
                                 </button>
                             </div>
@@ -191,11 +191,11 @@
                 <!-- Columna derecha: contenido musical -->
                 <div class="col-lg-8">
                     <!-- Sección de canciones favoritas -->
-                    <div class="liked-songs">
+                    <div class="liked-songs liked-songs-section"> <!-- Clase para scroll -->
                         <div class="section-header">
                             <h3>Canciones que me gustan</h3>
                             <div class="section-actions">
-                                <button id="playAllLikedBtn" class="btn btn-sm btn-primary">
+                                <button id="playAllLikedBtn" class="btn btn-sm btn-primary" disabled> <!-- Deshabilitado por defecto -->
                                     <i class="fas fa-play me-1"></i> Reproducir todo
                                 </button>
                             </div>
@@ -218,7 +218,7 @@
                         <div class="section-header">
                             <h3>Escuchado recientemente</h3>
                             <div class="section-actions">
-                                <button id="clearHistoryBtn" class="btn btn-sm btn-outline-light">
+                                <button id="clearHistoryBtn" class="btn btn-sm btn-outline-light" disabled> <!-- Deshabilitado por defecto -->
                                     <i class="fas fa-trash me-1"></i> Limpiar
                                 </button>
                             </div>
@@ -241,7 +241,7 @@
     </section>
 
     <!-- Reproductor fijo en la parte inferior (para modo local) -->
-    <div class="current-player account-player" id="currentPlayer">
+    <div class="current-player account-player" id="currentPlayer" style="display: none;"> <!-- Oculto por defecto -->
         <!-- Información de la pista actual -->
         <div class="current-track-info">
             <img src="resources/album covers/placeholder.png" alt="Track" class="current-track-image" id="currentTrackImage">
@@ -349,20 +349,20 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createPlaylistModalLabel">Crear nueva playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="createPlaylistForm">
                         <div class="mb-3">
                             <label for="playlistName" class="form-label">Nombre de la playlist</label>
-                            <input type="text" class="form-control" id="playlistName" placeholder="Mi playlist" required>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="playlistName" placeholder="Mi playlist" required>
                         </div>
                         <div class="mb-3">
                             <label for="playlistDescription" class="form-label">Descripción (opcional)</label>
-                            <textarea class="form-control" id="playlistDescription" rows="3" placeholder="Describe tu playlist..."></textarea>
+                            <textarea class="form-control bg-secondary text-light border-secondary" id="playlistDescription" rows="3" placeholder="Describe tu playlist..."></textarea>
                         </div>
                         <div class="mb-3">
-                            <div class="form-check">
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="playlistPublic">
                                 <label class="form-check-label" for="playlistPublic">
                                     Hacer pública esta playlist
@@ -371,8 +371,8 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="savePlaylistBtn">Crear playlist</button>
                 </div>
             </div>
@@ -385,17 +385,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addToPlaylistModalLabel">Añadir a playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p id="selectedSongInfo"></p>
-                    <div id="userPlaylistsForSelection" class="mt-3">
-                        <div class="text-center py-3 text-muted">
-                            <p>No tienes playlists disponibles.</p>
-                            <button class="btn btn-sm btn-outline-light" id="createPlaylistFromModalBtn">
-                                <i class="fas fa-plus me-2"></i> Crear nueva playlist
-                            </button>
-                        </div>
+                    <div id="selectedSongInfo" class="mb-3"></div>
+                    <div id="userPlaylistsForSelection">
+                        <!-- Las playlists se cargarán aquí por JS -->
                     </div>
                 </div>
             </div>
@@ -408,7 +403,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="playlistDetailModalLabel">Detalles de playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row mb-4">
@@ -426,33 +421,109 @@
                                 <small>Creada por: <span id="playlistDetailCreator">Usuario</span> • <span id="playlistDetailSongCount">0</span> canciones • <span id="playlistDetailCreatedAt">Fecha</span></small>
                             </p>
                             <div class="mt-3">
-                                <button class="btn btn-primary me-2" id="playPlaylistBtn">
+                                <button class="btn btn-primary me-2" id="playAllPlaylistBtn"> <!-- ID Corregido/Unificado -->
                                     <i class="fas fa-play me-1"></i> Reproducir
                                 </button>
-                                <button class="btn btn-outline-light me-2" id="editPlaylistBtn">
+                                <button class="btn btn-outline-light me-2" id="editPlaylistBtnModal"> <!-- ID Corregido/Unificado -->
                                     <i class="fas fa-edit me-1"></i> Editar
                                 </button>
-                                <button class="btn btn-outline-danger" id="deletePlaylistBtn">
+                                <button class="btn btn-outline-danger" id="deletePlaylistBtnModal"> <!-- ID Corregido/Unificado -->
                                     <i class="fas fa-trash me-1"></i> Eliminar
                                 </button>
                             </div>
                         </div>
                     </div>
-                    <div id="playlistSongsList">
-                        <!-- Lista de canciones de la playlist (se carga dinámicamente) -->
-                    </div>
+                    <h5>Canciones en la playlist:</h5>
+                    <ul id="playlistSongsList" class="list-group list-group-flush"> <!-- Usar UL para la lista de canciones -->
+                        <!-- Lista de canciones de la playlist (se carga dinámicamente como LI) -->
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade modal-dark" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Editar Perfil</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label for="editProfileNameInput" class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="editProfileNameInput" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProfilePhotoURLInput" class="form-label">URL de la Foto de Perfil</label>
+                            <input type="url" class="form-control bg-secondary text-light border-secondary" id="editProfilePhotoURLInput" placeholder="https://ejemplo.com/imagen.jpg">
+                            <small class="form-text text-muted">
+                                Introduce una URL de imagen. Para subir una imagen, se requeriría Firebase Storage.
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProfileBioInput" class="form-label">Biografía (opcional)</label>
+                            <textarea class="form-control bg-secondary text-light border-secondary" id="editProfileBioInput" rows="3" placeholder="Cuéntanos algo sobre ti..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveProfileChangesBtn">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Playlist Modal -->
+    <div class="modal fade modal-dark" id="editPlaylistModal" tabindex="-1" aria-labelledby="editPlaylistModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPlaylistModalLabel">Editar Playlist</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPlaylistForm">
+                        <input type="hidden" id="editingPlaylistIdInput"> <!-- Para guardar el ID -->
+                        <div class="mb-3">
+                            <label for="editPlaylistNameInput" class="form-label">Nombre de la Playlist</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="editPlaylistNameInput" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPlaylistDescriptionInput" class="form-label">Descripción (opcional)</label>
+                            <textarea class="form-control bg-secondary text-light border-secondary" id="editPlaylistDescriptionInput" rows="3"></textarea>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="editPlaylistPublicInput">
+                            <label class="form-check-label" for="editPlaylistPublicInput">
+                                Playlist Pública
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="savePlaylistChangesBtn">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Overlay de carga para operaciones asíncronas -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
 
+    <!-- Contenedor para toasts -->
+    <div id="toastContainer"></div>
+
+
     <!-- Pie de página con información y enlaces -->
-    <footer class="footer mt-auto">
+    <footer class="footer mt-auto py-3"> <!-- py-3 para padding -->
         <div class="container">
             <div class="row">
                 <!-- Columna de información de la empresa -->
@@ -507,29 +578,53 @@
             </div>
             
 
-            <div class="copyright">
+            <div class="copyright text-center mt-3"> <!-- text-center y margen -->
                 <p>© 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
+    </footer>
     
     <!-- Bibliotecas JS externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-<!-- Primero: Firebase y autenticación -->
-<script src="resources/js/common-auth.js"></script>
-<script src="resources/js/firebase-init.js"></script>
-<script src="resources/js/spotify-api.js"></script>
-<!-- Segundo: Sistemas de gestión -->
-<script src="resources/js/firebase-likes.js"></script>
-<script src="resources/js/playlist-manager.js"></script>
 
-<!-- Tercero: Visualización y música -->
-<script src="resources/js/mostrarCanciones.js"></script>
-<script src="resources/js/music-manager.js"></script>
+    <!-- Scripts de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script> -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script> -->
 
-<!-- Cuarto: Página específica -->
-<script src="resources/js/account.js"></script>
 
+    <!-- Scripts de la aplicación -->
+    <script src="resources/js/firebase-init.js"></script> <!-- Primero para inicializar Firebase -->
+    <script src="resources/js/common-auth.js"></script>
+    <script src="resources/js/spotify-api.js"></script>
+    
+    <script src="resources/js/firebase-likes.js"></script>
+    <script src="resources/js/playlist-manager.js"></script>
+
+    <script src="resources/js/mostrarCanciones.js"></script>
+    <script src="resources/js/music-manager.js"></script>
+    
+    <script src="resources/js/asistente.js"></script> <!-- Script del asistente -->
+    <script src="resources/js/account.js"></script> <!-- Script específico de la página de cuenta -->
+
+    <script>
+        // Inicializar AOS (Animate On Scroll)
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
+        }
+
+        // Inicializar el script del asistente si existe la función
+        if (typeof initializeAssistant === 'function') {
+            initializeAssistant();
+        }
+    </script>
 
 </body>
 </html>
