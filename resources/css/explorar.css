@@ -542,3 +542,127 @@
 .source-selector .btn .fa-spotify {
     color: #1DB954;
 }
+
+/* Estilos adicionales para explorar.css - Botones de like y acciones */
+
+/* Contenedor de acciones en las pistas */
+.track-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.track-item:hover .track-actions,
+.track-row:hover .track-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Botones de acción individuales */
+.action-button {
+    background: none;
+    border: none;
+    color: var(--texto-secundario);
+    font-size: 1rem;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Botón de like específico */
+.like-button {
+    color: var(--texto-secundario);
+}
+
+.like-button:hover {
+    color: #1ed760;
+}
+
+.like-button.active {
+    color: #1ed760;
+}
+
+.like-button.active:hover {
+    color: #1fdf64;
+    transform: scale(1.2);
+}
+
+/* Botón de añadir a playlist */
+.add-to-playlist-button:hover {
+    color: var(--acento-actual);
+}
+
+/* Botón de más opciones */
+.more-button:hover {
+    color: var(--texto-primario);
+}
+
+/* Mejorar el diseño de las filas de pistas para incluir acciones */
+.track-item,
+.track-row {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.track-duration {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 120px;
+}
+
+/* Asegurar que los botones de acción se muestren correctamente */
+@media (max-width: 768px) {
+    .track-actions {
+        opacity: 1;
+        visibility: visible;
+        position: relative;
+    }
+    
+    .action-button {
+        padding: 6px;
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Indicador de fuente de canción */
+.song-source {
+    font-size: 0.7rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.song-source.spotify {
+    background-color: rgba(29, 185, 84, 0.2);
+    color: #1DB954;
+    border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+.song-source.local {
+    background-color: rgba(255, 68, 68, 0.2);
+    color: #FF4444;
+    border: 1px solid rgba(255, 68, 68, 0.3);
+}

@@ -511,28 +511,24 @@
                 <p>© 2025 MusiFlow. Todos los derechos reservados.</p>
             </div>
         </div>
-    </footer>
-
-    <!-- Scripts de JavaScript -->
-    <!-- Script para autenticación común en todas las páginas -->
-    <script src="resources/js/common-auth.js"></script>
     
     <!-- Bibliotecas JS externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    
-    <!-- Script para el asistente musical -->
-    <script src="resources/js/asistente.js"></script>
-    
-    <!-- Inicialización de Firebase -->
-    <script src="resources/js/firebase-init.js"></script>
-    
-    <!-- Script específico para la página de cuenta -->
-    <script src="resources/js/account.js"></script>
-
-    <!-- Gestión de likes y playlists -->
+<!-- Primero: Firebase y autenticación -->
+<script src="resources/js/common-auth.js"></script>
+<script src="resources/js/firebase-init.js"></script>
+<script src="resources/js/spotify-api.js"></script>
+<!-- Segundo: Sistemas de gestión -->
 <script src="resources/js/firebase-likes.js"></script>
 <script src="resources/js/playlist-manager.js"></script>
+
+<!-- Tercero: Visualización y música -->
+<script src="resources/js/mostrarCanciones.js"></script>
+<script src="resources/js/music-manager.js"></script>
+
+<!-- Cuarto: Página específica -->
+<script src="resources/js/account.js"></script>
 
 </body>
 </html>
